@@ -1,7 +1,8 @@
 -- =====================================================================
 -- 放入分館資料（可重複執行：已存在的分館會更新成這裡的內容）
 -- 顏色欄位需先執行 migration 20260929000006_branch_color.sql
--- 中壢店尚未開幕：先設為「未營運」，開幕時再改成營運中並補上地址電話
+-- 依 docs/decisions.md 分館表：五店營業中；中壢店籌備中（is_active = false，地址電話待定）
+-- A19 店已於 8/31 結束營業，不建立
 -- =====================================================================
 insert into public.branches (code, name, address, phone, sort_order, is_active, color) values
   ('WH', '萬華店', '10855 台北市萬華區大理街149號',                        '02-2308-8250', 1, true, '#6B4FA3'),
@@ -9,7 +10,7 @@ insert into public.branches (code, name, address, phone, sort_order, is_active, 
   ('NG', '南港店', '11578 台北市南港區南港路二段147號',                    '02-2651-9555', 3, true, '#A8741A'),
   ('XD', '新店店', '23146 新北市新店區中興路三段70號（YES!LIFE 裕隆城7樓）', '02-8914-7755', 4, true, '#D9661F'),
   ('MD', '明德店', '11287 台北市北投區文林北路222號B1',                    '02-2821-9988', 5, true, '#B83A52'),
-  ('ZL', '中壢店', '320 桃園市中壢區（詳細地址未公布）',                   null,           6, false, '#2A74B5')
+  ('ZL', '中壢店', '桃園市中壢（待定）',                                     null,           6, false, '#2A74B5')
 on conflict (code) do update set
   name = excluded.name, address = excluded.address, phone = excluded.phone,
   sort_order = excluded.sort_order, is_active = excluded.is_active, color = excluded.color;
