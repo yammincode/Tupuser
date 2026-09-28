@@ -118,6 +118,8 @@
 ## 前端（`web/`）
 
 - 單一 Vite + React 專案，用網址區分各系統：`/counter` 櫃檯（已完成第一版）；之後加 `/kiosk` 入場機、`/app` 會員 App、`/admin` 總部後台。
-- 櫃檯頁面：結帳、會員、同意書、今日入場、訂單（作廢／退款）、關帳；頂部色帶用 `branches.color`；首次登入自動播放導覽（`components/Tour.jsx`）。
+- 櫃檯已依設計稿重做（2026-09-29）：頂端分頁 結帳｜會員｜今日｜關帳；另有新增／編輯會員（`/counter/members/new`、`/counter/members/:id/edit`）與全螢幕客人簽同意書（`/counter/waiver/:memberId`）。頂欄底色用 `branches.color`（老闆決定保留分店色），店名後接 `brand_label`；首次登入播放導覽；掃碼器在任何分頁有效（`lib/useScanner.js` → `resolve_member_qr`）。
+- 今日訂單與作廢放在「今日」分頁的「今日訂單」切換裡（設計稿沒有，老闆決定櫃檯可作廢當日訂單）。退費在會員頁方案區與今日訂單（限店長以上）。
+- 畫面樣式只用 `web/src/design/tokens.css` 的 `ds-*` 元件與變數；頁面版面在 `web/src/styles.css`。
 - 路由連結一律用絕對路徑（`/counter/...`），相對路徑在 `/counter/*` 底下會無限疊加。
 - 本機完整測試：`npx supabase start`（Docker）會套用 migrations 與 `supabase/seed/*.sql`；`web/.env.local` 指向 `http://127.0.0.1:54321`。老闆的試用步驟見 `docs/setup-counter.md`。

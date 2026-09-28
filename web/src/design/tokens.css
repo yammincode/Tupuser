@@ -3,7 +3,7 @@
    說明文件：docs/design-system.md
    ===================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+/* 字體 Noto Sans TC 由 index.html 載入（Google Fonts，400／500／700） */
 
 :root {
   /* ---------- 字體 ---------- */

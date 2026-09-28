@@ -18,7 +18,19 @@ export async function searchMembers(q) {
   } else {
     query = query.ilike('name', `%${text}%`)
   }
-  return unwrap(await query)
+  const members = unwrap(await query)
+  // 每位會員附上一句方案摘要（設計稿搜尋結果右側）
+  const ids = members.map((m) => m.id)
+  const plans = ids.length ? unwrap(await supabase.from('member_plans').select('*')
+    .in('member_id', ids).eq('status', 'active').order('end_date', { ascending: true, nullsFirst: false })) : []
+  return members.map((m) => ({ ...m, activePlans: plans.filter((p) => p.member_id === m.id) }))
+}
+
+export async function loadMember(id) {
+  const m = unwrap(await supabase.from('members').select('*').eq('id', id).single())
+  const plans = unwrap(await supabase.from('member_plans').select('*').eq('member_id', id).eq('status', 'active')
+    .order('end_date', { ascending: true, nullsFirst: false }))
+  return { ...m, activePlans: plans }
 }
 
 // 目前有效的同意書版本

@@ -1,7 +1,8 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 
-// 手寫簽名板（手指或觸控筆），可匯出 PNG
-const SignaturePad = forwardRef(function SignaturePad({ height = 220 }, ref) {
+// 手指簽名區（設計稿：米白底、虛線框、圓角 12），可匯出 PNG
+const SignaturePad = forwardRef(function SignaturePad({ hint = '請用手指在這裡簽名' }, ref) {
+  const box = useRef(null)
   const canvas = useRef(null)
   const drawing = useRef(false)
   const [empty, setEmpty] = useState(true)
@@ -9,17 +10,18 @@ const SignaturePad = forwardRef(function SignaturePad({ height = 220 }, ref) {
   useEffect(() => {
     const c = canvas.current
     const ratio = window.devicePixelRatio || 1
-    c.width = c.offsetWidth * ratio
-    c.height = height * ratio
+    const r = box.current.getBoundingClientRect()
+    c.width = r.width * ratio
+    c.height = r.height * ratio
     const ctx = c.getContext('2d')
     ctx.scale(ratio, ratio)
     ctx.lineWidth = 2.6
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
-    ctx.strokeStyle = '#111827'
-  }, [height])
+    ctx.strokeStyle = '#1C1A17'
+  }, [])
 
-  function pos(e) {
+  const pos = (e) => {
     const r = canvas.current.getBoundingClientRect()
     return [e.clientX - r.left, e.clientY - r.top]
   }
@@ -38,7 +40,7 @@ const SignaturePad = forwardRef(function SignaturePad({ height = 220 }, ref) {
     ctx.stroke()
     setEmpty(false)
   }
-  function up() { drawing.current = false }
+  const up = () => { drawing.current = false }
   function clear() {
     const c = canvas.current
     c.getContext('2d').clearRect(0, 0, c.width, c.height)
@@ -52,11 +54,9 @@ const SignaturePad = forwardRef(function SignaturePad({ height = 220 }, ref) {
   }), [empty])
 
   return (
-    <div className="sigpad">
-      <canvas ref={canvas} style={{ height }} onPointerDown={down} onPointerMove={move}
-        onPointerUp={up} onPointerLeave={up} />
-      {empty && <div className="sigpad-hint">請在此處簽名</div>}
-      <button type="button" className="btn small ghost sigpad-clear" onClick={clear}>清除重簽</button>
+    <div ref={box} className="sigpad ds-sign-area">
+      <canvas ref={canvas} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerLeave={up} />
+      {empty && <div className="sigpad-hint">{hint}</div>}
     </div>
   )
 })

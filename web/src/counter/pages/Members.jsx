@@ -1,241 +1,339 @@
 import { useEffect, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router'
 import { supabase, rpc, errorText } from '../../lib/supabase'
 import { unwrap } from '../../lib/useAsync'
-import { MEMBER_FIELDS, hasSignedCurrent, memberPlans } from '../../lib/members'
-import { CHECKIN_RESULT, PLAN_STATUS, age, dateTime, phoneText, planSummary } from '../../lib/format'
+import { currentWaiver } from '../../lib/members'
+import { money, phoneText, planSummary, slashDate, todayTPE, whenText } from '../../lib/format'
 import { useCounter } from '../CounterContext'
-import MemberPicker from '../../components/MemberPicker'
+import MemberSearch from '../../components/MemberSearch'
 import Modal from '../../components/Modal'
-import Badge from '../../components/Badge'
-import Icon from '../../components/Icon'
+import ConfirmDialog from '../../components/ConfirmDialog'
 import { useToast } from '../../components/Toast'
+
+const STATUS_PILL = { active: ['正常', 'ok'], suspended: ['暫停', 'warn'], inactive: ['停用', 'off'] }
+const PLAN_PILL = {
+  active: ['使用中', 'ok'], frozen: ['暫停中', 'warn'], expired: ['已到期', 'off'], used_up: ['已用完', 'off'], cancelled: ['已取消', 'off'],
+}
+const RESULT_TEXT = {
+  success: '入場成功', waiver_required: '需簽同意書', plan_expired: '方案到期', no_remaining: '次數已用完',
+  no_valid_plan: '沒有可用方案', not_allowed_now: '時段不適用', branch_not_allowed: '分館不適用',
+  member_suspended: '會員暫停中', qr_invalid: 'QR 失效',
+}
 
 export default function Members() {
   const location = useLocation()
-  const [member, setMember] = useState(location.state?.member || null)
-  const [registering, setRegistering] = useState(Boolean(location.state?.register))
+  const [memberId, setMemberId] = useState(location.state?.memberId || null)
+  const [reload, setReload] = useState(0)
+
+  useEffect(() => {
+    if (location.state?.memberId) setMemberId(location.state.memberId)
+  }, [location.state?.memberId, location.state?.at])
 
   return (
-    <div className="members-page">
-      <div className="panel members-search">
-        <h2>會員查詢</h2>
-        <MemberPicker onPick={setMember} autoFocus />
-        <button className="btn primary big wide" onClick={() => setRegistering(true)}>
-          <Icon name="plus" /> 註冊新會員
-        </button>
-        <p className="hint">可以輸入手機號碼（例如 0912）、姓名或會員編號（例如 M0001）。</p>
+    <div className="page">
+      <div className="mem-search">
+        <label className="ds-card-title" htmlFor="q">查詢會員</label>
+        <MemberSearch inline selectedId={memberId} onPick={(m) => { setMemberId(m.id); setReload((n) => n + 1) }} autoFocus />
+        <Link to="/counter/members/new" className="ds-btn-primary">＋ 新增會員</Link>
       </div>
-      <div className="members-detail">
-        {member
-          ? <MemberDetail key={member.id} memberId={member.id} />
-          : <div className="panel empty-state"><Icon name="users" size={48} /><p>先在左邊搜尋會員</p></div>}
+      <div className="col grow">
+        {memberId
+          ? <MemberDetail key={memberId + ':' + reload} memberId={memberId} />
+          : <div className="ds-card empty-card">查詢會員，或用掃碼器掃會員的 QR code</div>}
       </div>
-      {registering && (
-        <MemberForm onClose={() => setRegistering(false)}
-          onSaved={(m) => { setRegistering(false); setMember(m) }} />
-      )}
     </div>
   )
 }
 
 function MemberDetail({ memberId }) {
-  const { staff, branches } = useCounter()
+  const { staff, branches, refreshCount } = useCounter()
   const navigate = useNavigate()
   const toast = useToast()
-  const [m, setM] = useState(null)
-  const [plans, setPlans] = useState([])
-  const [checkins, setCheckins] = useState([])
-  const [waiverOk, setWaiverOk] = useState(true)
-  const [editing, setEditing] = useState(false)
-  const [result, setResult] = useState(null)
+  const [d, setD] = useState(null)
   const [error, setError] = useState('')
+  const [planId, setPlanId] = useState(null)
+  const [photo, setPhoto] = useState(null)
+  const [noteDraft, setNoteDraft] = useState('')
+  const [dialog, setDialog] = useState(null)
+  const [checkin, setCheckin] = useState(null)
+  const isManager = staff.role !== 'cashier'
 
   async function load() {
     try {
-      const [mm, pl, ck, ok] = await Promise.all([
+      const [m, plans, visits, orders, waiver] = await Promise.all([
         supabase.from('members').select('*').eq('id', memberId).single().then(unwrap),
-        memberPlans(memberId),
-        supabase.from('checkins').select('id, checked_in_at, result, deducted, cancelled_at, branch_id, member_plans(name)')
+        supabase.from('member_plans').select('*, order_items(order_id, line_total, quantity, orders(id, order_no, branch_id, status))')
+          .eq('member_id', memberId).order('created_at', { ascending: false }).then(unwrap),
+        supabase.from('checkins').select('id, checked_in_at, method, result, branch_id, cancelled_at')
           .eq('member_id', memberId).order('checked_in_at', { ascending: false }).limit(8).then(unwrap),
-        hasSignedCurrent(memberId),
+        supabase.from('orders').select('id, created_at, total, status, order_items(product_name, quantity)')
+          .eq('member_id', memberId).order('created_at', { ascending: false }).limit(8).then(unwrap),
+        currentWaiver(),
       ])
-      setM(mm); setPlans(pl); setCheckins(ck); setWaiverOk(ok)
+      const sig = waiver ? unwrap(await supabase.from('waiver_signatures').select('signed_at, branch_id')
+        .eq('member_id', memberId).eq('waiver_version_id', waiver.id).order('signed_at', { ascending: false }).limit(1)) : []
+      const order = { active: 0, frozen: 1, used_up: 2, expired: 3, cancelled: 4 }
+      plans.sort((a, b) => order[a.status] - order[b.status])
+      setD({ m, plans, visits, orders, waiver, sig: sig[0] || null })
+      setNoteDraft(m.staff_note || '')
+      setPlanId((p) => p || plans.find((x) => x.status === 'active')?.id || null)
+      if (m.avatar_path) {
+        const { data } = await supabase.storage.from('avatars').createSignedUrl(m.avatar_path, 3600)
+        setPhoto(data?.signedUrl || null)
+      }
     } catch (e) { setError(e.message) }
   }
   useEffect(() => { load() }, [memberId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function enter(planId) {
+  if (error) return <div className="ds-card ds-error">{error}</div>
+  if (!d) return <div className="ds-card empty-card">載入中…</div>
+
+  const { m, plans, visits, orders, waiver, sig } = d
+  const branchName = (id) => branches.find((b) => b.id === id)?.name || '其他分館'
+  const plan = plans.find((p) => p.id === planId)
+  const [st, tone] = STATUS_PILL[m.status]
+  const shownPlans = plans.filter((p) => ['active', 'frozen'].includes(p.status) || p === plans.find((x) => x.status === 'expired'))
+  const planOrder = plan?.order_items?.orders
+
+  async function saveNote() {
+    if (noteDraft === (m.staff_note || '')) return
+    const { error } = await supabase.from('members').update({ staff_note: noteDraft || null }).eq('id', m.id)
+    if (error) toast(errorText(error), 'bad'); else toast('櫃檯備註已儲存')
+  }
+
+  async function enter() {
     try {
-      const r = await rpc('counter_checkin', { p_member_id: memberId, p_plan_id: planId || null })
-      setResult(r)
-      load()
+      const r = await rpc('counter_checkin', { p_member_id: m.id, p_plan_id: plan?.content_type === 'course' ? plan.id : null })
+      setCheckin(r); refreshCount(); load()
     } catch (e) { toast(e.message, 'bad') }
   }
 
-  if (error) return <div className="panel error">{error}</div>
-  if (!m) return <div className="panel muted">載入中…</div>
-
-  const branchName = (id) => branches.find((b) => b.id === id)?.name || '其他分館'
-  const a = age(m.birthday)
-  const active = plans.filter((p) => p.status === 'active')
-  const past = plans.filter((p) => p.status !== 'active')
-  const canEdit = staff.role === 'hq' || staff.role === 'manager'
-  const r = result && CHECKIN_RESULT[result.result]
-
   return (
-    <div className="panel member-detail">
-      <div className="md-head">
-        <span className="avatar huge">{m.name.slice(0, 1)}</span>
-        <div className="grow">
-          <h2>{m.name} <small>{m.member_no}</small></h2>
-          <div className="md-tags">
-            <span>{phoneText(m.phone)}</span>
-            <span>{a} 歲{a < 18 && '（未成年）'}</span>
-            <span>主要分館：{branchName(m.home_branch_id)}</span>
-            {m.status !== 'active' && <Badge tone="bad">{m.status === 'suspended' ? '暫停' : '停用'}</Badge>}
-            {waiverOk ? <Badge tone="ok">已簽同意書</Badge> : <Badge tone="warn">未簽最新版同意書</Badge>}
+    <>
+      <div className="mem-card">
+        {photo
+          ? <img src={photo} alt="" className="ds-avatar" style={{ objectFit: 'cover' }} />
+          : <div className="ds-avatar">{m.name.slice(0, 1)}</div>}
+        <div className="grow" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span className="mem-name">{m.name}</span><span className={'ds-pill ' + tone}>{st}</span>
           </div>
-        </div>
-        {canEdit && <button className="btn ghost" onClick={() => setEditing(true)}>編輯資料</button>}
-      </div>
-
-      <div className="md-actions">
-        <button className="btn primary big" onClick={() => enter()}><Icon name="door" />入場</button>
-        <button className="btn big" onClick={() => navigate('/counter/checkout', { state: { member: m } })}><Icon name="cart" />幫他結帳</button>
-        {!waiverOk && <button className="btn warn big" onClick={() => navigate('/counter/waiver', { state: { member: m } })}><Icon name="pen" />簽同意書</button>}
-      </div>
-
-      {result && (
-        <div className={'checkin-result ' + (r?.tone || 'bad')}>
-          <strong>{r?.text}</strong><span>{result.message}</span>
-          {result.plan && <small>使用方案：{result.plan.name}{result.deducted ? '（已扣 1 次）' : '（今天已扣過，不再扣）'}</small>}
-        </div>
-      )}
-
-      {m.staff_note && <div className="note-box"><strong>櫃檯備註</strong>{m.staff_note}</div>}
-
-      <div className="md-cols">
-        <div>
-          <h3>使用中的方案（{active.length}）</h3>
-          <ul className="plan-list">
-            {active.length === 0 && <li className="muted">沒有使用中的方案</li>}
-            {active.map((p) => (
-              <li key={p.id}>
-                <div className="grow"><strong>{p.name}</strong><small>{planSummary(p)}</small></div>
-                {p.content_type === 'course' && <button className="btn small" onClick={() => enter(p.id)}>上課入場</button>}
-              </li>
-            ))}
-          </ul>
-          {past.length > 0 && (
-            <details>
-              <summary>過去的方案（{past.length}）</summary>
-              <ul className="plan-list past">
-                {past.map((p) => (
-                  <li key={p.id}><div className="grow">{p.name}<small>{planSummary(p)}</small></div>
-                    <Badge tone={PLAN_STATUS[p.status].tone}>{PLAN_STATUS[p.status].text}</Badge></li>
-                ))}
-              </ul>
-            </details>
+          <div className="mem-meta">{phoneText(m.phone)}・{slashDate(m.birthday)}・主要分館 {branchName(m.home_branch_id)}</div>
+          {sig || !waiver ? (
+            <div className="mem-waiver">
+              同意書 已簽 {waiver ? `v${waiver.version}（${slashDate(todayTPE(new Date(sig.signed_at)))} ${branchName(sig.branch_id)}）` : ''}
+              {m.carrier_code ? `・載具 ${m.carrier_code}` : ''}
+            </div>
+          ) : (
+            <div className="mem-waiver bad">
+              同意書 尚未簽署最新版・<Link to={`/counter/waiver/${m.id}`} state={{ back: '/counter/members', memberId: m.id }}>交給客人簽署</Link>
+            </div>
           )}
         </div>
-        <div>
-          <h3>最近入場</h3>
-          <ul className="plan-list">
-            {checkins.length === 0 && <li className="muted">還沒有入場紀錄</li>}
-            {checkins.map((c) => (
-              <li key={c.id} className={c.cancelled_at ? 'struck' : ''}>
-                <div className="grow">{dateTime(c.checked_in_at)}<small>{branchName(c.branch_id)}{c.member_plans ? `・${c.member_plans.name}` : ''}</small></div>
-                <Badge tone={CHECKIN_RESULT[c.result].tone}>{c.cancelled_at ? '已取消' : CHECKIN_RESULT[c.result].text}</Badge>
-              </li>
-            ))}
-          </ul>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {isManager && <button type="button" className="ds-btn" onClick={() => navigate(`/counter/members/${m.id}/edit`)}>編輯資料</button>}
+          <button type="button" className="ds-btn accent" onClick={() => navigate('/counter/checkout', { state: { memberId: m.id, at: Date.now() } })}>幫他結帳</button>
         </div>
       </div>
 
-      {editing && <MemberForm member={m} onClose={() => setEditing(false)} onSaved={() => { setEditing(false); load() }} />}
-    </div>
+      <div className="mem-grid">
+        <div className="ds-card" style={{ gap: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span className="ds-card-title">方案</span>
+            <span style={{ fontSize: 12, color: 'var(--c-muted)' }}>暫停・延期・轉讓・退費限店長</span>
+          </div>
+          <div style={{ flexGrow: 1, overflowY: 'auto' }}>
+            {shownPlans.length === 0 && <div className="co-empty">沒有方案</div>}
+            {shownPlans.map((p) => {
+              const [ps, pt] = PLAN_PILL[p.status]
+              return (
+                <div key={p.id} className={'mem-plan' + (p.id === planId ? ' on' : '')} onClick={() => setPlanId(p.id)}>
+                  <div><b>{p.name}</b><small>{planSummary(p)}</small></div>
+                  <span className={'ds-pill ' + pt}>{ps}</span>
+                </div>
+              )
+            })}
+          </div>
+          <div style={{ display: 'flex', gap: 8, paddingTop: 6, flexWrap: 'wrap' }}>
+            <button type="button" className="ds-btn ok" onClick={enter}>扣次入場</button>
+            {plan?.status === 'frozen'
+              ? <button type="button" className="ds-btn" disabled={!isManager} onClick={() => setDialog('unfreeze')}>恢復</button>
+              : <button type="button" className="ds-btn" disabled={!isManager || plan?.status !== 'active'} onClick={() => setDialog('freeze')}>暫停</button>}
+            <button type="button" className="ds-btn" disabled={!isManager || !plan?.end_date} onClick={() => setDialog('extend')}>延期</button>
+            <button type="button" className="ds-btn" disabled={!isManager || !['active', 'frozen'].includes(plan?.status)} onClick={() => setDialog('transfer')}>轉讓</button>
+            <button type="button" className="ds-btn" disabled={!isManager || !planOrder || planOrder.status !== 'paid'} onClick={() => setDialog('refund')}>退費</button>
+          </div>
+        </div>
+
+        <div className="ds-card">
+          <span className="ds-card-title">最近入場</span>
+          {visits.length === 0 && <div className="co-empty">還沒有入場紀錄</div>}
+          {visits.map((v) => (
+            <div key={v.id} className="mem-line" style={v.cancelled_at ? { opacity: 0.5, textDecoration: 'line-through' } : null}>
+              <span>{whenText(v.checked_in_at)}</span>
+              <span style={{ color: v.result === 'success' ? 'var(--c-muted)' : 'var(--c-bad)' }}>
+                {branchName(v.branch_id)}・{v.method === 'kiosk' ? '入場機' : '櫃檯'}{v.result !== 'success' ? `・${RESULT_TEXT[v.result]}` : ''}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <div className="ds-card">
+          <span className="ds-card-title">購買紀錄</span>
+          {orders.length === 0 && <div className="co-empty">還沒有購買紀錄</div>}
+          {orders.map((o) => (
+            <div key={o.id} className="mem-line" style={o.status !== 'paid' ? { color: 'var(--c-muted)' } : null}>
+              <span>{whenText(o.created_at).replace(/\d\d:\d\d$/, '').replace(/（.）/, '')}・{o.order_items[0]?.product_name}{o.order_items.length > 1 ? ` 等 ${o.order_items.length} 項` : ''}
+                {o.status === 'voided' ? '（已作廢）' : o.status === 'refunded' ? '（已退費）' : ''}</span>
+              <span style={{ fontWeight: 500 }}>{money(o.total)}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="ds-card" style={{ gap: 8 }}>
+          <label htmlFor="memo" className="ds-card-title">櫃檯備註（會員看不到）</label>
+          <textarea id="memo" className="ds-textarea" style={{ flexGrow: 1, minHeight: 80 }} value={noteDraft}
+            readOnly={!isManager} placeholder={isManager ? '' : '（店長以上可以編輯）'}
+            onChange={(e) => setNoteDraft(e.target.value)} onBlur={isManager ? saveNote : undefined} />
+        </div>
+      </div>
+
+      {dialog === 'freeze' && <ReasonDialog title={`暫停「${plan.name}」`} hint="暫停期間不能入場；恢復時會依暫停天數自動延長到期日。"
+        confirmText="確認暫停" onClose={() => setDialog(null)}
+        onConfirm={async (reason) => { await rpc('freeze_plan', { p_plan_id: plan.id, p_reason: reason }); toast('方案已暫停'); load() }} />}
+      {dialog === 'unfreeze' && <ConfirmDialog title={`恢復「${plan.name}」？`} confirmText="確認恢復"
+        lines={[['暫停開始', slashDate(plan.frozen_at)], ['到期日', plan.end_date ? '會依暫停天數自動延長' : '不限期']]}
+        onClose={() => setDialog(null)}
+        onConfirm={async () => { await rpc('unfreeze_plan', { p_plan_id: plan.id }); toast('方案已恢復'); load() }} />}
+      {dialog === 'extend' && <ExtendDialog plan={plan} onClose={() => setDialog(null)} onDone={() => { toast('已延期'); load() }} />}
+      {dialog === 'transfer' && <TransferDialog plan={plan} from={m} onClose={() => setDialog(null)} onDone={() => { toast('已轉讓'); load() }} />}
+      {dialog === 'refund' && <RefundDialog plan={plan} onClose={() => setDialog(null)} onDone={() => { toast('退費完成'); load() }} />}
+      {checkin && <CheckinResultDialog result={checkin} onClose={() => setCheckin(null)}
+        onWaiver={() => navigate(`/counter/waiver/${m.id}`, { state: { back: '/counter/members', memberId: m.id } })} />}
+    </>
   )
 }
 
-const EMPTY = {
-  phone: '', name: '', birthday: '', emergency_name: '', emergency_phone: '', emergency_relation: '',
-  carrier_code: '', email: '', home_branch_id: '', staff_note: '', marketing_opt_in: false, status: 'active',
+// 扣次入場的結果
+export function CheckinResultDialog({ result, onClose, onWaiver }) {
+  const ok = result.result === 'success'
+  const p = result.plan
+  return (
+    <Modal title={ok ? '入場成功' : '無法入場'} onClose={onClose}>
+      <div style={{ fontSize: 16, lineHeight: 1.8 }}>
+        <div>{result.member?.name}：{RESULT_TEXT[result.result]}</div>
+        {ok && p && <div>使用方案：{p.name}</div>}
+        {ok && p && p.content_type !== 'days' && <div>{result.deducted ? '已扣 1 次，' : '今天已扣過，不再扣，'}剩 {p.remaining_count} 次</div>}
+        {!ok && result.blocked_plan && <div className="muted">{result.blocked_plan.name}{result.blocked_plan.end_date ? `（到期 ${slashDate(result.blocked_plan.end_date)}）` : ''}</div>}
+      </div>
+      {result.result === 'waiver_required' && <button type="button" className="ds-btn-primary" onClick={onWaiver}>交給客人簽署同意書</button>}
+      <button type="button" className="ds-btn-dark" onClick={onClose}>知道了</button>
+    </Modal>
+  )
 }
 
-// 新增或編輯會員。櫃檯只能新增；店長以上能編輯；手機號碼只有總部能改
-export function MemberForm({ member, onClose, onSaved }) {
-  const { staff, branch, branches } = useCounter()
-  const [f, setF] = useState(member ? { ...EMPTY, ...member, phone: phoneText(member.phone).replace(/-/g, '') }
-    : { ...EMPTY, home_branch_id: branch.id })
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState('')
-  const set = (k) => (e) => setF({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value })
-  const phoneLocked = member && staff.role !== 'hq'
-
-  async function save(e) {
-    e.preventDefault()
-    setBusy(true); setError('')
-    const row = {
-      name: f.name.trim(), birthday: f.birthday, home_branch_id: f.home_branch_id,
-      emergency_name: f.emergency_name.trim(), emergency_phone: f.emergency_phone.trim(), emergency_relation: f.emergency_relation.trim(),
-      carrier_code: f.carrier_code.trim() || null, email: f.email.trim() || null,
-      staff_note: f.staff_note.trim() || null, marketing_opt_in: f.marketing_opt_in,
-    }
-    if (!phoneLocked) row.phone = f.phone
-    if (member) row.status = f.status
-    const q = member
-      ? supabase.from('members').update(row).eq('id', member.id).select(MEMBER_FIELDS).single()
-      : supabase.from('members').insert(row).select(MEMBER_FIELDS).single()
-    const { data, error } = await q
-    setBusy(false)
-    if (error) setError(/手機號碼格式/.test(error.message) ? '手機號碼格式不正確，請輸入 09 開頭 10 碼' : errorText(error))
-    else onSaved(data)
-  }
-
+function ReasonDialog({ title, hint, confirmText, onConfirm, onClose }) {
+  const [reason, setReason] = useState('')
+  const [step, setStep] = useState(1)
+  if (step === 2) return <ConfirmDialog title={title + '？'} confirmText={confirmText} lines={[['原因', reason]]} onConfirm={() => onConfirm(reason)} onClose={onClose} />
   return (
-    <Modal title={member ? `編輯會員：${member.name}` : '註冊新會員'} onClose={onClose} width={720}
-      footer={<>
-        <button className="btn ghost" onClick={onClose}>取消</button>
-        <button className="btn primary" form="member-form" disabled={busy}>{busy ? '儲存中…' : '儲存'}</button>
-      </>}>
-      <form id="member-form" className="form-grid" onSubmit={save}>
-        <fieldset>
-          <legend>基本資料</legend>
-          <label>手機號碼（登入用）*
-            <input value={f.phone} onChange={set('phone')} inputMode="tel" required disabled={phoneLocked} placeholder="0912345678" />
-            {phoneLocked && <small className="muted">手機號碼只有總部可以修改</small>}
-          </label>
-          <label>姓名 *<input value={f.name} onChange={set('name')} required /></label>
-          <label>生日 *<input type="date" value={f.birthday} onChange={set('birthday')} required /></label>
-          <label>主要分館 *
-            <select value={f.home_branch_id} onChange={set('home_branch_id')} required>
-              {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-            </select>
-          </label>
-          <label>Email（選填）<input type="email" value={f.email || ''} onChange={set('email')} /></label>
-          <label>手機條碼載具（選填）<input value={f.carrier_code || ''} onChange={set('carrier_code')} placeholder="/ABC1234" /></label>
-        </fieldset>
-        <fieldset>
-          <legend>緊急聯絡人</legend>
-          <label>姓名 *<input value={f.emergency_name} onChange={set('emergency_name')} required /></label>
-          <label>電話 *<input value={f.emergency_phone} onChange={set('emergency_phone')} inputMode="tel" required /></label>
-          <label>關係 *<input value={f.emergency_relation} onChange={set('emergency_relation')} required placeholder="例：父母、配偶、朋友" /></label>
-          <label>櫃檯備註（會員看不到）<textarea rows={2} value={f.staff_note || ''} onChange={set('staff_note')} /></label>
-          {member && (
-            <label>會員狀態
-              <select value={f.status} onChange={set('status')}>
-                <option value="active">正常</option>
-                <option value="suspended">暫停（入場會被擋）</option>
-                <option value="inactive">停用</option>
-              </select>
-            </label>
-          )}
-          <label className="check"><input type="checkbox" checked={f.marketing_opt_in} onChange={set('marketing_opt_in')} />同意接收原岩的活動與優惠訊息</label>
-        </fieldset>
-      </form>
-      <p className="hint">本系統不收集身分證字號與病史。</p>
-      {error && <p className="error">{error}</p>}
+    <Modal title={title} onClose={onClose}>
+      {hint && <div className="ds-note">{hint}</div>}
+      <div className="ds-field"><label className="ds-label" htmlFor="r">原因（必填）</label>
+        <input id="r" className="ds-input" value={reason} onChange={(e) => setReason(e.target.value)} autoFocus /></div>
+      <div className="dlg-actions">
+        <button className="ds-btn" style={{ height: 52 }} onClick={onClose}>取消</button>
+        <button className="ds-btn-primary" disabled={!reason.trim()} onClick={() => setStep(2)}>下一步</button>
+      </div>
+    </Modal>
+  )
+}
+
+function ExtendDialog({ plan, onClose, onDone }) {
+  const [days, setDays] = useState('7')
+  const [reason, setReason] = useState('')
+  const [step, setStep] = useState(1)
+  const n = Number(days) || 0
+  if (step === 2) {
+    const [y, mo, da] = plan.end_date.split('-').map(Number)
+    const next = new Date(Date.UTC(y, mo - 1, da + n)).toISOString().slice(0, 10)
+    return <ConfirmDialog title={`延期「${plan.name}」？`} confirmText="確認延期"
+      lines={[['延期', `${n} 天`], ['到期日', `${slashDate(plan.end_date)} → ${slashDate(next)}`], ['原因', reason]]}
+      onConfirm={async () => { await rpc('extend_plan', { p_plan_id: plan.id, p_days: n, p_reason: reason }); onDone() }} onClose={onClose} />
+  }
+  return (
+    <Modal title={`延期「${plan.name}」`} onClose={onClose}>
+      <div className="ds-field"><label className="ds-label" htmlFor="dd">延長幾天</label>
+        <input id="dd" className="ds-input" inputMode="numeric" value={days} onChange={(e) => setDays(e.target.value.replace(/\D/g, ''))} /></div>
+      <div className="ds-field"><label className="ds-label" htmlFor="rr">原因（必填）</label>
+        <input id="rr" className="ds-input" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="例：颱風停館" /></div>
+      <div className="dlg-actions">
+        <button className="ds-btn" style={{ height: 52 }} onClick={onClose}>取消</button>
+        <button className="ds-btn-primary" disabled={n < 1 || !reason.trim()} onClick={() => setStep(2)}>下一步</button>
+      </div>
+    </Modal>
+  )
+}
+
+function TransferDialog({ plan, from, onClose, onDone }) {
+  const [to, setTo] = useState(null)
+  const [reason, setReason] = useState('')
+  const [step, setStep] = useState(1)
+  if (step === 2) {
+    return <ConfirmDialog title="確認轉讓方案？" confirmText="確認轉讓"
+      lines={[['方案', `${plan.name}（${planSummary(plan)}）`], ['轉出', from.name], ['轉入', `${to.name}（${phoneText(to.phone)}）`], ['原因', reason]]}
+      onConfirm={async () => { await rpc('transfer_plan', { p_plan_id: plan.id, p_to_member_id: to.id, p_reason: reason }); onDone() }} onClose={onClose} />
+  }
+  return (
+    <Modal title={`轉讓「${plan.name}」`} onClose={onClose} width={480}>
+      <div className="ds-field" style={{ position: 'relative' }}>
+        <span className="ds-label">轉給哪位會員</span>
+        {to
+          ? <div className="ds-note" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--c-ink)' }}>
+              {to.name}（{phoneText(to.phone)}）<button className="ds-btn" onClick={() => setTo(null)}>換人</button></div>
+          : <div className="mem-search" style={{ width: 'auto', padding: 0 }}><MemberSearch inline onPick={(x) => x.id !== from.id && setTo(x)} /></div>}
+      </div>
+      <div className="ds-field"><label className="ds-label" htmlFor="tr">原因（必填）</label>
+        <input id="tr" className="ds-input" value={reason} onChange={(e) => setReason(e.target.value)} /></div>
+      <div className="dlg-actions">
+        <button className="ds-btn" style={{ height: 52 }} onClick={onClose}>取消</button>
+        <button className="ds-btn-primary" disabled={!to || !reason.trim()} onClick={() => setStep(2)}>下一步</button>
+      </div>
+    </Modal>
+  )
+}
+
+// 退費：退掉這個方案所屬的整張訂單，退款記在今天的帳上
+function RefundDialog({ plan, onClose, onDone }) {
+  const order = plan.order_items.orders
+  const [method, setMethod] = useState('cash')
+  const [amount, setAmount] = useState(String(plan.order_items.line_total))
+  const [reason, setReason] = useState('')
+  const [step, setStep] = useState(1)
+  const amt = Number(amount) || 0
+  const sel = (on, c) => (on ? { '--on': c } : {})
+  if (step === 2) {
+    return <ConfirmDialog title="確定要退費？" confirmText={`確認退費 ${money(amt)}`}
+      lines={[['訂單', order.order_no], ['方案', plan.name], ['退款方式', method === 'cash' ? '現金' : 'LINE Pay'], ['退款金額', money(amt)], ['原因', reason]]}
+      onConfirm={async () => { await rpc('refund_order', { p_order_id: order.id, p_method: method, p_amount: amt, p_reason: reason }); onDone() }}
+      onClose={onClose}>
+      <div className="ds-note">退款記在今天的帳上；這張訂單產生的方案會一併取消。</div>
+    </ConfirmDialog>
+  }
+  return (
+    <Modal title={`退費「${plan.name}」`} onClose={onClose}>
+      <div className="co-grid2">
+        <button type="button" className={'ds-toggle' + (method === 'cash' ? ' on' : '')} style={sel(method === 'cash', 'var(--c-ink)')} onClick={() => setMethod('cash')}>退現金</button>
+        <button type="button" className={'ds-toggle' + (method === 'line_pay' ? ' on' : '')} style={sel(method === 'line_pay', 'var(--c-linepay)')} onClick={() => setMethod('line_pay')}>退 LINE Pay</button>
+      </div>
+      <div className="ds-field"><label className="ds-label" htmlFor="ra">退款金額</label>
+        <input id="ra" className="ds-input" inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value.replace(/\D/g, ''))} /></div>
+      <div className="ds-field"><label className="ds-label" htmlFor="rs">原因（必填）</label>
+        <input id="rs" className="ds-input" value={reason} onChange={(e) => setReason(e.target.value)} /></div>
+      <div className="dlg-actions">
+        <button className="ds-btn" style={{ height: 52 }} onClick={onClose}>取消</button>
+        <button className="ds-btn-primary" disabled={amt < 1 || !reason.trim()} onClick={() => setStep(2)}>下一步</button>
+      </div>
     </Modal>
   )
 }

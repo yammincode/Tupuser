@@ -16,19 +16,23 @@ export default function Login() {
   }
 
   return (
-    <div className="login-page">
+    <div className="login">
       <form className="login-card" onSubmit={submit}>
-        <div className="brand-mark">原岩</div>
-        <h1>櫃檯系統</h1>
-        <p className="muted">請用員工帳號登入</p>
-        <label>Email
-          <input type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
-        </label>
-        <label>密碼
-          <input type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-        </label>
-        {error && <p className="error">{error}</p>}
-        <button className="btn primary big" disabled={busy}>{busy ? '登入中…' : '登入'}</button>
+        <div className="login-eyebrow">原岩攀岩館</div>
+        <div className="login-title">櫃檯登入</div>
+        <div className="muted" style={{ fontSize: 15 }}>請用員工帳號登入</div>
+        <div className="ds-field">
+          <label className="ds-label" htmlFor="email">Email</label>
+          <input id="email" className="ds-input" type="email" autoComplete="username" value={email}
+            onChange={(e) => setEmail(e.target.value)} required autoFocus />
+        </div>
+        <div className="ds-field">
+          <label className="ds-label" htmlFor="pw">密碼</label>
+          <input id="pw" className="ds-input" type="password" autoComplete="current-password" value={password}
+            onChange={(e) => setPassword(e.target.value)} required />
+        </div>
+        {error && <div className="ds-error">{error}</div>}
+        <button className="ds-btn-primary" disabled={busy}>{busy ? '登入中…' : '登入'}</button>
       </form>
     </div>
   )

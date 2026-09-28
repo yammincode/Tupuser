@@ -1,6 +1,7 @@
 const TZ = 'Asia/Taipei'
 
-export const money = (n) => '$' + Number(n || 0).toLocaleString('zh-TW')
+// 設計稿的金額格式：NT$ 1,234
+export const money = (n) => 'NT$ ' + Math.round(Number(n || 0)).toLocaleString('en-US')
 
 // 台灣時間的今天（YYYY-MM-DD）
 export function todayTPE(d = new Date()) {
@@ -72,8 +73,44 @@ export const CHECKIN_RESULT = {
   member_suspended: { text: '會員暫停', tone: 'bad' },
 }
 
+// 設計稿格式：剩 7 次・到期 2026/12/31；天數型：2026/8/15 – 2026/9/14
 export function planSummary(p) {
-  if (p.content_type === 'days') return p.end_date ? `用到 ${p.end_date}` : '天數型'
-  const left = `剩 ${p.remaining_count} / ${p.total_count} ${p.content_type === 'course' ? '堂' : '次'}`
-  return p.end_date ? `${left}・到 ${p.end_date}` : left
+  const until = p.end_date ? `到期 ${slashDate(p.end_date)}` : '不限期'
+  if (p.content_type === 'days') return p.start_date ? `${slashDate(p.start_date)} – ${slashDate(p.end_date)}` : until
+  return `剩 ${p.remaining_count} ${p.content_type === 'course' ? '堂' : '次'}・${until}`
+}
+
+const WD = ['日', '一', '二', '三', '四', '五', '六']
+
+// 設計稿日期格式：9/28（一）
+export function shortDay(dateStr) {
+  const [, m, d] = dateStr.split('-').map(Number)
+  const dow = new Date(dateStr + 'T12:00:00+08:00').getUTCDay()
+  return `${m}/${d}（${WD[dow]}）`
+}
+
+// 9/28（一）14:32
+export function whenText(ts) {
+  if (!ts) return ''
+  return shortDay(todayTPE(new Date(ts))) + time(ts)
+}
+
+// 2026/12/31
+export function slashDate(dateStr) {
+  if (!dateStr) return ''
+  const [y, m, d] = dateStr.split('-').map(Number)
+  return `${y}/${m}/${d}`
+}
+
+// 0912-***-678
+export function maskPhone(p) {
+  const t = phoneText(p)
+  return t.replace(/^(\d{4})-(\d{3})-(\d{3})$/, '$1-***-$3')
+}
+
+// 會員方案一句話摘要（例：十次券剩 8 次、月票到 10/27）
+export function planShort(p) {
+  if (!p) return '無有效方案'
+  if (p.content_type === 'days') return `${p.name}到 ${p.end_date ? p.end_date.slice(5).replace('-', '/').replace(/^0/, '') : ''}`
+  return `${p.name}剩 ${p.remaining_count} ${p.content_type === 'course' ? '堂' : '次'}`
 }

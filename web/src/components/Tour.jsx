@@ -52,10 +52,10 @@ export default function Tour({ steps, onClose }) {
           {steps.map((_, n) => <span key={n} className={n === i ? 'on' : ''} />)}
         </div>
         <div className="tour-actions">
-          <button className="btn ghost small" onClick={onClose}>略過導覽</button>
+          <button className="ds-btn" onClick={onClose}>略過導覽</button>
           <div style={{ flex: 1 }} />
-          {i > 0 && <button className="btn ghost small" onClick={() => setI(i - 1)}>上一步</button>}
-          <button className="btn primary small" onClick={() => (last ? onClose() : setI(i + 1))}>
+          {i > 0 && <button className="ds-btn" onClick={() => setI(i - 1)}>上一步</button>}
+          <button className="ds-btn-primary" style={{ height: 44, padding: "0 16px", fontSize: 15 }} onClick={() => (last ? onClose() : setI(i + 1))}>
             {last ? '開始使用' : '下一步'}
           </button>
         </div>

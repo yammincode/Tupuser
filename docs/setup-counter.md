@@ -6,13 +6,13 @@
 
 ---
 
-## 步驟 1：在 Supabase 執行分館顏色設定（1 分鐘）
+## 步驟 1：在 Supabase 執行資料庫更新（2 分鐘）
 
-跟之前一樣，到 Supabase 的 **SQL Editor** → **+ New query**，貼上以下檔案的內容後按 **Run**：
+跟之前一樣，到 Supabase 的 **SQL Editor** → **+ New query**，依序貼上以下檔案的內容後按 **Run**（已經執行過的就跳過）：
 
-- `supabase/migrations/20260929000006_branch_color.sql`
-
-執行後，每間分館就有自己的顏色：萬華紫、中和綠、南港琥珀、新店橘、明德玫瑰紅、中壢藍。
+1. `supabase/migrations/20260929000006_branch_color.sql`：分館顏色
+2. `supabase/migrations/20260929000007_decisions_update.sql`：2026-09-29 決策調整
+3. `supabase/migrations/20260929000008_categories_and_zl_cleanup.sql`：品項改成 6 類、刪除中壢（原 A19）品項
 
 ---
 
