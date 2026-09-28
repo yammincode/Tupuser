@@ -29,6 +29,9 @@
 - 設計文件：`docs/database.md`（修改資料庫前先讀它，修改後同步更新它）。
 - 金額以新台幣整數（元）儲存；主鍵用 uuid；時間用 timestamptz。
 - 手機號碼統一存成 `+8869XXXXXXXX` 格式。
+- 建立資料庫的指令檔在 `supabase/migrations/`（依檔名順序執行）。**已執行過的檔案不要修改**，要改資料庫就新增一個檔名時間較晚的檔案。
+- 修改後用 `supabase/tests/` 的腳本在本機 Postgres 測試（說明見 `supabase/tests/README.md`）。
+- 內部 schema `app` 放輔助函式與密鑰，不對外公開；`public` 的函式是給畫面呼叫的功能。
 
 ## 必須遵守的規則
 
