@@ -23,6 +23,7 @@
 
 ```powershell
 cd C:\origin-system
+Rename-Item design design-old
 git init
 git remote add origin https://github.com/yammincode/Tupuser.git
 git fetch origin claude/yuanyan-climbing-database-kqjhqv
@@ -30,7 +31,7 @@ git checkout -b claude/yuanyan-climbing-database-kqjhqv origin/claude/yuanyan-cl
 ```
 
 - 如果跳出 GitHub 登入視窗，請用您的 GitHub 帳號登入。
-- 原本資料夾裡的 `design/` 設計稿不會被動到。
+- 第 2 行會把電腦裡原本的 `design` 資料夾改名成 `design-old`，因為 GitHub 上已經有同一份設計稿，下載時會放回 `design` 資料夾。確認新的 `design` 資料夾內容沒問題後，`design-old` 可以刪掉。
 - 如果第 3 行出現 `remote origin already exists`，代表之前設定過，可以直接執行下一行。
 
 完成後，`C:\origin-system` 裡會多出 `docs`、`supabase`、`web` 等資料夾。
