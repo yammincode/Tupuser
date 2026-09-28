@@ -70,7 +70,8 @@
 
 ## 目前進度
 
-- Supabase 專案已建立（東京），4 個 migration 已執行，18 張表 RLS 已開啟。
+- Supabase 專案已建立（東京），migration 0001～0004 已執行，18 張表 RLS 已開啟；0005（平日／假日＋時段）待執行。
 - 分館資料：`supabase/seed/01_branches.sql`（中壢店 ZL 尚未開幕，is_active = false）。
 - 總部帳號已建立（老闆本人，role = hq）；個人 Email 不寫進 repo。
 - 同意書 2026.1 為開發時擬定的**草稿**（`supabase/seed/02_waiver_v1.sql`），正式上線前需律師審閱，修改時建立新版本。
+- 品項：`supabase/seed/03_products.sql` 由 `supabase/seed/tools/gen_products.py` 產生（改價目請改 .py 再重新產生）。老闆說價目表上的「A19」就是中壢店（ZL）。課程先用 2024/01 現行價格。

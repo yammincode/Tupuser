@@ -246,8 +246,8 @@ erDiagram
 | content_type | enum | ✔ | 內容類型，見下表 |
 | quantity | integer | ✔ | 數量：次數、天數或堂數，見下表 |
 | valid_days | integer | | 次數／堂數型的使用期限（購買後幾天內要用完）；**空白 = 不限期**。目前十次券不限期，欄位先保留以備日後需要 |
-| usage_rule | enum | ✔ | 適用條件：`any` 不限／`weekday` 平日／`weekend` 假日／`time_slot` 時段 |
-| slot_start | time | | 時段開始（`usage_rule = time_slot` 時必填，例如 `10:00`） |
+| usage_rule | enum | ✔ | 哪幾天可用：`any` 不限／`weekday` 平日／`weekend` 假日／`time_slot` 不限日期但限時段 |
+| slot_start | time | | 時段開始（選填，可搭配平日／假日，例如平日白天票 = `weekday` + `12:00～18:00`；`time_slot` 時必填） |
 | slot_end | time | | 時段結束（例如 `17:00`） |
 | all_branches | boolean | ✔ | true = 所有分館適用；false = 看 `product_branches` |
 | sort_order | integer | ✔ | 櫃檯畫面上的排序 |
