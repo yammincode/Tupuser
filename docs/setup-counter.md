@@ -18,6 +18,21 @@
 
 ## 步驟 2：把程式下載到 `C:\origin-system`（5 分鐘）
 
+> **在一台全新的電腦（例如筆電）上**：不需要先準備任何檔案，改用下面「全新電腦」的做法即可。
+>
+> 1. 先確認有安裝 Git 和 Node.js：在 PowerShell 輸入 `git --version` 和 `node --version`，各自出現版本號碼就是有安裝。
+>    - 沒有 Git：到 <https://git-scm.com/download/win> 下載安裝，全部按「Next」即可。
+>    - 沒有 Node.js：到 <https://nodejs.org> 下載「LTS」版本安裝。
+>    - 安裝完**關掉 PowerShell 再重新打開**。
+> 2. 在 PowerShell 貼上這兩行（會自動建立 `C:\origin-system` 並下載全部檔案，包含設計稿）：
+>
+> ```powershell
+> cd C:\
+> git clone -b claude/yuanyan-climbing-database-kqjhqv https://github.com/yammincode/Tupuser.git origin-system
+> ```
+>
+> 完成後直接跳到步驟 3。下面的指令是給「原本就有 `C:\origin-system` 資料夾」的電腦用的。
+
 1. 按鍵盤的 **Windows 鍵**，輸入 `PowerShell`，打開「Windows PowerShell」。
 2. 依序**一行一行**貼上下面的指令，每行貼上後按 **Enter**：
 
