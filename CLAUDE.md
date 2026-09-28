@@ -70,9 +70,16 @@
 
 ## 目前進度
 
-- Supabase 專案已建立（東京），migration 0001～0004 已執行，18 張表 RLS 已開啟；0005（平日／假日＋時段）待執行。
+- Supabase 專案已建立（東京），migration 0001～0005 已執行；0006（分館主題色）待老闆執行。
 - 分館資料：`supabase/seed/01_branches.sql`（中壢店 ZL 尚未開幕，is_active = false）。
 - 總部帳號已建立（老闆本人，role = hq）；個人 Email 不寫進 repo。
 - 同意書 2026.1 為開發時擬定的**草稿**（`supabase/seed/02_waiver_v1.sql`），正式上線前需律師審閱，修改時建立新版本。
 - 品項：`supabase/seed/03_products.sql` 由 `supabase/seed/tools/gen_products.py` 產生（改價目請改 .py 再重新產生）。老闆說價目表上的「A19」就是中壢店（ZL）。課程以 2024/01 現行價格為準。中壢學生平日下午 250；青少年訓練課為中和／中壢／新店；親子抱石課為中和以外各館；明德假日幼兒全天適用；中壢店維持未營運。
 - 補充品項：`supabase/seed/04_passes_and_rentals.sql`（十次券 3800、月票 2600、岩鞋租借 100、粉袋租借 100，各館通用）。
+
+## 前端（`web/`）
+
+- 單一 Vite + React 專案，用網址區分各系統：`/counter` 櫃檯（已完成第一版）；之後加 `/kiosk` 入場機、`/app` 會員 App、`/admin` 總部後台。
+- 櫃檯頁面：結帳、會員、同意書、今日入場、訂單（作廢／退款）、關帳；頂部色帶用 `branches.color`；首次登入自動播放導覽（`components/Tour.jsx`）。
+- 路由連結一律用絕對路徑（`/counter/...`），相對路徑在 `/counter/*` 底下會無限疊加。
+- 本機完整測試：`npx supabase start`（Docker）會套用 migrations 與 `supabase/seed/*.sql`；`web/.env.local` 指向 `http://127.0.0.1:54321`。老闆的試用步驟見 `docs/setup-counter.md`。
