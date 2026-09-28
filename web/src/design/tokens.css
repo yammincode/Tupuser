@@ -1,0 +1,216 @@
+/* =====================================================================
+   原岩攀岩館 共用設計規範（由 design/*.dc.html 設計稿整理，請勿自行更改數值）
+   說明文件：docs/design-system.md
+   ===================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+
+:root {
+  /* ---------- 字體 ---------- */
+  --font: 'Noto Sans TC', 'PingFang TC', sans-serif;
+  --w-regular: 400;
+  --w-medium: 500;
+  --w-bold: 700;
+
+  /* ---------- 基本顏色 ---------- */
+  --c-bg: #F3F0EA;          /* 頁面底色（米白）；也用於選取中的列表項、提示框、簽名區底色 */
+  --c-surface: #FFFFFF;     /* 卡片、面板 */
+  --c-ink: #1C1A17;         /* 主要文字；深色頂欄底色；深色按鈕 */
+  --c-muted: #5E584F;       /* 次要文字、標籤 */
+  --c-on-dark-muted: #CFC8BC; /* 深色頂欄上的次要文字；同時是輸入框與次要按鈕的邊框色 */
+  --c-border: #CFC8BC;      /* 輸入框、次要按鈕邊框 */
+  --c-line-strong: #DDD7CC; /* 表頭底線、面板分隔線、App 底部分頁上緣 */
+  --c-line: #ECE7DE;        /* 列表列與列之間的細線 */
+  --c-row-off: #F7F5F1;     /* 已下架品項的列底色 */
+
+  /* ---------- 強調與狀態 ---------- */
+  --c-accent: #B24A22;      /* 主要按鈕、連結、強調數字 */
+  --c-accent-hover: #8E3A1A;
+  --c-disabled: #A39C91;    /* 主要按鈕不可按時的底色 */
+  --c-ok: #2F6B57;          /* 成功、使用中、選取中的發票方式、扣次入場按鈕 */
+  --c-bad: #A8431E;         /* 被擋下（今日名單）、方案到期 */
+  --c-error: #A3261B;       /* 表單錯誤訊息 */
+  --c-linepay: #06803D;     /* LINE Pay 選取中 */
+  --c-overlay: rgba(28, 26, 23, 0.55); /* 彈出視窗背後的遮罩 */
+
+  /* 標籤（膠囊）底色／文字色 */
+  --pill-ok-bg: #DCEBE4;    --pill-ok-fg: #173F32;    /* 正常、使用中 */
+  --pill-off-bg: #E9E5DD;   --pill-off-fg: #3A362F;   /* 已到期、停用 */
+  --pill-warn-bg: #F6DDD2;  --pill-warn-fg: #6E2A12;  /* 差額、提醒 */
+  --role-hq-bg: #DCE4F0;      --role-hq-fg: #1F3A63;
+  --role-manager-bg: #F6DDD2; --role-manager-fg: #6E2A12;
+  --role-cashier-bg: #E9E5DD; --role-cashier-fg: #2F2B25;
+
+  /* ---------- 品項分類色（底色／文字色／小色點） ---------- */
+  --cat-weekday-bg: #F7ECC8; --cat-weekday-fg: #5A4106; --cat-weekday-dot: #C99A1E; /* 平日入場 */
+  --cat-weekend-bg: #DCEBE4; --cat-weekend-fg: #173F32; --cat-weekend-dot: #2F6B57; /* 假日入場 */
+  --cat-kids-bg: #F5DDE6;    --cat-kids-fg: #6B1F3D;    --cat-kids-dot: #B94A77;    /* 兒童 */
+  --cat-pass-bg: #F6DDD2;    --cat-pass-fg: #6E2A12;    --cat-pass-dot: #B24A22;    /* 套票・年月票 */
+  --cat-new-bg: #DCE4F0;     --cat-new-fg: #1F3A63;     --cat-new-dot: #3B62A0;     /* 新手與活動 */
+  --cat-rent-bg: #E9E5DD;    --cat-rent-fg: #2F2B25;    --cat-rent-dot: #6B655C;    /* 裝備租借 */
+
+  /* ---------- 入場機狀態色（底色；文字一律白色，待機除外） ---------- */
+  --kiosk-idle-bg: #F3F0EA;    --kiosk-idle-fg: #1C1A17;
+  --kiosk-ok-bg: #2F6B57;      /* 成功：3 秒後回待機 */
+  --kiosk-expired-bg: #A8431E; /* 方案到期：10 秒 */
+  --kiosk-waiver-bg: #1F3A63;  /* 需簽同意書：10 秒 */
+  --kiosk-invalid-bg: #3A362F; /* QR 失效：5 秒 */
+  --kiosk-result-fg: #FFFFFF;
+
+  /* ---------- 圓角 ---------- */
+  --r-dot: 3px;     /* 分類小色點 */
+  --r-sm: 10px;     /* 輸入框、次要按鈕、頂部分頁、快速金額 */
+  --r-md: 12px;     /* 主要按鈕、品項格子、付款方式切換、簽名區 */
+  --r-lg: 14px;     /* 結帳大按鈕、App 提示框、方案圖示 */
+  --r-card: 16px;   /* 卡片、面板 */
+  --r-xl: 20px;     /* 彈出視窗、App 入場碼卡片、入場機步驟框 */
+  --r-2xl: 24px;    /* 入場機結果卡片 */
+  --r-pill: 999px;  /* 膠囊標籤 */
+
+  /* ---------- 間距（設計稿實際用到的數值） ---------- */
+  --s-2: 2px; --s-4: 4px; --s-6: 6px; --s-8: 8px; --s-10: 10px; --s-12: 12px;
+  --s-14: 14px; --s-16: 16px; --s-18: 18px; --s-20: 20px; --s-24: 24px;
+  --s-28: 28px; --s-32: 32px; --s-56: 56px;
+
+  /* ---------- 尺寸 ---------- */
+  --tablet-w: 1280px; --tablet-h: 800px;  /* 櫃檯、總部後台、入場機 */
+  --phone-w: 390px;   --phone-h: 844px;   /* 會員 App */
+  --topbar-h: 56px;                        /* 櫃檯／後台深色頂欄 */
+  --tabbar-h: 76px;                        /* App 底部分頁 */
+  --control-h: 44px;                       /* 一般按鈕、輸入框（觸控最小尺寸） */
+  --control-h-sm: 40px;                    /* 結帳側欄的精簡輸入框 */
+  --btn-primary-h: 52px;
+}
+
+/* =====================================================================
+   元件樣式
+   ===================================================================== */
+
+.ds-root { font-family: var(--font); background: var(--c-bg); color: var(--c-ink); }
+.ds-root a { color: var(--c-accent); }
+.ds-root a:hover { color: var(--c-accent-hover); }
+
+/* ---------- 深色頂欄＋分頁（櫃檯、總部後台） ---------- */
+.ds-topbar {
+  height: var(--topbar-h); flex-shrink: 0; padding: 0 24px; background: var(--c-ink); color: var(--c-bg);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.ds-topbar-side { width: 300px; display: flex; align-items: center; gap: 14px; }
+.ds-topbar-side.right { justify-content: flex-end; gap: 20px; font-size: 14px; color: var(--c-on-dark-muted); }
+.ds-topbar-brand { font-size: 17px; font-weight: var(--w-bold); letter-spacing: 2px; }
+.ds-topbar-branch { font-size: 15px; color: var(--c-on-dark-muted); }
+.ds-tabs { display: flex; gap: 6px; }
+.ds-tab {
+  height: 40px; padding: 0 18px; border-radius: var(--r-sm); background: transparent; color: var(--c-on-dark-muted);
+  font-size: 15px; text-decoration: none; display: flex; align-items: center; border: 0; font-family: inherit;
+}
+.ds-tab.active { background: var(--c-bg); color: var(--c-ink); font-weight: var(--w-medium); }
+
+/* ---------- 卡片 ---------- */
+.ds-card { background: var(--c-surface); border-radius: var(--r-card); padding: 16px 20px; }
+.ds-card-title { font-size: 16px; font-weight: var(--w-bold); }
+.ds-stat { background: var(--c-surface); border-radius: var(--r-card); padding: 18px 20px; display: flex; flex-direction: column; gap: 6px; }
+.ds-stat-label { font-size: 14px; color: var(--c-muted); }
+.ds-stat-value { font-size: 32px; font-weight: var(--w-bold); }   /* 關帳頁為 30px */
+
+/* ---------- 按鈕 ---------- */
+.ds-btn {                         /* 次要按鈕（白底灰框） */
+  height: var(--control-h); padding: 0 16px; border: 1px solid var(--c-border); border-radius: var(--r-sm);
+  background: var(--c-surface); color: var(--c-ink); font-size: 15px; font-family: inherit; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; text-decoration: none;
+}
+.ds-btn.accent { border-color: var(--c-accent); color: var(--c-accent); }   /* 例：＋ 新增會員、幫他結帳 */
+.ds-btn.ok { border-color: var(--c-ok); color: var(--c-ok); }               /* 例：扣次入場 */
+.ds-btn.selected { background: var(--c-ink); color: #FFFFFF; border-color: var(--c-ink); } /* 篩選中的選項 */
+.ds-btn-primary {                 /* 主要按鈕（磚紅底白字） */
+  height: var(--btn-primary-h); padding: 0 24px; border: none; border-radius: var(--r-md);
+  background: var(--c-accent); color: #FFFFFF; font-size: 17px; font-weight: var(--w-medium);
+  font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none;
+}
+.ds-btn-primary:disabled { background: var(--c-disabled); cursor: not-allowed; }
+.ds-btn-checkout { height: 56px; border-radius: var(--r-lg); font-size: 19px; font-weight: var(--w-bold); } /* 搭配 .ds-btn-primary */
+.ds-btn-dark {                    /* 深色按鈕（例：結帳完成的「下一位」） */
+  height: 54px; border: none; border-radius: var(--r-md); background: var(--c-ink); color: #FFFFFF;
+  font-size: 17px; font-weight: var(--w-medium); font-family: inherit; cursor: pointer;
+}
+.ds-toggle {                      /* 二選一切換（現金／LINE Pay、手機載具／列印） */
+  height: 48px; border-radius: var(--r-md); border: 2px solid var(--c-border); background: var(--c-surface);
+  color: var(--c-ink); font-size: 16px; font-weight: var(--w-medium); font-family: inherit; cursor: pointer;
+}
+.ds-toggle.sm { height: 40px; padding: 0 10px; border-radius: var(--r-sm); font-size: 13px; font-weight: var(--w-regular); white-space: nowrap; }
+.ds-toggle.on { color: #FFFFFF; background: var(--on, var(--c-ink)); border-color: var(--on, var(--c-ink)); }
+/* 選取色：現金 --on: var(--c-ink)；LINE Pay --on: var(--c-linepay)；發票方式 --on: var(--c-ok) */
+.ds-stepper-btn {                 /* 數量 −／+ */
+  width: 44px; height: 44px; border: 1px solid var(--c-border); border-radius: var(--r-sm);
+  background: var(--c-surface); font-size: 20px; font-family: inherit; color: var(--c-ink);
+}
+.ds-quick {                       /* 快速實收金額 */
+  flex-grow: 1; height: 44px; border-radius: var(--r-sm); border: 1px solid var(--c-border);
+  background: var(--c-surface); color: var(--c-ink); font-size: 14px; font-family: inherit;
+}
+.ds-quick.on { border-color: var(--c-ink); }
+
+/* ---------- 輸入框 ---------- */
+.ds-field { display: flex; flex-direction: column; gap: 6px; }
+.ds-label { font-size: 14px; font-weight: var(--w-medium); }
+.ds-input, .ds-select, .ds-textarea {
+  height: var(--control-h); box-sizing: border-box; padding: 0 12px; border: 1px solid var(--c-border);
+  border-radius: var(--r-sm); background: var(--c-surface); font-size: 16px; font-family: inherit; color: var(--c-ink);
+}
+.ds-textarea { height: auto; padding: 10px 12px; font-size: 15px; resize: none; }
+.ds-input.lg { height: 52px; font-size: 22px; }            /* 關帳：實際點算金額 */
+.ds-field.compact { gap: 3px; font-size: 12px; color: var(--c-muted); }  /* 結帳側欄：折扣、業務代表 */
+.ds-field.compact .ds-select, .ds-field.compact .ds-input { height: var(--control-h-sm); padding: 0 8px; font-size: 15px; }
+.ds-checkbox { width: 22px; height: 22px; }
+.ds-checkbox.lg { width: 26px; height: 26px; flex-shrink: 0; }  /* 客人簽同意書 */
+.ds-error { font-size: 14px; color: var(--c-error); }
+
+/* ---------- 膠囊標籤 ---------- */
+.ds-pill { padding: 2px 10px; border-radius: var(--r-pill); font-size: 13px; white-space: nowrap; }
+.ds-pill.ok { background: var(--pill-ok-bg); color: var(--pill-ok-fg); }
+.ds-pill.off { background: var(--pill-off-bg); color: var(--pill-off-fg); }
+.ds-pill.warn { background: var(--pill-warn-bg); color: var(--pill-warn-fg); }
+
+/* ---------- 列表與表格 ---------- */
+.ds-row { padding: 10px 0; border-bottom: 1px solid var(--c-line); }
+.ds-thead { padding: 8px 0; border-bottom: 1px solid var(--c-line-strong); font-size: 13px; color: var(--c-muted); }
+
+/* ---------- 品項格子（結帳） ---------- */
+.ds-group-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: var(--w-medium); }
+.ds-group-dot { width: 12px; height: 12px; border-radius: var(--r-dot); }
+.ds-tile-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.ds-tile {
+  position: relative; height: 70px; padding: 10px 14px; border: 2px solid transparent; border-radius: var(--r-md);
+  text-align: left; font-family: inherit; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between;
+  background: var(--bg); color: var(--fg);
+}
+.ds-tile.in-cart { border-color: var(--c-ink); }
+.ds-tile:disabled { opacity: 0.45; cursor: not-allowed; }
+.ds-tile-name { font-size: 15px; font-weight: var(--w-medium); line-height: 1.3; padding-right: 30px; }
+.ds-tile-price { font-size: 14px; }
+.ds-tile-qty {
+  position: absolute; top: 8px; right: 8px; min-width: 28px; height: 28px; padding: 0 6px; box-sizing: border-box;
+  border-radius: 14px; background: var(--fg); color: #FFFFFF; font-size: 13px; font-weight: var(--w-medium);
+  display: flex; align-items: center; justify-content: center;
+}
+.ds-tile-off { position: absolute; bottom: 10px; right: 12px; font-size: 12px; }
+
+/* ---------- 彈出視窗 ---------- */
+.ds-overlay { position: fixed; inset: 0; background: var(--c-overlay); display: flex; align-items: center; justify-content: center; }
+.ds-dialog { width: 440px; padding: 32px; box-sizing: border-box; background: var(--c-surface); border-radius: var(--r-xl); display: flex; flex-direction: column; gap: 14px; }
+.ds-dialog-title { font-size: 24px; font-weight: var(--w-bold); }
+
+/* ---------- 其他 ---------- */
+.ds-note { padding: 12px 14px; border-radius: var(--r-sm); background: var(--c-bg); font-size: 14px; color: var(--c-muted); }
+.ds-avatar { width: 72px; height: 72px; border-radius: 36px; background: var(--pill-ok-bg); color: var(--pill-ok-fg); font-size: 28px; font-weight: var(--w-bold); display: flex; align-items: center; justify-content: center; }
+.ds-sign-area { border-radius: var(--r-md); background: var(--c-bg); border: 2px dashed var(--c-border); }
+.ds-diff { padding: 14px 16px; border-radius: var(--r-md); background: var(--pill-warn-bg); color: var(--pill-warn-fg); display: flex; justify-content: space-between; font-size: 17px; font-weight: var(--w-bold); }
+
+/* ---------- 會員 App（390×844） ---------- */
+.ds-app-eyebrow { font-size: 13px; letter-spacing: 2px; color: var(--c-muted); }
+.ds-app-title { font-size: 24px; font-weight: var(--w-bold); }
+.ds-app-input { height: 52px; padding: 0 16px; border-radius: var(--r-md); font-size: 17px; }  /* 搭配 .ds-input */
+.ds-app-btn { height: 54px; border-radius: var(--r-md); }                                   /* 搭配 .ds-btn-primary */
+.ds-tabbar { height: var(--tabbar-h); flex-shrink: 0; border-top: 1px solid var(--c-line-strong); background: var(--c-surface); display: flex; }
+.ds-tabbar a { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: var(--c-muted); font-size: 12px; }
+.ds-tabbar a.active { color: var(--c-accent); font-weight: var(--w-medium); }

@@ -69,7 +69,8 @@
 - 設計稿是 `.dc.html`；其中 `{{ }}`、`sc-for`、`sc-if` 是設計工具語法，只當參考，不要直接複製。
 - 檔案對照：會員 App＝Login／Main（入場碼）／Records（紀錄）／Plans（方案）；入場機＝Checkin（依 status 切換成功、方案到期、需簽同意書、QR 失效）；櫃檯＝Counter（結帳）／CounterMembers／CounterRegister／CounterWaiver／CounterToday／CounterClose；總部後台＝AdminProducts／AdminStaff。
 - 做畫面前先整理共用設計規範（顏色、字體字級、按鈕／輸入框／卡片／分頁、圓角間距）到共用檔案。
-- ⚠ 截至 2026-09-29，`design/` 尚未上傳到 repo（只有 `docs/decisions.md`）。現有 `web/` 櫃檯第一版是在沒有設計稿時做的，拿到設計稿後要照設計稿重做。
+- 共用設計規範：數值在 `web/src/design/tokens.css`（所有畫面共用），說明在 `docs/design-system.md`。做畫面時只用這裡的顏色、字級、圓角、間距。
+- `design/` 已上傳（17 份，含入場機四種狀態的獨立檔 CheckinOk／CheckinExpired／CheckinWaiver／CheckinInvalid）。現有 `web/` 櫃檯第一版是在沒有設計稿時做的，要照設計稿重做。
 
 ## decisions.md 重點（詳細以原文為準）
 
