@@ -1,6 +1,6 @@
 # 原岩攀岩館 資料庫設計
 
-> 版本：v0.3（已建立資料庫指令檔 `supabase/migrations/`，2026-09-28）
+> 版本：v0.4（2026-09-29 依 decisions.md 與老闆補充決定調整，見 migration 0007 與文末第 14 節）
 > 資料庫：Supabase（PostgreSQL + Auth + Row Level Security）
 > 本文件只描述「資料要怎麼存」，尚未包含任何程式碼。
 
@@ -588,3 +588,16 @@ erDiagram
 | 5 | 營業日怎麼切？ | 最晚營業到 23:00，**凌晨算當天（新的一天）**，即一般日曆日期 |
 | 6 | 同一天再進場要再扣嗎？ | **套票一天只扣一次**，當天再進場不再扣 |
 | 7 | 誰可以退款？ | **櫃檯和店長都可以**，畫面上要有**重複確認按鈕** |
+
+## 14. 2026-09-29 調整（migration 0007）
+
+| 項目 | 變更 |
+|---|---|
+| `branches` | 新增 `brand_label`（品牌名，例：中和店 T-UP）、`petty_cash_default`（固定零用金）、`kiosk_volume`（入場機音量 0～100） |
+| `waiver_signatures` | 新增 `agree_risk`、`agree_health`、`agree_privacy`（三個勾選，新紀錄必須全勾）、`guardian_signature_path`（未成年時法定代理人另外簽名；`signature_path` 為本人簽名） |
+| `member_plans` | 新增 `frozen_at`（暫停開始日，恢復時依暫停天數延長到期日） |
+| QR 格式 | `OY1.<會員編號>.<8 位動態碼>[.<方案 id>]`；有方案 id 時扣該方案 |
+| 入場結果 | 回傳 `screen`：`ok`／`expired`／`waiver`／`invalid`（入場機四種畫面），被擋下時另回傳 `blocked_plan` |
+| 新功能 | `resolve_member_qr`（櫃檯掃碼找會員）、`freeze_plan`／`unfreeze_plan`／`extend_plan`／`transfer_plan`（店長以上） |
+| 權限 | 退款限店長以上；店長可新增修改只在自己分館販售的品項；會員不能在 App 自行註冊 |
+| 關帳 | `closing_preview` 增加品項銷售、現金／LINE Pay 筆數、固定零用金；`close_day` 零用金不填時用分館固定金額 |

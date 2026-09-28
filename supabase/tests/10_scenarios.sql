@@ -65,8 +65,8 @@ reset role;
 \echo '--- 未簽同意書（櫃檯入場）'
 set role authenticated; set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000a3';
 select counter_checkin('40000000-0000-0000-0000-000000000001')->>'result';
-insert into waiver_signatures (member_id, waiver_version_id, method, signature_path)
- select '40000000-0000-0000-0000-000000000001', id, 'counter', 'x.png' from waiver_versions;
+insert into waiver_signatures (member_id, waiver_version_id, method, signature_path, agree_risk, agree_health, agree_privacy)
+ select '40000000-0000-0000-0000-000000000001', id, 'counter', 'x.png', true, true, true from waiver_versions;
 select is_minor, staff_id is not null, branch_id is not null from waiver_signatures;
 reset role;
 \echo '--- 入場機掃 QR（正確碼）'
@@ -102,7 +102,11 @@ select refund_order(:'oid', 'cash', 100, '測試');
 reset role; set role authenticated; set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000a3';
 \echo '--- 櫃檯開一張單再退款'
 select checkout('{"member_id":"40000000-0000-0000-0000-000000000001","items":[{"product_id":"30000000-0000-0000-0000-000000000003"}],"payments":[{"method":"cash","amount":2000}]}')->>'order_no' as no2;
+\echo '--- 櫃檯退款（應被擋：限店長以上）'
 select refund_order((select id from orders where total=2000 and status='paid' and subtotal=2000), 'cash', 2000, '客人不要了') is not null as refunded;
+reset role; set role authenticated; set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000a2';
+select refund_order((select id from orders where total=2000 and status='paid' and subtotal=2000), 'cash', 2000, '客人不要了') is not null as refunded;
+reset role; set role authenticated; set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000a3';
 select name, status, end_date - start_date + 1 as days from member_plans where content_type='days';
 select closing_preview();
 \echo '--- 關帳：差額不為 0 沒寫說明（應被擋）'
@@ -115,7 +119,7 @@ select void_order((select id from orders where status='paid' limit 1), '打錯')
 reset role; set role authenticated; set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000a2';
 \echo '--- 店長改關帳後訂單備註（可以，留紀錄）'
 update orders set note='店長補註' where status='paid' returning order_no;
-select reopen_day(current_date, '補登一筆');
+select reopen_day(app.today(), '補登一筆');
 reset role;
 select action, table_name from audit_logs order by id;
 \echo '--- 刪除訂單（應被擋）'
@@ -141,8 +145,8 @@ insert into member_plans (member_id, product_id, name, content_type, total_count
  select '40000000-0000-0000-0000-000000000002', id, name, 'punch', 10, 10, current_date, array['10000000-0000-0000-0000-000000000002'::uuid] from products where name='台中限定十次';
 set role authenticated; set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000a2';
 \echo '--- 未成年沒填法定代理人（應被擋）'
-insert into waiver_signatures (member_id, waiver_version_id, method, signature_path) select '40000000-0000-0000-0000-000000000002', id, 'counter', 'y.png' from waiver_versions;
-insert into waiver_signatures (member_id, waiver_version_id, method, signature_path, guardian_name, guardian_phone, guardian_relation) select '40000000-0000-0000-0000-000000000002', id, 'counter', 'y.png','美媽','0922','母' from waiver_versions;
+insert into waiver_signatures (member_id, waiver_version_id, method, signature_path, agree_risk, agree_health, agree_privacy) select '40000000-0000-0000-0000-000000000002', id, 'counter', 'y.png', true, true, true from waiver_versions;
+insert into waiver_signatures (member_id, waiver_version_id, method, signature_path, guardian_name, guardian_phone, guardian_relation, guardian_signature_path, agree_risk, agree_health, agree_privacy) select '40000000-0000-0000-0000-000000000002', id, 'counter', 'y.png','美媽','0922','母','g.png', true, true, true from waiver_versions;
 select counter_checkin('40000000-0000-0000-0000-000000000002')->>'result' as tpe_result;
 reset role;
 set role authenticated; set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000a4';
