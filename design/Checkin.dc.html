@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>入場機・待機</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 1280px; height: 800px; box-sizing: border-box; display: flex; flex-direction: column; background: {{bg}}; color: {{fg}}; font-family: 'Noto Sans TC','PingFang TC',sans-serif">
+<div style="height: 84px; flex-shrink: 0; padding: 0 56px; display: flex; align-items: center; justify-content: space-between">
+<div style="display: flex; align-items: baseline; gap: 16px"><span style="font-size: 26px; font-weight: 700; letter-spacing: 4px">原岩攀岩館</span><span style="font-size: 20px; opacity: 0.8">中和店</span></div>
+<span style="font-size: 24px; font-weight: 500">14:32</span>
+</div>
+<sc-if value="{{isIdle}}" hint-placeholder-val="{{true}}">
+<div style="flex-grow: 1; padding: 0 56px; display: flex; align-items: center; gap: 56px">
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 36px">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div style="font-size: 72px; font-weight: 700; line-height: 1.15">歡迎來爬</div>
+<div style="font-size: 32px; color: #5E584F">請掃描你的入場 QR code</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 14px">
+<div style="padding: 20px 26px; border-radius: 20px; background: #FFFFFF; display: flex; align-items: center; gap: 20px">
+<span style="width: 48px; height: 48px; flex-shrink: 0; border-radius: 24px; background: #1C1A17; color: #FFFFFF; font-size: 24px; font-weight: 700; display: flex; align-items: center; justify-content: center">1</span>
+<span style="font-size: 26px">打開原岩會員 App，點「入場碼」或「方案」</span>
+</div>
+<div style="padding: 20px 26px; border-radius: 20px; background: #FFFFFF; display: flex; align-items: center; gap: 20px">
+<span style="width: 48px; height: 48px; flex-shrink: 0; border-radius: 24px; background: #1C1A17; color: #FFFFFF; font-size: 24px; font-weight: 700; display: flex; align-items: center; justify-content: center">2</span>
+<span style="font-size: 26px">把 QR code 對準掃描器</span>
+</div>
+</div>
+</div>
+<svg width="300" height="400" viewBox="0 0 260 320" fill="none" stroke="#1C1A17" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0">
+<rect x="70" y="10" width="120" height="200" rx="18"></rect>
+<rect x="95" y="55" width="70" height="70" stroke-width="4"></rect>
+<rect x="104" y="64" width="18" height="18" fill="#1C1A17" stroke="none"></rect>
+<rect x="138" y="64" width="18" height="18" fill="#1C1A17" stroke="none"></rect>
+<rect x="104" y="98" width="18" height="18" fill="#1C1A17" stroke="none"></rect>
+<path d="M140 100h14v14"></path>
+<path d="M130 232v48"></path>
+<path d="M110 262l20 20 20-20"></path>
+<path d="M40 304h180" stroke="#B24A22" stroke-width="8"></path>
+</svg>
+</div>
+</sc-if>
+<sc-if value="{{isResult}}" hint-placeholder-val="{{false}}">
+<div style="flex-grow: 1; padding: 0 56px; display: flex; align-items: center; gap: 56px">
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 28px">
+<sc-if value="{{iconOk}}" hint-placeholder-val="{{false}}"><svg width="140" height="140" viewBox="0 0 200 200" fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="100" cy="100" r="88"></circle><path d="M58 102l28 28 56-58"></path></svg></sc-if>
+<sc-if value="{{iconStop}}" hint-placeholder-val="{{false}}"><svg width="140" height="140" viewBox="0 0 200 200" fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="100" cy="100" r="88"></circle><path d="M100 52v58"></path><path d="M100 146v2"></path></svg></sc-if>
+<sc-if value="{{iconRetry}}" hint-placeholder-val="{{false}}"><svg width="140" height="140" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"></path><path d="M20 4v7h-7"></path></svg></sc-if>
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div style="font-size: 68px; font-weight: 700; line-height: 1.15">{{title}}</div>
+<div style="font-size: 36px; font-weight: 500">{{subtitle}}</div>
+</div>
+</div>
+<div style="width: 520px; flex-shrink: 0; padding: 32px; box-sizing: border-box; border-radius: 24px; background: #FFFFFF; color: #1C1A17; display: flex; flex-direction: column; gap: 20px">
+<sc-if value="{{isOk}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; justify-content: space-between; font-size: 24px"><span style="color: #5E584F">使用方案</span><span style="font-weight: 500">套票（全店通）</span></div>
+<div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 24px"><span style="color: #5E584F">剩餘次數</span><span style="font-size: 52px; font-weight: 700; color: #2F6B57">7 次</span></div>
+<div style="display: flex; justify-content: space-between; font-size: 24px"><span style="color: #5E584F">到期日</span><span style="font-weight: 500">2026/12/31</span></div>
+</sc-if>
+<sc-if value="{{hasAction}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; align-items: center; gap: 20px">
+<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#1C1A17" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 32px; font-weight: 700">{{action}}</span><span style="font-size: 22px; line-height: 1.5; color: #5E584F">{{actionSub}}</span></div>
+</div>
+</sc-if>
+</div>
+</div>
+</sc-if>
+<div style="height: 76px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 22px; opacity: 0.85">{{footer}}</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"status":{"editor":"enum","options":["待機","成功","方案到期","需簽同意書","QR 失效"],"default":"待機"},"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.props.status ?? '待機';
+    const map = {
+      '待機': { bg: '#F3F0EA', fg: '#1C1A17', footer: '第一次來？請至櫃檯註冊並簽署同意書' },
+      '成功': { bg: '#2F6B57', fg: '#FFFFFF', icon: 'ok', title: '入場成功', subtitle: '歡迎，林小岩', footer: '3 秒後回到待機畫面' },
+      '方案到期': { bg: '#A8431E', fg: '#FFFFFF', icon: 'stop', title: '暫時無法入場', subtitle: '林小岩，你的月票已於 9/14 到期', action: '請至櫃檯續約', actionSub: '續約後即可入場，也可以在櫃檯購買今天的單次票', footer: '10 秒後回到待機畫面' },
+      '需簽同意書': { bg: '#1F3A63', fg: '#FFFFFF', icon: 'stop', title: '同意書已更新', subtitle: '林小岩，請先簽署新版免責同意書', action: '請至櫃檯簽署', actionSub: '也可以在 App 裡閱讀並簽署，簽完再掃一次', footer: '10 秒後回到待機畫面' },
+      'QR 失效': { bg: '#3A362F', fg: '#FFFFFF', icon: 'retry', title: 'QR code 已失效', subtitle: '請重新打開 App 再掃一次', action: '重新打開原岩會員 App', actionSub: 'QR code 每 30 秒自動更新，截圖或太久前開啟的畫面無法使用', footer: '5 秒後回到待機畫面' }
+    };
+    const m = map[st] || map['待機'];
+    return {
+      bg: m.bg, fg: m.fg, footer: m.footer, title: m.title || '', subtitle: m.subtitle || '', action: m.action || '', actionSub: m.actionSub || '',
+      isIdle: st === '待機', isResult: st !== '待機', isOk: st === '成功', hasAction: !!m.action,
+      iconOk: m.icon === 'ok', iconStop: m.icon === 'stop', iconRetry: m.icon === 'retry'
+    };
+  }
+}
+</script>
+</body>
+</html>

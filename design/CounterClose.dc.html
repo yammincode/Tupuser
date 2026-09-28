@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>櫃檯・關帳</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&amp;display=swap">
+<style>
+body{margin:0;font-family:'Noto Sans TC','PingFang TC',sans-serif;background:#F3F0EA}
+a{color:#B24A22}a:hover{color:#8E3A1A}
+</style>
+</helmet>
+<div style="width: 1280px; height: 800px; box-sizing: border-box; display: flex; flex-direction: column; background: #F3F0EA; color: #1C1A17; font-family: 'Noto Sans TC','PingFang TC',sans-serif">
+<div style="height: 56px; flex-shrink: 0; padding: 0 24px; background: #1C1A17; color: #F3F0EA; display: flex; align-items: center; justify-content: space-between">
+<div style="width: 300px; display: flex; align-items: center; gap: 14px"><span style="font-size: 17px; font-weight: 700; letter-spacing: 2px">原岩攀岩館</span><span style="font-size: 15px; color: #CFC8BC">中和店 T-UP・櫃檯</span></div>
+<nav aria-label="主選單" style="display: flex; gap: 6px"><a href="Counter.dc.html" style="height: 40px; padding: 0 18px; border-radius: 10px; background: transparent; color: #CFC8BC; font-size: 15px; text-decoration: none; display: flex; align-items: center">結帳</a><a href="CounterMembers.dc.html" style="height: 40px; padding: 0 18px; border-radius: 10px; background: transparent; color: #CFC8BC; font-size: 15px; text-decoration: none; display: flex; align-items: center">會員</a><a href="CounterToday.dc.html" style="height: 40px; padding: 0 18px; border-radius: 10px; background: transparent; color: #CFC8BC; font-size: 15px; text-decoration: none; display: flex; align-items: center">今日</a><a href="CounterClose.dc.html" style="height: 40px; padding: 0 18px; border-radius: 10px; background: #F3F0EA; color: #1C1A17; font-weight: 500; font-size: 15px; text-decoration: none; display: flex; align-items: center">關帳</a></nav>
+<div style="width: 300px; text-align: right; font-size: 14px; color: #CFC8BC">櫃檯：[人員]</div>
+</div>
+<div style="flex-grow: 1; min-height: 0; display: flex; gap: 16px; padding: 16px">
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 16px">
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+<div style="background: #FFFFFF; border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; color: #5E584F">現金（23 筆）</span><span style="font-size: 30px; font-weight: 700">NT$ 12,350</span></div>
+<div style="background: #FFFFFF; border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; color: #5E584F">LINE Pay（15 筆）</span><span style="font-size: 30px; font-weight: 700">NT$ 8,900</span></div>
+<div style="background: #FFFFFF; border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; color: #5E584F">今日合計（38 筆）</span><span style="font-size: 30px; font-weight: 700; color: #B24A22">NT$ 21,250</span></div>
+</div>
+<div style="flex-grow: 1; min-height: 0; background: #FFFFFF; border-radius: 16px; padding: 16px 20px; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 16px; font-weight: 700">品項銷售</span>
+<sc-for list="{{sales}}" as="s" hint-placeholder-count="6">
+<div style="padding: 10px 0; border-bottom: 1px solid #ECE7DE; display: flex; justify-content: space-between; font-size: 15px"><span>{{s.n}}</span><span style="color: #5E584F">× {{s.q}}</span><span style="min-width: 110px; text-align: right; font-weight: 500">{{s.a}}</span></div>
+</sc-for>
+</div>
+</div>
+<div style="width: 380px; flex-shrink: 0; background: #FFFFFF; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 16px">
+<span style="font-size: 16px; font-weight: 700">點現金</span>
+<div style="display: flex; justify-content: space-between; font-size: 16px"><span style="color: #5E584F">零用金（開店時）</span><span>NT$ 3,000</span></div>
+<div style="display: flex; justify-content: space-between; font-size: 16px"><span style="color: #5E584F">今日現金收入</span><span>NT$ 12,350</span></div>
+<div style="display: flex; justify-content: space-between; font-size: 16px; font-weight: 700"><span>抽屜應有</span><span>NT$ 15,350</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="cnt" style="font-size: 14px; font-weight: 500">實際點算金額</label><input id="cnt" type="text" inputmode="numeric" value="15,250" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #CFC8BC; border-radius: 10px; background: #FFFFFF; font-size: 16px; font-family: inherit; color: #1C1A17; height: 52px; font-size: 22px"></div>
+<div style="padding: 14px 16px; border-radius: 12px; background: #F6DDD2; color: #6E2A12; display: flex; justify-content: space-between; font-size: 17px; font-weight: 700"><span>差額</span><span>− NT$ 100</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="why" style="font-size: 14px; font-weight: 500">差額說明</label><input id="why" type="text" placeholder="有差額時必填" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #CFC8BC; border-radius: 10px; background: #FFFFFF; font-size: 16px; font-family: inherit; color: #1C1A17"></div>
+<div style="flex-grow: 1"></div>
+<span style="font-size: 13px; color: #5E584F">關帳後今日訂單鎖定，要修改需由店長處理。</span>
+<button type="button" style="height: 52px; padding: 0 24px; border: none; border-radius: 12px; background: #B24A22; color: #FFFFFF; font-size: 17px; font-weight: 500; font-family: inherit">確認關帳</button>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      sales: [
+        { n: '平日全天票', q: 14, a: 'NT$ 4,900' },
+        { n: '套票（全店通）', q: 2, a: 'NT$ 7,200' },
+        { n: '月票', q: 1, a: 'NT$ 2,800' },
+        { n: '平日全天票（學生）', q: 9, a: 'NT$ 2,700' },
+        { n: '上攀新手包', q: 2, a: 'NT$ 2,400' },
+        { n: '初階攀岩鞋', q: 12, a: 'NT$ 1,200' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

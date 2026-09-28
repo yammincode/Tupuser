@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>櫃檯・今日</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&amp;display=swap">
+<style>
+body{margin:0;font-family:'Noto Sans TC','PingFang TC',sans-serif;background:#F3F0EA}
+a{color:#B24A22}a:hover{color:#8E3A1A}
+</style>
+</helmet>
+<div style="width: 1280px; height: 800px; box-sizing: border-box; display: flex; flex-direction: column; background: #F3F0EA; color: #1C1A17; font-family: 'Noto Sans TC','PingFang TC',sans-serif">
+<div style="height: 56px; flex-shrink: 0; padding: 0 24px; background: #1C1A17; color: #F3F0EA; display: flex; align-items: center; justify-content: space-between">
+<div style="width: 300px; display: flex; align-items: center; gap: 14px"><span style="font-size: 17px; font-weight: 700; letter-spacing: 2px">原岩攀岩館</span><span style="font-size: 15px; color: #CFC8BC">中和店 T-UP・櫃檯</span></div>
+<nav aria-label="主選單" style="display: flex; gap: 6px"><a href="Counter.dc.html" style="height: 40px; padding: 0 18px; border-radius: 10px; background: transparent; color: #CFC8BC; font-size: 15px; text-decoration: none; display: flex; align-items: center">結帳</a><a href="CounterMembers.dc.html" style="height: 40px; padding: 0 18px; border-radius: 10px; background: transparent; color: #CFC8BC; font-size: 15px; text-decoration: none; display: flex; align-items: center">會員</a><a href="CounterToday.dc.html" style="height: 40px; padding: 0 18px; border-radius: 10px; background: #F3F0EA; color: #1C1A17; font-weight: 500; font-size: 15px; text-decoration: none; display: flex; align-items: center">今日</a><a href="CounterClose.dc.html" style="height: 40px; padding: 0 18px; border-radius: 10px; background: transparent; color: #CFC8BC; font-size: 15px; text-decoration: none; display: flex; align-items: center">關帳</a></nav>
+<div style="width: 300px; text-align: right; font-size: 14px; color: #CFC8BC">櫃檯：[人員]</div>
+</div>
+<div style="flex-grow: 1; min-height: 0; display: flex; flex-direction: column; gap: 16px; padding: 16px">
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px">
+<sc-for list="{{stats}}" as="s" hint-placeholder-count="4">
+<div style="background: #FFFFFF; border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; color: #5E584F">{{s.k}}</span><span style="font-size: 32px; font-weight: 700; color: {{s.c}}">{{s.v}}</span></div>
+</sc-for>
+</div>
+<div style="flex-grow: 1; min-height: 0; background: #FFFFFF; border-radius: 16px; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; align-items: center">
+<span style="font-size: 16px; font-weight: 700">9/28（一）入場名單</span>
+<div style="display: flex; gap: 8px"><button type="button" style="height: 44px; padding: 0 16px; border: 1px solid #CFC8BC; border-radius: 10px; background: #FFFFFF; font-size: 15px; font-family: inherit; color: #1C1A17; background: #1C1A17; color: #FFFFFF; border-color: #1C1A17">全部</button><button type="button" style="height: 44px; padding: 0 16px; border: 1px solid #CFC8BC; border-radius: 10px; background: #FFFFFF; font-size: 15px; font-family: inherit; color: #1C1A17">入場機</button><button type="button" style="height: 44px; padding: 0 16px; border: 1px solid #CFC8BC; border-radius: 10px; background: #FFFFFF; font-size: 15px; font-family: inherit; color: #1C1A17">櫃檯</button><button type="button" style="height: 44px; padding: 0 16px; border: 1px solid #CFC8BC; border-radius: 10px; background: #FFFFFF; font-size: 15px; font-family: inherit; color: #1C1A17">被擋下</button></div>
+</div>
+<div style="display: grid; grid-template-columns: 110px minmax(0, 1.3fr) minmax(0, 1.5fr) minmax(0, 1fr) 140px; padding: 8px 0; border-bottom: 1px solid #DDD7CC; font-size: 13px; color: #5E584F"><span>時間</span><span>會員</span><span>方案</span><span>方式</span><span>結果</span></div>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="8">
+<div style="display: grid; grid-template-columns: 110px minmax(0, 1.3fr) minmax(0, 1.5fr) minmax(0, 1fr) 140px; padding: 10px 0; border-bottom: 1px solid #ECE7DE; font-size: 15px; align-items: center"><span>{{r.t}}</span><span style="font-weight: 500">{{r.n}}</span><span>{{r.p}}</span><span style="color: #5E584F">{{r.m}}</span><span style="color: {{r.c}}; font-weight: 500">{{r.res}}</span></div>
+</sc-for>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const ok = '#2F6B57', bad = '#A8431E';
+    return {
+      stats: [
+        { k: '今日入場', v: '128', c: '#1C1A17' },
+        { k: '入場機 / 櫃檯', v: '109 / 19', c: '#1C1A17' },
+        { k: '新會員', v: '5', c: '#1C1A17' },
+        { k: '被擋下', v: '3', c: bad }
+      ],
+      rows: [
+        { t: '14:32', n: '林小岩', p: '套票（全店通）', m: '入場機', res: '成功', c: ok },
+        { t: '14:30', n: '陳攀攀', p: '平日全天票', m: '櫃檯', res: '成功', c: ok },
+        { t: '14:27', n: '王小石', p: '月票（中和店）', m: '入場機', res: '方案到期', c: bad },
+        { t: '14:21', n: '張岩岩', p: '年票', m: '入場機', res: '成功', c: ok },
+        { t: '14:18', n: '李抱石', p: '課程・[課程名稱]', m: '入場機', res: '成功', c: ok },
+        { t: '14:15', n: '吳上攀', p: '套票（中和店）', m: '入場機', res: '需簽同意書', c: bad },
+        { t: '14:09', n: '周小爬', p: '兒童票（7–12 歲）', m: '櫃檯', res: '成功', c: ok },
+        { t: '14:02', n: '黃指力', p: '月票（中和店）', m: '入場機', res: '成功', c: ok }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

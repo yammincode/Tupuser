@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>櫃檯・新增會員</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&amp;display=swap">
+<style>
+body{margin:0;font-family:'Noto Sans TC','PingFang TC',sans-serif;background:#F3F0EA}
+a{color:#B24A22}a:hover{color:#8E3A1A}
+</style>
+</helmet>
+<div style="width: 1280px; height: 800px; box-sizing: border-box; display: flex; flex-direction: column; background: #F3F0EA; color: #1C1A17; font-family: 'Noto Sans TC','PingFang TC',sans-serif">
+<div style="height: 56px; flex-shrink: 0; padding: 0 24px; background: #1C1A17; color: #F3F0EA; display: flex; align-items: center; justify-content: space-between">
+<div style="width: 300px; display: flex; align-items: center; gap: 14px"><span style="font-size: 17px; font-weight: 700; letter-spacing: 2px">原岩攀岩館</span><span style="font-size: 15px; color: #CFC8BC">中和店 T-UP・櫃檯</span></div>
+<nav aria-label="主選單" style="display: flex; gap: 6px"><a href="Counter.dc.html" style="height: 40px; padding: 0 18px; border-radius: 10px; background: transparent; color: #CFC8BC; font-size: 15px; text-decoration: none; display: flex; align-items: center">結帳</a><a href="CounterMembers.dc.html" style="height: 40px; padding: 0 18px; border-radius: 10px; background: #F3F0EA; color: #1C1A17; font-weight: 500; font-size: 15px; text-decoration: none; display: flex; align-items: center">會員</a><a href="CounterToday.dc.html" style="height: 40px; padding: 0 18px; border-radius: 10px; background: transparent; color: #CFC8BC; font-size: 15px; text-decoration: none; display: flex; align-items: center">今日</a><a href="CounterClose.dc.html" style="height: 40px; padding: 0 18px; border-radius: 10px; background: transparent; color: #CFC8BC; font-size: 15px; text-decoration: none; display: flex; align-items: center">關帳</a></nav>
+<div style="width: 300px; text-align: right; font-size: 14px; color: #CFC8BC">櫃檯：[人員]</div>
+</div>
+<div style="flex-grow: 1; min-height: 0; display: flex; gap: 16px; padding: 16px">
+<div style="flex-grow: 1; background: #FFFFFF; border-radius: 16px; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; align-items: center; gap: 12px"><a href="CounterMembers.dc.html" style="font-size: 15px">‹ 會員</a><span style="font-size: 22px; font-weight: 700">新增會員</span></div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 16px">
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="f1" style="font-size: 14px; font-weight: 500">手機號碼（必填）</label><input id="f1" type="tel" placeholder="0912 345 678" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #CFC8BC; border-radius: 10px; background: #FFFFFF; font-size: 16px; font-family: inherit; color: #1C1A17"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="f2" style="font-size: 14px; font-weight: 500">姓名（必填）</label><input id="f2" type="text" placeholder="" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #CFC8BC; border-radius: 10px; background: #FFFFFF; font-size: 16px; font-family: inherit; color: #1C1A17"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="f3" style="font-size: 14px; font-weight: 500">生日（必填）</label><input id="f3" type="text" placeholder="1994/05/12" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #CFC8BC; border-radius: 10px; background: #FFFFFF; font-size: 16px; font-family: inherit; color: #1C1A17"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="f4" style="font-size: 14px; font-weight: 500">Email</label><input id="f4" type="email" placeholder="選填" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #CFC8BC; border-radius: 10px; background: #FFFFFF; font-size: 16px; font-family: inherit; color: #1C1A17"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="f5" style="font-size: 14px; font-weight: 500">手機條碼載具</label><input id="f5" type="text" placeholder="/ABC1234（選填）" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #CFC8BC; border-radius: 10px; background: #FFFFFF; font-size: 16px; font-family: inherit; color: #1C1A17"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="f6" style="font-size: 14px; font-weight: 500">主要分館</label><select id="f6" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #CFC8BC; border-radius: 10px; background: #FFFFFF; font-size: 16px; font-family: inherit; color: #1C1A17"><option>中和店</option><option>[分館 B]</option></select></div>
+</div>
+<div style="font-size: 15px; font-weight: 700; padding-top: 4px">緊急聯絡人</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 16px">
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="f7" style="font-size: 14px; font-weight: 500">姓名</label><input id="f7" type="text" placeholder="" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #CFC8BC; border-radius: 10px; background: #FFFFFF; font-size: 16px; font-family: inherit; color: #1C1A17"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="f8" style="font-size: 14px; font-weight: 500">電話</label><input id="f8" type="tel" placeholder="" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #CFC8BC; border-radius: 10px; background: #FFFFFF; font-size: 16px; font-family: inherit; color: #1C1A17"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="f9" style="font-size: 14px; font-weight: 500">關係</label><input id="f9" type="text" placeholder="例：家人、朋友" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #CFC8BC; border-radius: 10px; background: #FFFFFF; font-size: 16px; font-family: inherit; color: #1C1A17"></div>
+</div>
+<label style="display: flex; align-items: center; gap: 10px; font-size: 15px"><input type="checkbox" style="width: 22px; height: 22px">同意收到原岩的活動與優惠訊息（選填）</label>
+<div style="padding: 12px 14px; border-radius: 10px; background: #F3F0EA; font-size: 14px; color: #5E584F">未滿 18 歲時，同意書步驟會要求法定代理人一起簽署。</div>
+</div>
+<div style="width: 360px; flex-shrink: 0; display: flex; flex-direction: column; gap: 16px">
+<div style="background: #FFFFFF; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<span style="font-size: 16px; font-weight: 700">1　大頭照</span>
+<div style="height: 180px; border-radius: 12px; border: 2px dashed #CFC8BC; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: #5E584F; font-size: 14px">
+<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>
+入場時核對本人用</div>
+<button type="button" style="height: 44px; padding: 0 16px; border: 1px solid #CFC8BC; border-radius: 10px; background: #FFFFFF; font-size: 15px; font-family: inherit; color: #1C1A17">用平板鏡頭拍照</button>
+</div>
+<div style="background: #FFFFFF; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<span style="font-size: 16px; font-weight: 700">2　免責同意書</span>
+<span style="font-size: 14px; line-height: 1.6; color: #5E584F">資料填好後，把平板轉給客人，讓他自己閱讀並簽名。</span>
+<a href="CounterWaiver.dc.html" style="height: 44px; padding: 0 16px; border: 1px solid #CFC8BC; border-radius: 10px; background: #FFFFFF; font-size: 15px; font-family: inherit; color: #1C1A17; display: flex; align-items: center; justify-content: center; text-decoration: none">交給客人簽署</a>
+</div>
+<div style="flex-grow: 1"></div>
+<button type="button" style="height: 52px; padding: 0 24px; border: none; border-radius: 12px; background: #B24A22; color: #FFFFFF; font-size: 17px; font-weight: 500; font-family: inherit">完成註冊</button>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

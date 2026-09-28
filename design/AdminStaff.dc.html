@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>總部・員工與權限</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&amp;display=swap">
+<style>
+body{margin:0;font-family:'Noto Sans TC','PingFang TC',sans-serif;background:#F3F0EA}
+a{color:#B24A22}a:hover{color:#8E3A1A}
+</style>
+</helmet>
+<div style="width: 1280px; height: 800px; box-sizing: border-box; display: flex; flex-direction: column; background: #F3F0EA; color: #1C1A17; font-family: 'Noto Sans TC','PingFang TC',sans-serif">
+<div style="height: 56px; flex-shrink: 0; padding: 0 24px; background: #1C1A17; color: #F3F0EA; display: flex; align-items: center; justify-content: space-between">
+<div style="width: 300px; display: flex; align-items: center; gap: 14px"><span style="font-size: 17px; font-weight: 700; letter-spacing: 2px">原岩攀岩館</span><span style="font-size: 15px; color: #CFC8BC">總部後台</span></div>
+<nav aria-label="主選單" style="display: flex; gap: 6px"><a href="AdminProducts.dc.html" style="height: 40px; padding: 0 18px; border-radius: 10px; background: transparent; color: #CFC8BC; font-size: 15px; text-decoration: none; display: flex; align-items: center">品項管理</a><a href="AdminStaff.dc.html" style="height: 40px; padding: 0 18px; border-radius: 10px; background: #F3F0EA; color: #1C1A17; font-weight: 500; font-size: 15px; text-decoration: none; display: flex; align-items: center">員工與權限</a></nav>
+<div style="width: 300px; text-align: right; font-size: 14px; color: #CFC8BC">管理者：[總部人員]</div>
+</div>
+<div style="flex-grow: 1; min-height: 0; display: flex; gap: 16px; padding: 16px">
+<div style="flex-grow: 1; min-width: 0; background: #FFFFFF; border-radius: 16px; padding: 16px 20px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 16px; font-weight: 700">員工</span><button type="button" style="height: 44px; padding: 0 16px; border: 1px solid #CFC8BC; border-radius: 10px; background: #FFFFFF; font-size: 15px; font-family: inherit; color: #1C1A17; border-color: #B24A22; color: #B24A22">＋ 新增員工</button></div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 110px minmax(0, 1fr) 80px; padding: 6px 0; border-bottom: 1px solid #DDD7CC; font-size: 13px; color: #5E584F"><span>姓名</span><span>角色</span><span>分館</span><span>狀態</span></div>
+<sc-for list="{{staff}}" as="s" hint-placeholder-count="6">
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 110px minmax(0, 1fr) 80px; padding: 11px 0; border-bottom: 1px solid #ECE7DE; font-size: 15px; align-items: center">
+<span style="font-weight: 500">{{s.n}}</span><span><span style="padding: 2px 10px; border-radius: 999px; background: {{s.bg}}; color: {{s.fg}}; font-size: 13px">{{s.r}}</span></span><span>{{s.b}}</span><span style="color: #5E584F">{{s.st}}</span>
+</div>
+</sc-for>
+</div>
+<div style="width: 480px; flex-shrink: 0; background: #FFFFFF; border-radius: 16px; padding: 16px 20px; display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 16px; font-weight: 700">各角色可以做什麼</span>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 64px 64px 64px; padding: 8px 0; border-bottom: 1px solid #DDD7CC; font-size: 13px; color: #5E584F"><span>權限</span><span style="text-align: center">總部</span><span style="text-align: center">店長</span><span style="text-align: center">櫃檯</span></div>
+<sc-for list="{{perms}}" as="p" hint-placeholder-count="9">
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 64px 64px 64px; padding: 9px 0; border-bottom: 1px solid #ECE7DE; font-size: 14px; align-items: center"><span>{{p.k}}</span><span style="text-align: center; color: #2F6B57; font-weight: 700">{{p.a}}</span><span style="text-align: center; color: #2F6B57; font-weight: 700">{{p.b}}</span><span style="text-align: center; color: #2F6B57; font-weight: 700">{{p.c}}</span></div>
+</sc-for>
+<span style="font-size: 13px; padding-top: 6px; color: #5E584F">✓ 全部分館　◐ 只限自己的分館　— 沒有權限</span>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const role = { '總部': ['#DCE4F0', '#1F3A63'], '店長': ['#F6DDD2', '#6E2A12'], '櫃檯': ['#E9E5DD', '#2F2B25'] };
+    const s = (n, r, b, st) => ({ n, r, b, st, bg: role[r][0], fg: role[r][1] });
+    return {
+      staff: [
+        s('[總部人員]', '總部', '全部分館', '在職'),
+        s('[店長 A]', '店長', '中和店', '在職'),
+        s('[櫃檯 A]', '櫃檯', '中和店', '在職'),
+        s('[櫃檯 B]', '櫃檯', '中和店', '在職'),
+        s('[店長 B]', '店長', '[分館 B]', '在職'),
+        s('[櫃檯 C]', '櫃檯', '[分館 B]', '停用')
+      ],
+      perms: [
+        { k: '結帳、查會員、新增會員', a: '✓', b: '◐', c: '◐' },
+        { k: '看今日入場名單', a: '✓', b: '◐', c: '◐' },
+        { k: '關帳', a: '✓', b: '◐', c: '◐' },
+        { k: '暫停、延期、轉讓方案', a: '✓', b: '◐', c: '—' },
+        { k: '退費、修改已關帳訂單', a: '✓', b: '◐', c: '—' },
+        { k: '新增、修改品項與價格', a: '✓', b: '◐', c: '—' },
+        { k: '管理員工帳號', a: '✓', b: '◐', c: '—' },
+        { k: '跨分館營收報表', a: '✓', b: '—', c: '—' },
+        { k: '修改同意書版本', a: '✓', b: '—', c: '—' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

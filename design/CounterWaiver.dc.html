@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>客人簽署同意書</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&amp;display=swap">
+<style>
+body{margin:0;font-family:'Noto Sans TC','PingFang TC',sans-serif;background:#F3F0EA}
+a{color:#B24A22}a:hover{color:#8E3A1A}
+</style>
+</helmet>
+<div style="width: 1280px; height: 800px; box-sizing: border-box; display: flex; flex-direction: column; background: #F3F0EA; color: #1C1A17; font-family: 'Noto Sans TC','PingFang TC',sans-serif">
+<div style="height: 64px; flex-shrink: 0; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #DDD7CC; background: #FFFFFF">
+<span style="font-size: 20px; font-weight: 700; letter-spacing: 3px">原岩攀岩館</span><span style="font-size: 16px; color: #5E584F">免責同意書 v3・請客人本人閱讀並簽署</span>
+</div>
+<div style="flex-grow: 1; min-height: 0; display: flex; gap: 20px; padding: 20px 32px">
+<div style="flex-grow: 1; background: #FFFFFF; border-radius: 16px; padding: 24px 28px; overflow: auto; font-size: 17px; line-height: 1.8">
+<div style="font-size: 22px; font-weight: 700; padding-bottom: 8px">攀岩運動風險告知與免責同意書</div>
+<div style="color: #5E584F">[同意書全文：由原岩提供，建議經律師審閱。內容通常包含運動風險說明、場館規則、個人資料蒐集告知、緊急處理同意等。]</div>
+</div>
+<div style="width: 440px; flex-shrink: 0; display: flex; flex-direction: column; gap: 14px">
+<div style="background: #FFFFFF; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px; font-size: 17px">
+<label style="display: flex; gap: 12px; align-items: flex-start"><input type="checkbox" style="width: 26px; height: 26px; flex-shrink: 0">我已閱讀並了解攀岩運動的風險與場館規則</label>
+<label style="display: flex; gap: 12px; align-items: flex-start"><input type="checkbox" style="width: 26px; height: 26px; flex-shrink: 0">我確認目前身體狀況適合從事攀岩</label>
+<label style="display: flex; gap: 12px; align-items: flex-start"><input type="checkbox" style="width: 26px; height: 26px; flex-shrink: 0">我已閱讀個人資料蒐集告知事項</label>
+</div>
+<div style="background: #FFFFFF; border-radius: 16px; padding: 20px; flex-grow: 1; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 16px; font-weight: 700">簽名：林小岩</span><button type="button" style="height: 44px; padding: 0 16px; border: 1px solid #CFC8BC; border-radius: 10px; background: #FFFFFF; font-size: 15px; font-family: inherit; color: #1C1A17">清除重簽</button></div>
+<div style="flex-grow: 1; border-radius: 12px; background: #F3F0EA; border: 2px dashed #CFC8BC; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #5E584F">請用手指在這裡簽名</div>
+</div>
+<button type="button" style="height: 52px; padding: 0 24px; border: none; border-radius: 12px; background: #B24A22; color: #FFFFFF; font-size: 17px; font-weight: 500; font-family: inherit; height: 60px; font-size: 19px">同意並送出</button>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

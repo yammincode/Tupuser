@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>櫃檯入場結帳</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&amp;display=swap">
+<style>
+body{margin:0;font-family:'Noto Sans TC','PingFang TC',sans-serif;background:#F3F0EA}
+a{color:#B24A22}a:hover{color:#8E3A1A}
+</style>
+</helmet>
+<div style="width: 1280px; height: 800px; box-sizing: border-box; position: relative; display: flex; flex-direction: column; background: #F3F0EA; color: #1C1A17; font-family: 'Noto Sans TC','PingFang TC',sans-serif">
+<div style="height: 56px; flex-shrink: 0; padding: 0 24px; background: #1C1A17; color: #F3F0EA; display: flex; align-items: center; justify-content: space-between">
+<div style="display: flex; align-items: center; gap: 14px"><span style="font-size: 17px; font-weight: 700; letter-spacing: 2px">原岩攀岩館</span><span style="font-size: 15px; color: #CFC8BC">中和店 T-UP・櫃檯</span></div>
+<nav aria-label="主選單" style="display: flex; gap: 6px"><a href="Counter.dc.html" style="height: 40px; padding: 0 18px; border-radius: 10px; background: #F3F0EA; color: #1C1A17; font-weight: 500; font-size: 15px; text-decoration: none; display: flex; align-items: center">結帳</a><a href="CounterMembers.dc.html" style="height: 40px; padding: 0 18px; border-radius: 10px; background: transparent; color: #CFC8BC; font-size: 15px; text-decoration: none; display: flex; align-items: center">會員</a><a href="CounterToday.dc.html" style="height: 40px; padding: 0 18px; border-radius: 10px; background: transparent; color: #CFC8BC; font-size: 15px; text-decoration: none; display: flex; align-items: center">今日</a><a href="CounterClose.dc.html" style="height: 40px; padding: 0 18px; border-radius: 10px; background: transparent; color: #CFC8BC; font-size: 15px; text-decoration: none; display: flex; align-items: center">關帳</a></nav>
+<div style="display: flex; align-items: center; gap: 20px; font-size: 14px; color: #CFC8BC"><span>{{dayLabel}}</span><span>今日入場 128 人</span><span>櫃檯：[人員]</span></div>
+</div>
+<div style="flex-grow: 1; min-height: 0; display: flex">
+<div style="flex-grow: 1; padding: 18px 22px; display: flex; flex-direction: column; gap: 12px; overflow: hidden">
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="6">
+<div style="display: flex; flex-direction: column; gap: 7px">
+<div style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500"><span style="width: 12px; height: 12px; border-radius: 3px; background: {{g.dot}}"></span>{{g.title}}</div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px">
+<sc-for list="{{g.tiles}}" as="t" hint-placeholder-count="4">
+<button type="button" onClick="{{t.add}}" disabled="{{t.off}}" style="position: relative; height: 70px; padding: 10px 14px; border: 2px solid {{t.border}}; border-radius: 12px; background: {{g.bg}}; color: {{g.fg}}; opacity: {{t.opacity}}; text-align: left; font-family: inherit; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between">
+<span style="font-size: 15px; font-weight: 500; line-height: 1.3; padding-right: 30px">{{t.name}}</span>
+<span style="font-size: 14px">{{t.priceLabel}}</span>
+<sc-if value="{{t.inCart}}" hint-placeholder-val="{{false}}"><span style="position: absolute; top: 8px; right: 8px; min-width: 28px; height: 28px; padding: 0 6px; box-sizing: border-box; border-radius: 14px; background: {{g.fg}}; color: #FFFFFF; font-size: 13px; font-weight: 500; display: flex; align-items: center; justify-content: center">{{t.qtyLabel}}</span></sc-if>
+<sc-if value="{{t.off}}" hint-placeholder-val="{{false}}"><span style="position: absolute; bottom: 10px; right: 12px; font-size: 12px">{{t.offLabel}}</span></sc-if>
+</button>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+<div style="width: 440px; flex-shrink: 0; background: #FFFFFF; border-left: 1px solid #DDD7CC; display: flex; flex-direction: column">
+<div style="padding: 14px 20px; border-bottom: 1px solid #ECE7DE; display: flex; align-items: center; justify-content: space-between; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-size: 17px; font-weight: 700">林小岩</div>
+<div style="font-size: 13px; color: #5E584F">0912-***-678・套票剩 8 次</div>
+</div>
+<div style="display: flex; gap: 8px">
+<button type="button" style="height: 44px; padding: 0 14px; border: 1px solid #2F6B57; border-radius: 10px; background: #FFFFFF; color: #2F6B57; font-size: 14px; font-family: inherit">扣次入場</button>
+<button type="button" style="height: 44px; padding: 0 14px; border: 1px solid #CFC8BC; border-radius: 10px; background: #FFFFFF; color: #1C1A17; font-size: 14px; font-family: inherit">換會員</button>
+</div>
+</div>
+<div style="flex-grow: 1; min-height: 0; overflow: auto; padding: 4px 20px; display: flex; flex-direction: column">
+<sc-if value="{{empty}}" hint-placeholder-val="{{true}}"><div style="padding: 24px 0; text-align: center; font-size: 15px; color: #5E584F">點左邊的項目加入結帳</div></sc-if>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="2">
+<div style="padding: 8px 0; border-bottom: 1px solid #ECE7DE; display: flex; align-items: center; gap: 10px">
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 15px; font-weight: 500">{{r.name}}</span><span style="font-size: 12px; color: #5E584F">{{r.unit}}</span></div>
+<div style="display: flex; align-items: center; gap: 4px">
+<button type="button" onClick="{{r.minus}}" aria-label="減少" style="width: 44px; height: 44px; border: 1px solid #CFC8BC; border-radius: 10px; background: #FFFFFF; font-size: 20px; font-family: inherit; color: #1C1A17">−</button>
+<span style="min-width: 22px; text-align: center; font-size: 15px">{{r.qty}}</span>
+<button type="button" onClick="{{r.plus}}" aria-label="增加" style="width: 44px; height: 44px; border: 1px solid #CFC8BC; border-radius: 10px; background: #FFFFFF; font-size: 20px; font-family: inherit; color: #1C1A17">+</button>
+</div>
+<span style="min-width: 72px; text-align: right; font-size: 15px; font-weight: 500">{{r.sub}}</span>
+</div>
+</sc-for>
+</div>
+<div style="padding: 12px 20px 16px 20px; border-top: 1px solid #ECE7DE; display: flex; flex-direction: column; gap: 10px">
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+<label style="display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: #5E584F">折扣
+<select value="{{discount}}" onChange="{{setDiscount}}" style="height: 40px; padding: 0 8px; border: 1px solid #CFC8BC; border-radius: 10px; background: #FFFFFF; font-size: 15px; font-family: inherit; color: #1C1A17">
+<option value="1">無折扣</option><option value="0.95">95 折</option><option value="0.9">9 折</option><option value="0.8">員工價 8 折</option>
+</select></label>
+<label style="display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: #5E584F">業務代表
+<select value="{{rep}}" onChange="{{setRep}}" style="height: 40px; padding: 0 8px; border: 1px solid #CFC8BC; border-radius: 10px; background: #FFFFFF; font-size: 15px; font-family: inherit; color: #1C1A17">
+<option value="">未指定</option><option value="[教練 A]">[教練 A]</option><option value="[教練 B]">[教練 B]</option>
+</select></label>
+</div>
+<label style="display: flex; align-items: center; gap: 10px; font-size: 12px; color: #5E584F">備註
+<input type="text" placeholder="訂單備註（選填）" style="flex-grow: 1; min-width: 0; height: 38px; box-sizing: border-box; padding: 0 10px; border: 1px solid #CFC8BC; border-radius: 10px; font-size: 14px; font-family: inherit; color: #1C1A17">
+</label>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<sc-if value="{{hasDiscount}}" hint-placeholder-val="{{false}}"><div style="display: flex; justify-content: space-between; font-size: 14px; color: #5E584F"><span>小計 {{subtotalLabel}}</span><span>折扣 −{{discountLabel}}</span></div></sc-if>
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 15px">合計</span><span style="font-size: 28px; font-weight: 700">{{totalLabel}}</span></div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+<button type="button" onClick="{{payCash}}" style="height: 48px; border-radius: 12px; border: 2px solid {{cashBd}}; background: {{cashBg}}; color: {{cashFg}}; font-size: 16px; font-weight: 500; font-family: inherit">現金</button>
+<button type="button" onClick="{{payLine}}" style="height: 48px; border-radius: 12px; border: 2px solid {{lineBd}}; background: {{lineBg}}; color: {{lineFg}}; font-size: 16px; font-weight: 500; font-family: inherit">LINE Pay</button>
+</div>
+<sc-if value="{{isCash}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; align-items: center; gap: 8px">
+<sc-for list="{{quick}}" as="q" hint-placeholder-count="4">
+<button type="button" onClick="{{q.pick}}" style="flex-grow: 1; height: 44px; border-radius: 10px; border: 1px solid {{q.bd}}; background: #FFFFFF; color: #1C1A17; font-size: 14px; font-family: inherit">{{q.label}}</button>
+</sc-for>
+<span style="min-width: 108px; text-align: right; font-size: 14px; font-weight: 500">找零 {{changeLabel}}</span>
+</div>
+</sc-if>
+<sc-if value="{{isLine}}" hint-placeholder-val="{{false}}"><div style="height: 44px; padding: 0 12px; border-radius: 10px; background: #F3F0EA; font-size: 14px; display: flex; align-items: center">結帳後，用掃碼器掃顧客 LINE Pay 付款碼</div></sc-if>
+<div style="display: flex; align-items: center; gap: 8px">
+<span style="font-size: 13px; color: #5E584F; white-space: nowrap">發票</span>
+<button type="button" onClick="{{useCarrier}}" style="height: 40px; padding: 0 10px; border-radius: 10px; border: 2px solid {{carBd}}; background: {{carBg}}; color: {{carFg}}; font-size: 13px; font-family: inherit; white-space: nowrap">手機載具</button>
+<button type="button" onClick="{{usePaper}}" style="height: 40px; padding: 0 10px; border-radius: 10px; border: 2px solid {{papBd}}; background: {{papBg}}; color: {{papFg}}; font-size: 13px; font-family: inherit; white-space: nowrap">列印</button>
+<sc-if value="{{isCarrier}}" hint-placeholder-val="{{true}}"><input aria-label="載具號碼" type="text" value="{{carrierCode}}" onChange="{{setCode}}" style="flex-grow: 1; min-width: 0; width: 120px; height: 40px; box-sizing: border-box; padding: 0 10px; border: 1px solid #CFC8BC; border-radius: 10px; font-size: 15px; letter-spacing: 1px; font-family: inherit; color: #1C1A17"></sc-if>
+</div>
+<sc-if value="{{hasError}}" hint-placeholder-val="{{false}}"><div style="font-size: 14px; color: #A3261B">{{error}}</div></sc-if>
+<button type="button" onClick="{{checkout}}" style="height: 56px; border: none; border-radius: 14px; background: {{payBtnBg}}; color: #FFFFFF; font-size: 19px; font-weight: 700; font-family: inherit; cursor: pointer">結帳 {{totalLabel}}</button>
+</div>
+</div>
+</div>
+<sc-if value="{{done}}" hint-placeholder-val="{{false}}">
+<div style="position: absolute; top: 0; left: 0; width: 1280px; height: 800px; background: rgba(28,26,23,0.55); display: flex; align-items: center; justify-content: center">
+<div style="width: 440px; padding: 32px; box-sizing: border-box; background: #FFFFFF; border-radius: 20px; display: flex; flex-direction: column; gap: 14px">
+<div style="font-size: 24px; font-weight: 700">結帳完成</div>
+<div style="font-size: 16px; line-height: 1.8; white-space: pre-line">{{doneText}}</div>
+<button type="button" onClick="{{next}}" style="height: 54px; border: none; border-radius: 12px; background: #1C1A17; color: #FFFFFF; font-size: 17px; font-weight: 500; font-family: inherit">下一位</button>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dayType":{"editor":"enum","options":["平日","假日"],"default":"平日"},"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.groupDefs = [
+      { key: 'wd', title: '平日入場', dot: '#C99A1E', bg: '#F7ECC8', fg: '#5A4106', applies: '平日', items: [['平日全天票', 350], ['平日全天票（學生）', 300], ['平日下午時段', 280], ['平日晚上時段', 300]] },
+      { key: 'we', title: '假日入場', dot: '#2F6B57', bg: '#DCEBE4', fg: '#173F32', applies: '假日', items: [['假日全天票', 450], ['假日全天票（學生）', 400]] },
+      { key: 'kid', title: '兒童', dot: '#B94A77', bg: '#F5DDE6', fg: '#6B1F3D', items: [['幼兒票（6 歲以下）', 150], ['兒童票（7–12 歲）', 250]] },
+      { key: 'pass', title: '套票・年月票', dot: '#B24A22', bg: '#F6DDD2', fg: '#6E2A12', items: [['套票（中和店）', 3000], ['套票（全店通）', 3600], ['月票', 2800], ['年票', 24000]] },
+      { key: 'new', title: '新手與活動', dot: '#3B62A0', bg: '#DCE4F0', fg: '#1F3A63', items: [['新手路線挑戰', 500], ['上攀新手包', 1200], ['新客爬三次送月票', 900], ['分店入場練習優惠', 250]] },
+      { key: 'rent', title: '裝備租借', dot: '#6B655C', bg: '#E9E5DD', fg: '#2F2B25', items: [['初階攀岩鞋', 100], ['吊帶', 50]] }
+    ];
+    this.items = {};
+    for (const g of this.groupDefs) g.items.forEach(([name, price], i) => { this.items[g.key + i] = { name, price, applies: g.applies }; });
+    this.state = { cart: {}, pay: 'cash', received: 0, carrier: true, code: '/ABC1234', discount: '1', rep: '', done: false, error: '', doneText: '' };
+  }
+  fmt(n) { return 'NT$ ' + Math.round(n).toLocaleString('en-US'); }
+  change(id, d) {
+    const cart = Object.assign({}, this.state.cart);
+    const q = (cart[id] || 0) + d;
+    if (q <= 0) delete cart[id]; else cart[id] = q;
+    this.setState({ cart, received: 0, error: '' });
+  }
+  sel(on, color) { return on ? { bd: color, bg: color, fg: '#FFFFFF' } : { bd: '#CFC8BC', bg: '#FFFFFF', fg: '#1C1A17' }; }
+  renderVals() {
+    const s = this.state;
+    const day = this.props.dayType ?? '平日';
+    let subtotal = 0;
+    for (const id in s.cart) subtotal += this.items[id].price * s.cart[id];
+    const total = Math.round(subtotal * Number(s.discount));
+    const groups = this.groupDefs.map((g) => ({
+      title: g.title, dot: g.dot, bg: g.bg, fg: g.fg,
+      tiles: g.items.map((_, i) => {
+        const id = g.key + i, it = this.items[id], q = s.cart[id] || 0;
+        const off = !!it.applies && it.applies !== day;
+        return { name: it.name, priceLabel: this.fmt(it.price), inCart: q > 0, qtyLabel: '×' + q, border: q > 0 ? '#1C1A17' : 'transparent', off, offLabel: it.applies + '適用', opacity: off ? '0.45' : '1', add: () => { if (!off) this.change(id, 1); } };
+      })
+    }));
+    const rows = Object.keys(s.cart).map((id) => ({ name: this.items[id].name, unit: this.fmt(this.items[id].price), qty: s.cart[id], sub: this.fmt(this.items[id].price * s.cart[id]), minus: () => this.change(id, -1), plus: () => this.change(id, 1) }));
+    const quick = [['剛好', total], ['500', 500], ['1000', 1000], ['2000', 2000]].map(([label, amt]) => ({ label, bd: s.received === amt && total > 0 ? '#1C1A17' : '#CFC8BC', pick: () => this.setState({ received: amt, error: '' }) }));
+    const cash = this.sel(s.pay === 'cash', '#1C1A17'), line = this.sel(s.pay === 'line', '#06803D');
+    const car = this.sel(s.carrier, '#2F6B57'), pap = this.sel(!s.carrier, '#2F6B57');
+    const change = s.received - total;
+    return {
+      dayLabel: day === '平日' ? '9/28（一）平日' : '10/3（六）假日',
+      groups, rows, empty: rows.length === 0,
+      discount: s.discount, rep: s.rep, hasDiscount: s.discount !== '1' && subtotal > 0,
+      subtotalLabel: this.fmt(subtotal), discountLabel: this.fmt(subtotal - total), totalLabel: this.fmt(total),
+      quick, isCash: s.pay === 'cash', isLine: s.pay === 'line',
+      cashBd: cash.bd, cashBg: cash.bg, cashFg: cash.fg, lineBd: line.bd, lineBg: line.bg, lineFg: line.fg,
+      carBd: car.bd, carBg: car.bg, carFg: car.fg, papBd: pap.bd, papBg: pap.bg, papFg: pap.fg,
+      isCarrier: s.carrier, carrierCode: s.code,
+      changeLabel: s.received && change >= 0 ? this.fmt(change) : '—',
+      payBtnBg: total > 0 ? '#B24A22' : '#A39C91',
+      hasError: !!s.error, error: s.error, done: s.done, doneText: s.doneText,
+      setDiscount: (e) => this.setState({ discount: e.target.value, received: 0 }),
+      setRep: (e) => this.setState({ rep: e.target.value }),
+      payCash: () => this.setState({ pay: 'cash', error: '' }),
+      payLine: () => this.setState({ pay: 'line', error: '' }),
+      useCarrier: () => this.setState({ carrier: true }),
+      usePaper: () => this.setState({ carrier: false }),
+      setCode: (e) => this.setState({ code: e.target.value.toUpperCase() }),
+      checkout: () => {
+        if (total === 0) { this.setState({ error: '請先選擇項目' }); return; }
+        if (s.pay === 'cash' && s.received < total) { this.setState({ error: '請先選擇實收金額' }); return; }
+        if (s.carrier && !/^\/[0-9A-Z.+-]{7}$/.test(s.code)) { this.setState({ error: '載具格式應為 / 加 7 碼' }); return; }
+        const payLine = s.pay === 'cash' ? '現金 ' + this.fmt(total) + '，找零 ' + this.fmt(change) : 'LINE Pay ' + this.fmt(total);
+        const inv = s.carrier ? '發票已存入載具 ' + s.code : '已列印電子發票證明聯';
+        const rep = s.rep ? '\n業務代表：' + s.rep : '';
+        this.setState({ done: true, error: '', doneText: '會員：林小岩\n' + payLine + '\n' + inv + rep });
+      },
+      next: () => this.setState({ done: false, cart: {}, received: 0, pay: 'cash', discount: '1', rep: '', error: '' })
+    };
+  }
+}
+</script>
+</body>
+</html>

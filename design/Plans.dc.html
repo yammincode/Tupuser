@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>我的方案</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&amp;display=swap">
+<style>
+body{margin:0;font-family:'Noto Sans TC','PingFang TC',sans-serif;background:#F3F0EA}
+a{color:#B24A22}a:hover{color:#8E3A1A}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; display: flex; flex-direction: column; background: #F3F0EA; color: #1C1A17; font-family: 'Noto Sans TC','PingFang TC',sans-serif">
+<sc-if value="{{isList}}" hint-placeholder-val="{{true}}">
+<div style="padding: 28px 24px 0 24px; display: flex; flex-direction: column; gap: 4px">
+<div style="font-size: 13px; letter-spacing: 2px; color: #5E584F">原岩攀岩館</div>
+<div style="font-size: 24px; font-weight: 700">我的方案</div>
+<div style="font-size: 14px; color: #5E584F; padding-top: 4px">選擇要使用的方案，出示 QR code 給櫃檯</div>
+</div>
+<div style="margin: 20px 24px 0 24px; display: flex; flex-direction: column; gap: 12px">
+<sc-for list="{{plans}}" as="p" hint-placeholder-count="3">
+<button type="button" onClick="{{p.open}}" style="padding: 18px 20px; border: none; border-radius: 16px; background: #FFFFFF; font-family: inherit; color: #1C1A17; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 16px">
+<span style="width: 52px; height: 52px; flex-shrink: 0; border-radius: 14px; background: {{p.bg}}; color: {{p.fg}}; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center">{{p.short}}</span>
+<span style="flex-grow: 1; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 17px; font-weight: 500">{{p.name}}</span>
+<span style="font-size: 13px; color: #5E584F">{{p.summary}}</span>
+</span>
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5E584F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+</button>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{isDetail}}" hint-placeholder-val="{{false}}">
+<div style="padding: 20px 16px 0 16px; display: flex; align-items: center">
+<button type="button" onClick="{{back}}" style="height: 44px; padding: 0 10px; border: none; background: transparent; font-family: inherit; font-size: 16px; color: #1C1A17; display: flex; align-items: center; gap: 4px; cursor: pointer">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>我的方案</button>
+</div>
+<div style="margin: 8px 24px 0 24px; padding: 20px 24px; background: #FFFFFF; border-radius: 20px; display: flex; flex-direction: column; align-items: center; gap: 12px">
+<div style="display: flex; align-items: center; gap: 10px"><span style="padding: 4px 12px; border-radius: 999px; background: {{cur.bg}}; color: {{cur.fg}}; font-size: 14px; font-weight: 500">{{cur.name}}</span><span style="font-size: 13px; color: #2F6B57">使用中</span></div>
+<div style="width: 200px; height: 200px; display: grid; grid-template-columns: repeat(25, minmax(0, 1fr)); gap: 0">
+<sc-for list="{{cells}}" as="c" hint-placeholder-count="625">
+<div style="background: {{c.fill}}"></div>
+</sc-for>
+</div>
+<div style="font-size: 13px; color: #5E584F">{{seconds}} 秒後自動更新</div>
+</div>
+<div style="margin: 14px 24px 0 24px; background: #FFFFFF; border-radius: 16px; display: flex; flex-direction: column">
+<sc-for list="{{cur.info}}" as="row" hint-placeholder-count="4">
+<div style="padding: 14px 20px; border-bottom: 1px solid #ECE7DE; display: flex; justify-content: space-between; gap: 16px">
+<span style="font-size: 14px; color: #5E584F">{{row.k}}</span>
+<span style="font-size: 15px; font-weight: 500; text-align: right">{{row.v}}</span>
+</div>
+</sc-for>
+</div>
+</sc-if>
+<div style="flex-grow: 1"></div>
+<div style="height: 76px; flex-shrink: 0; border-top: 1px solid #DDD7CC; background: #FFFFFF; display: flex">
+<a href="Main.dc.html" style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #5E584F; font-size: 12px">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="6" height="6"></rect><rect x="14" y="4" width="6" height="6"></rect><rect x="4" y="14" width="6" height="6"></rect><path d="M14 14h2v2h-2zM18 18h2v2h-2zM14 18h2"></path></svg>
+入場碼</a>
+<a href="Records.dc.html" style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #5E584F; font-size: 12px">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"></path></svg>
+紀錄</a>
+<a href="Plans.dc.html" style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #B24A22; font-size: 12px; font-weight: 500">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z"></path><path d="M14 5v12"></path></svg>
+方案</a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.state = { open: null, seconds: 30, seed: 1 };
+    this.plans = [
+      { id: 'year', name: '年票', short: '年', bg: '#F6DDD2', fg: '#6E2A12', summary: '到期 2026/12/31・剩 94 天',
+        info: [{ k: '方案', v: '年票・不限次數' }, { k: '有效期間', v: '2026/1/1 – 2026/12/31' }, { k: '剩餘天數', v: '94 天' }, { k: '適用分館', v: '全分館' }] },
+      { id: 'month', name: '月票', short: '月', bg: '#F6DDD2', fg: '#6E2A12', summary: '到期 2026/10/14・剩 16 天',
+        info: [{ k: '方案', v: '月票・不限次數' }, { k: '有效期間', v: '2026/9/15 – 2026/10/14' }, { k: '剩餘天數', v: '16 天' }, { k: '適用分館', v: '[分館 A]' }] },
+      { id: 'course', name: '課程', short: '課', bg: '#DCE4F0', fg: '#1F3A63', summary: '[課程名稱]・剩 5 堂',
+        info: [{ k: '課程', v: '[課程名稱]' }, { k: '進度', v: '已上 3 堂・剩 5 堂' }, { k: '下次上課', v: '10/2（五）19:30' }, { k: '地點・教練', v: '[分館 A]・[教練]' }] }
+    ];
+  }
+  componentDidMount() {
+    this.timer = setInterval(() => {
+      if (!this.state.open) return;
+      const s = this.state.seconds - 1;
+      if (s <= 0) this.setState({ seconds: 30, seed: this.state.seed + 1 });
+      else this.setState({ seconds: s });
+    }, 1000);
+  }
+  componentWillUnmount() { clearInterval(this.timer); }
+  finder(r, c) {
+    const corners = [[0, 0], [0, 18], [18, 0]];
+    for (const [r0, c0] of corners) {
+      const y = r - r0, x = c - c0;
+      if (y >= -1 && y <= 7 && x >= -1 && x <= 7) {
+        if (y < 0 || y > 6 || x < 0 || x > 6) return 0;
+        if (y === 0 || y === 6 || x === 0 || x === 6) return 1;
+        if (y >= 2 && y <= 4 && x >= 2 && x <= 4) return 1;
+        return 0;
+      }
+    }
+    return -1;
+  }
+  renderVals() {
+    const s = this.state;
+    const cur = this.plans.find((p) => p.id === s.open) || this.plans[0];
+    const salt = cur.id.length * 7.3;
+    const cells = [];
+    for (let r = 0; r < 25; r++) {
+      for (let c = 0; c < 25; c++) {
+        let on = this.finder(r, c);
+        if (on === -1) {
+          const h = Math.sin(r * 12.9898 + c * 78.233 + s.seed * 3.17 + salt) * 43758.5453;
+          on = (h - Math.floor(h)) > 0.52 ? 1 : 0;
+        }
+        cells.push({ fill: on ? '#1C1A17' : '#FFFFFF' });
+      }
+    }
+    return {
+      isList: !s.open, isDetail: !!s.open, cur, cells, seconds: s.seconds,
+      plans: this.plans.map((p) => Object.assign({}, p, { open: () => this.setState({ open: p.id, seconds: 30 }) })),
+      back: () => this.setState({ open: null })
+    };
+  }
+}
+</script>
+</body>
+</html>
