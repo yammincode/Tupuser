@@ -74,4 +74,5 @@
 - 分館資料：`supabase/seed/01_branches.sql`（中壢店 ZL 尚未開幕，is_active = false）。
 - 總部帳號已建立（老闆本人，role = hq）；個人 Email 不寫進 repo。
 - 同意書 2026.1 為開發時擬定的**草稿**（`supabase/seed/02_waiver_v1.sql`），正式上線前需律師審閱，修改時建立新版本。
-- 品項：`supabase/seed/03_products.sql` 由 `supabase/seed/tools/gen_products.py` 產生（改價目請改 .py 再重新產生）。老闆說價目表上的「A19」就是中壢店（ZL）。課程先用 2024/01 現行價格。
+- 品項：`supabase/seed/03_products.sql` 由 `supabase/seed/tools/gen_products.py` 產生（改價目請改 .py 再重新產生）。老闆說價目表上的「A19」就是中壢店（ZL）。課程以 2024/01 現行價格為準。中壢學生平日下午 250；青少年訓練課為中和／中壢／新店；親子抱石課為中和以外各館；明德假日幼兒全天適用；中壢店維持未營運。
+- 補充品項：`supabase/seed/04_passes_and_rentals.sql`（十次券 3800、月票 2600、岩鞋租借 100、粉袋租借 100，各館通用）。
