@@ -45,11 +45,13 @@
 
 ---
 
-# 0017（⏳ 待執行，2026-10-01）
+# 0017～0018（⏳ 待執行，2026-10-01～02）
 
 | ✓ | 順序 | 檔名 | 行數 | 做什麼 |
 |---|---|---|---|---|
 | ⬜ | 0017 | `20261001000017_inventory.sql` | 417 | 庫存：進貨、賣出自動扣、盤點（差異由店長確認）、調撥、報廢 |
+
+| ⬜ | 0018 | `20261002000018_accounting_report.sql` | 93 | 後台「報表 → 會計」：每月給會計的消費總額、每日彙總、發票明細、退款明細 |
 
 執行完之後還要：
 
@@ -70,5 +72,6 @@ union all select '0013', exists (select 1 from information_schema.columns where 
 union all select '0014', to_regprocedure('public.adjust_plan_count(uuid,integer,text)') is not null
 union all select '0015', to_regclass('public.staff_activity') is not null
 union all select '0016', exists (select 1 from information_schema.columns where table_name = 'checkins' and column_name = 'order_item_id')
-union all select '0017', to_regclass('public.stock_movements') is not null;
+union all select '0017', to_regclass('public.stock_movements') is not null
+union all select '0018', to_regprocedure('public.report_accounting(date,date,uuid)') is not null;
 ```

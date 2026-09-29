@@ -683,3 +683,17 @@ erDiagram
 | `audit_feed` | 新增群組 `stock`（庫存） |
 
 會員 App 測試登入（簡訊服務商選定前使用）：總部在後台「會員」頁按「App 測試密碼」，Edge Function `admin-users` 的 `member_test_password` 幫會員建立（或更新）登入帳號，Email 為 `test09XXXXXXXX@members.tupcount.app`、手機同時寫入，並記入異動紀錄 `member.test_login_set`。會員在 App 登入頁點「測試期間：用測試密碼登入」，輸入手機與密碼。之後改用簡訊登入時沿用同一個帳號（`members.auth_user_id` 不變）。
+
+## 22. 會計報表（migration 0018）
+
+老闆 2026-10-02 決定：每個月要給會計消費總額、消費紀錄與發票號碼。
+
+| 項目 | 內容 |
+|---|---|
+| `report_accounting(from, to, branch)` | 總部、店長（限自己分館）；明細一次最多 62 天 |
+| summary | 銷售（依營業日，不含作廢）、現金／LINE Pay、退款（依退款日）、淨額；未稅＝淨額 ÷ 1.05 四捨五入，稅額＝淨額 − 未稅；作廢筆數金額、統編張數、還沒有發票號碼的筆數 |
+| by_day | 每日 × 分館：訂單數、銷售、現金、LINE Pay、退款、淨額 |
+| invoices | 每筆訂單（含作廢）：營業日、時間、分館、訂單編號、發票號碼、載具／統編、品項、小計、折扣、金額、付款、狀態、作廢原因 |
+| refunds | 每筆退款：退款日、原訂單編號與發票號碼、原訂單日期、金額、方式、原因 |
+
+發票號碼（`orders.invoice_no`）在串接電子發票加值中心之前為空，可在後台「訂單」手動補上。

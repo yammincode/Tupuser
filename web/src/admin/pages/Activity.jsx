@@ -15,7 +15,7 @@ const PAGES = {
   '/admin/products': '品項管理', '/admin/members': '會員', '/admin/orders': '訂單', '/admin/staff': '員工與權限',
   '/admin/branches': '分館與入場機', '/admin/waivers': '同意書', '/admin/audit': '異動紀錄', '/admin/reports': '報表',
 }
-const REPORTS = { overview: '總覽', sales: '銷售', checkins: '入場', courses: '課程', trend: '月／年比較', members: '會員名單', liability: '未使用餘額', stock: '庫存' }
+const REPORTS = { overview: '總覽', sales: '銷售', checkins: '入場', courses: '課程', trend: '月／年比較', members: '會員名單', liability: '未使用餘額', stock: '庫存', accounting: '會計' }
 
 // 網址 → 頁面名稱（例：/admin/reports?v=sales → 報表・銷售）
 export function pageName(target) {
