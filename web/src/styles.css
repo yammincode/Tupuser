@@ -187,3 +187,13 @@ a:hover { color: var(--c-accent-hover); }
 .br-card { background: var(--c-surface); border-radius: var(--r-card); padding: 16px 20px; display: grid; grid-template-columns: 180px repeat(4, minmax(0, 1fr)) auto; gap: 12px; align-items: end; }
 .br-name { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 700; align-self: center; }
 .br-swatch { width: 28px; height: 28px; border-radius: var(--r-sm); flex-shrink: 0; }
+
+/* ---------- 報表（單一數列長條圖：磚紅色、滑過顯示數值） ---------- */
+.rpt-chart { position: relative; display: flex; align-items: flex-end; gap: 2px; margin-top: 12px; }
+.rpt-baseline { position: absolute; left: 0; right: 0; height: 1px; background: var(--c-line-strong); }
+.rpt-col { position: relative; flex: 1; min-width: 0; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; cursor: pointer; }
+.rpt-bar { width: 100%; max-width: 28px; background: var(--c-accent); border-radius: 4px 4px 0 0; transition: opacity .15s; }
+.rpt-x { height: 24px; font-size: 12px; color: var(--c-muted); display: flex; align-items: flex-end; white-space: nowrap; }
+.rpt-tip { position: absolute; z-index: 5; left: 50%; transform: translateX(-50%); background: var(--c-surface); border: 1px solid var(--c-line-strong); border-radius: var(--r-sm); padding: 8px 12px; display: flex; flex-direction: column; gap: 2px; font-size: 13px; white-space: nowrap; box-shadow: 0 6px 16px rgba(28, 26, 23, 0.12); pointer-events: none; }
+.rpt-hbar { flex-grow: 1; height: 10px; }
+.rpt-hbar span { display: block; height: 100%; background: var(--c-accent); border-radius: 0 4px 4px 0; min-width: 2px; }

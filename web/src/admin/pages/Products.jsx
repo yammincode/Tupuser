@@ -4,6 +4,7 @@ import { unwrap, useAsync } from '../../lib/useAsync'
 import { money } from '../../lib/format'
 import { useAdmin } from '../AdminContext'
 import { useToast } from '../../components/Toast'
+import Categories from './Categories'
 
 const CONTENT = [
   ['single', '單次入場'], ['punch', '次數'], ['days', '天數'], ['course', '課程堂數'], ['rental', '商品／租借'],
@@ -34,10 +35,11 @@ export default function Products() {
   const [f, setF] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [catsOpen, setCatsOpen] = useState(false)
 
   const { data, reload, error: loadError } = useAsync(async () => {
     const [cats, prods] = await Promise.all([
-      supabase.from('product_categories').select('*').eq('is_active', true).order('sort_order').then(unwrap),
+      supabase.from('product_categories').select('*').order('sort_order').then(unwrap),
       supabase.from('products').select('*, product_branches(branch_id)').order('sort_order').then(unwrap),
     ])
     return { cats, prods }
@@ -47,6 +49,7 @@ export default function Products() {
   if (!data) return <div className="center muted">載入中…</div>
 
   const catById = Object.fromEntries(data.cats.map((c) => [c.id, c]))
+  const activeCats = data.cats.filter((c) => c.is_active)
   const catOrder = Object.fromEntries(data.cats.map((c, i) => [c.id, i]))
   const branchName = (id) => branches.find((b) => b.id === id)?.name || ''
   const branchesOf = (p) => p.product_branches.map((pb) => pb.branch_id)
@@ -62,7 +65,7 @@ export default function Products() {
     .filter((p) => (showOff || p.status === 'on_sale') && (!q.trim() || p.name.includes(q.trim())))
     .sort((a, b) => (catOrder[a.category_id] ?? 99) - (catOrder[b.category_id] ?? 99) || a.sort_order - b.sort_order)
 
-  const form = f || { ...EMPTY, category_id: data.cats[0]?.id || '', branch: isHq ? 'all' : staff.branch_id }
+  const form = f || { ...EMPTY, category_id: activeCats[0]?.id || '', branch: isHq ? 'all' : staff.branch_id }
   const editing = Boolean(form.id)
   const editingProduct = editing ? data.prods.find((p) => p.id === form.id) : null
   const readOnly = editing && !canEdit(editingProduct)
@@ -138,6 +141,7 @@ export default function Products() {
           <span className="ds-card-title">品項（{rows.length}）</span>
           <div style={{ display: 'flex', gap: 8 }}>
             <input className="ds-input" style={{ width: 180 }} type="search" placeholder="搜尋品名" value={q} onChange={(e) => setQ(e.target.value)} />
+            {isHq && <button type="button" className="ds-btn" onClick={() => setCatsOpen(true)}>分類管理</button>}
             <button type="button" className={'ds-btn' + (showOff ? ' selected' : '')} onClick={() => setShowOff(!showOff)}>顯示已下架</button>
             <button type="button" className="ds-btn accent" onClick={() => { setF(null); setError('') }}>＋ 新增品項</button>
           </div>
@@ -157,6 +161,7 @@ export default function Products() {
         </div>
       </div>
 
+      {catsOpen && <Categories cats={data.cats} onClose={() => setCatsOpen(false)} onChanged={reload} />}
       <div className="adm-side" style={{ width: 400 }}>
         <span className="ds-card-title">{editing ? '編輯品項' : '新增品項'}</span>
         {readOnly && <div className="ds-note">這個品項在全店或多間分館販售，只有總部可以修改。</div>}
@@ -166,7 +171,7 @@ export default function Products() {
           <div className="co-grid2" style={{ gap: 12 }}>
             <div className="ds-field"><label className="ds-label" htmlFor="p2">分類（決定顏色）</label>
               <select id="p2" className="ds-select" value={form.category_id} onChange={(e) => set('category_id', e.target.value)}>
-                {data.cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                {data.cats.filter((c) => c.is_active || c.id === form.category_id).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select></div>
             <div className="ds-field"><label className="ds-label" htmlFor="p3">價格</label>
               <input id="p3" className="ds-input" style={{ width: '100%' }} placeholder="NT$" inputMode="numeric" value={form.price} onChange={(e) => set('price', e.target.value.replace(/\D/g, ''))} /></div>

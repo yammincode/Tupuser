@@ -149,7 +149,7 @@ export default function Today() {
   )
 }
 
-function VoidDialog({ order, onClose, onDone }) {
+export function VoidDialog({ order, onClose, onDone }) {
   const [reason, setReason] = useState('')
   const [step, setStep] = useState(1)
   if (step === 2) {
@@ -173,7 +173,7 @@ function VoidDialog({ order, onClose, onDone }) {
   )
 }
 
-function OrderRefundDialog({ order, onClose, onDone }) {
+export function OrderRefundDialog({ order, onClose, onDone }) {
   const paidCash = order.payments.filter((p) => p.method === 'cash').reduce((s, p) => s + p.amount, 0)
   const [method, setMethod] = useState(paidCash > 0 ? 'cash' : 'line_pay')
   const [amount, setAmount] = useState(String(order.total))
