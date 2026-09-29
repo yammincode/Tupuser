@@ -3,7 +3,14 @@ import { createClient } from '@supabase/supabase-js'
 const url = import.meta.env.VITE_SUPABASE_URL
 const key = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-export const configured = Boolean(url && key)
+// 防呆：如果不小心填成「秘密金鑰」（service_role / sb_secret_），不要啟動，避免最高權限外流到瀏覽器
+function isSecretKey(k) {
+  if (!k) return false
+  if (k.startsWith('sb_secret_')) return true
+  try { return JSON.parse(atob(k.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).role === 'service_role' } catch { return false }
+}
+export const secretKeyMisused = isSecretKey(key)
+export const configured = Boolean(url && key) && !secretKeyMisused
 
 export const supabase = configured
   ? createClient(url, key, { auth: { persistSession: true, autoRefreshToken: true } })

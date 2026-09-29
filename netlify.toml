@@ -1,0 +1,31 @@
+# Netlify 部署設定（老闆不需要修改這個檔案）
+# 網站程式在 web 資料夾；Netlify 會自動執行 npm run build，把 web/dist 放上網
+
+[build]
+  base = "web"
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# 任何網址（/counter、/kiosk、/admin…）都交給網站程式處理
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# 安全設定：不准被別的網站嵌入、只有本站能用相機（新會員拍大頭照）
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(self), microphone=(), geolocation=()"
+
+# 程式檔檔名每次更新都會變，可以放心讓平板長期快取
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
