@@ -29,7 +29,7 @@
 
 | 項目 | 說明 |
 |---|---|
-| 執行 migration 0008～0015 | 品項改 6 類、刪除中壢品項；入場機設定；營收報表；會員 App；報表擴充；課程分類；調整次數與異動紀錄；使用足跡 |
+| 執行 migration 0008～0015 | 清單與步驟見 `docs/pending-migrations.md`。內容：品項改 6 類、刪除中壢品項；入場機設定；營收報表；會員 App；報表擴充；課程分類；調整次數與異動紀錄；使用足跡 |
 | 選簡訊服務商 | Twilio 或台灣廠商（三竹、every8d），見 `docs/setup-member-app.md`；先確認教練 app 的登入方式 |
 | App 圖示 | 目前是暫用圖示，請提供原岩 Logo |
 | 部署帳號管理功能 | 照 `docs/setup-admin.md` 步驟 2，在 Supabase 部署 admin-users |
