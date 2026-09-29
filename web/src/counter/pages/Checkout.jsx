@@ -9,6 +9,7 @@ import MemberSearch from '../../components/MemberSearch'
 import Modal from '../../components/Modal'
 import { useToast } from '../../components/Toast'
 import { CheckinResultDialog } from './Members'
+import { useCarrierScanner } from '../../lib/useScanner'
 
 // 折扣：比例（設計稿）＋輸入金額（老闆 2026-09-29 決定）
 const DISCOUNTS = [
@@ -65,6 +66,9 @@ export default function Checkout() {
   useEffect(() => {
     if (incoming) loadMember(incoming).then(pickMember).catch((e) => toast(e.message, 'bad'))
   }, [incoming, location.state?.at]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 掃碼器掃客人手機上的載具條碼：自動切到「手機載具」並填入
+  useCarrierScanner((c) => { setCarrier(true); setCode(c); setError('') })
 
   function pickMember(m) {
     setMember(m)
@@ -315,7 +319,7 @@ export default function Checkout() {
             <button type="button" className={'ds-toggle sm' + (!carrier ? ' on' : '')} style={sel(!carrier, 'var(--c-ok)')}
               onClick={() => setCarrier(false)}>列印</button>
             {carrier
-              ? <input className="ds-input" aria-label="載具號碼" value={code} placeholder="/ABC1234" onChange={(e) => setCode(e.target.value.toUpperCase())} />
+              ? <input className="ds-input" aria-label="載具號碼" value={code} placeholder="掃描或輸入 /ABC1234" onChange={(e) => setCode(e.target.value.toUpperCase())} />
               : <input className="ds-input" aria-label="統一編號" value={taxId} placeholder="統編（選填）" inputMode="numeric" maxLength={8}
                   onChange={(e) => setTaxId(e.target.value.replace(/\D/g, ''))} />}
           </div>
