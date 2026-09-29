@@ -5,6 +5,7 @@ import { configured } from './lib/supabase'
 import { ToastProvider } from './components/Toast'
 import CounterApp from './counter/CounterApp'
 import KioskApp from './kiosk/KioskApp'
+import AdminApp from './admin/AdminApp'
 import './styles.css'
 
 function NotConfigured() {
@@ -24,6 +25,7 @@ createRoot(document.getElementById('root')).render(
           <Routes>
             <Route path="/counter/*" element={<CounterApp />} />
             <Route path="/kiosk" element={<KioskApp />} />
+            <Route path="/admin/*" element={<AdminApp />} />
             <Route path="*" element={<Navigate to="/counter" replace />} />
           </Routes>
         ) : <NotConfigured />}

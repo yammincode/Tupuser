@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { supabase, errorText } from '../lib/supabase'
 
-export default function Login() {
+export default function Login({ title = '櫃檯登入' }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
@@ -19,7 +19,7 @@ export default function Login() {
     <div className="login">
       <form className="login-card" onSubmit={submit}>
         <div className="login-eyebrow">原岩攀岩館</div>
-        <div className="login-title">櫃檯登入</div>
+        <div className="login-title">{title}</div>
         <div className="muted" style={{ fontSize: 15 }}>請用員工帳號登入</div>
         <div className="ds-field">
           <label className="ds-label" htmlFor="email">Email</label>

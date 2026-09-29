@@ -166,3 +166,24 @@ a:hover { color: var(--c-accent-hover); }
 .tour-dots span.on { width: 22px; background: var(--c-accent); }
 .tour-actions { display: flex; gap: 8px; align-items: center; }
 .wv-sign .ds-input, .co-grid2 .ds-input { width: 100%; min-width: 0; }
+
+/* ---------- 總部後台（design/AdminProducts、AdminStaff：深色頂欄） ---------- */
+.counter.admin .ds-topbar { background: var(--c-ink); }
+.counter.admin .ds-topbar-branch, .counter.admin .ds-topbar-side.right, .counter.admin .ds-tab { color: var(--c-on-dark-muted); }
+.counter.admin .ds-tab.active { color: var(--c-ink); }
+.adm-list { flex-grow: 1; min-width: 0; background: var(--c-surface); border-radius: var(--r-card); padding: 16px 20px; display: flex; flex-direction: column; gap: 8px; overflow: hidden; }
+.adm-rows { flex-grow: 1; min-height: 0; overflow-y: auto; }
+.adm-side { flex-shrink: 0; background: var(--c-surface); border-radius: var(--r-card); padding: 20px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+.p-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) 90px minmax(0, 1fr) 70px 90px 70px; align-items: center; }
+.s-grid { display: grid; grid-template-columns: minmax(0, 1fr) 110px minmax(0, 1fr) 80px; align-items: center; }
+.perm-grid { display: grid; grid-template-columns: minmax(0, 1fr) 64px 64px 64px; align-items: center; }
+.adm-row { padding: 8px 0; border-bottom: 1px solid var(--c-line); font-size: 14px; cursor: pointer; }
+.adm-row:hover { background: var(--c-bg); }
+.adm-row.on { background: var(--c-bg); box-shadow: inset 3px 0 0 var(--c-ink); }
+.adm-row.off { background: var(--c-row-off); }
+.adm-name { display: flex; align-items: center; gap: 8px; font-weight: 500; }
+.adm-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.adm-choices { display: flex; gap: 8px; flex-wrap: wrap; }
+.br-card { background: var(--c-surface); border-radius: var(--r-card); padding: 16px 20px; display: grid; grid-template-columns: 180px repeat(4, minmax(0, 1fr)) auto; gap: 12px; align-items: end; }
+.br-name { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 700; align-self: center; }
+.br-swatch { width: 28px; height: 28px; border-radius: var(--r-sm); flex-shrink: 0; }
