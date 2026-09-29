@@ -122,4 +122,5 @@
 - 今日訂單與作廢放在「今日」分頁的「今日訂單」切換裡（設計稿沒有，老闆決定櫃檯可作廢當日訂單）。退費在會員頁方案區與今日訂單（限店長以上）。
 - 畫面樣式只用 `web/src/design/tokens.css` 的 `ds-*` 元件與變數；頁面版面在 `web/src/styles.css`。
 - 路由連結一律用絕對路徑（`/counter/...`），相對路徑在 `/counter/*` 底下會無限疊加。
+- 開發進度總表：`docs/roadmap.md`（完成一項就更新）。
 - 本機完整測試：`npx supabase start`（Docker）會套用 migrations 與 `supabase/seed/*.sql`；`web/.env.local` 指向 `http://127.0.0.1:54321`。老闆的試用步驟見 `docs/setup-counter.md`。
