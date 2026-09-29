@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { logActivity, signOutWithLog } from '../lib/activity'
 import { NavLink, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router'
 import { supabase, rpc } from '../lib/supabase'
 import { useScanner } from '../lib/useScanner'
@@ -89,6 +90,14 @@ export default function CounterApp() {
     return () => clearInterval(id)
   }, [refreshCount, location.pathname])
 
+  // 使用足跡：開啟系統、打開的頁面
+  useEffect(() => {
+    if (staff && branch) logActivity('counter', 'open', { branchId: branch.id })
+  }, [staff, branch])
+  useEffect(() => {
+    if (staff && branch && location.pathname.replace(/\/$/, '') !== '/counter') logActivity('counter', 'page_view', { target: location.pathname, branchId: branch.id })
+  }, [staff, branch, location.pathname])
+
   // 掃碼器：任何分頁都有效。在結帳頁就帶入會員，其他分頁跳到會員頁
   useScanner(async (code) => {
     if (!staff || !branch) return
@@ -113,7 +122,7 @@ export default function CounterApp() {
     return (
       <div className="center">
         <p>這個帳號不是員工帳號，或已被停用。</p>
-        <button className="ds-btn" onClick={() => supabase.auth.signOut()}>登出</button>
+        <button className="ds-btn" onClick={() => signOutWithLog('counter', branch?.id)}>登出</button>
       </div>
     )
   }
@@ -158,7 +167,7 @@ export default function CounterApp() {
                     <div className="staff-menu-pop" onClick={() => setMenu(false)}>
                       <button onClick={() => setTouring(true)}>使用導覽</button>
                       {staff.role === 'hq' && <button onClick={() => setPicking(true)}>切換分館</button>}
-                      <button onClick={() => supabase.auth.signOut()}>登出</button>
+                      <button onClick={() => signOutWithLog('counter', branch?.id)}>登出</button>
                     </div>
                   )}
                 </div>

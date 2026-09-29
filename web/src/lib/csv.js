@@ -1,3 +1,5 @@
+import { logActivity } from './activity'
+
 // 匯出 Excel 可以直接開的 CSV（UTF-8 加 BOM，中文不會變亂碼）
 // sections：[{ title, head: ['欄位',...], rows: [[...], ...] }]
 export function downloadCsv(filename, sections) {
@@ -20,4 +22,5 @@ export function downloadCsv(filename, sections) {
   a.click()
   a.remove()
   setTimeout(() => URL.revokeObjectURL(a.href), 1000)
+  logActivity('admin', 'export', { target: a.download })
 }

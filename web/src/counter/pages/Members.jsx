@@ -9,6 +9,7 @@ import MemberSearch from '../../components/MemberSearch'
 import Modal from '../../components/Modal'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import { useToast } from '../../components/Toast'
+import { logActivity } from '../../lib/activity'
 import { AdjustDialog, ExtendDialog, ReasonDialog, RefundDialog, TransferDialog } from '../../components/PlanDialogs'
 
 const STATUS_PILL = { active: ['正常', 'ok'], suspended: ['暫停', 'warn'], inactive: ['停用', 'off'] }
@@ -47,7 +48,7 @@ export default function Members() {
 }
 
 function MemberDetail({ memberId }) {
-  const { staff, branches, refreshCount } = useCounter()
+  const { staff, branch, branches, refreshCount } = useCounter()
   const navigate = useNavigate()
   const toast = useToast()
   const [d, setD] = useState(null)
@@ -85,6 +86,7 @@ function MemberDetail({ memberId }) {
     } catch (e) { setError(e.message) }
   }
   useEffect(() => { load() }, [memberId]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { logActivity('counter', 'member_view', { memberId, branchId: branch?.id }) }, [memberId, branch?.id])
 
   if (error) return <div className="ds-card ds-error">{error}</div>
   if (!d) return <div className="ds-card empty-card">載入中…</div>

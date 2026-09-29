@@ -8,6 +8,7 @@ import { useAdmin } from '../AdminContext'
 import MemberSearch from '../../components/MemberSearch'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import { useToast } from '../../components/Toast'
+import { logActivity } from '../../lib/activity'
 import { AdjustDialog, ExtendDialog, ReasonDialog, RefundDialog, TransferDialog } from '../../components/PlanDialogs'
 
 const STATUS_PILL = { active: ['正常', 'ok'], suspended: ['暫停', 'warn'], inactive: ['停用', 'off'] }
@@ -65,6 +66,7 @@ function MemberDetail({ memberId }) {
     } catch (e) { setError(e.message) }
   }, [memberId])
   useEffect(() => { load() }, [load])
+  useEffect(() => { logActivity('admin', 'member_view', { memberId }) }, [memberId])
 
   if (error) return <div className="ds-card ds-error">{error}</div>
   if (!d) return <div className="ds-card empty-card">載入中…</div>
@@ -87,6 +89,7 @@ function MemberDetail({ memberId }) {
         {m.marketing_opt_in && <span className="ds-pill ok">同意行銷</span>}
         <div className="grow" />
         <Link className="ds-btn" to={`/admin/audit?member=${m.id}`}>這位會員的異動紀錄</Link>
+        <Link className="ds-btn" to={`/admin/audit?m=activity&member=${m.id}`}>誰看過這位會員</Link>
       </div>
 
       <div className="ds-card">

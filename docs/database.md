@@ -644,3 +644,13 @@ erDiagram
 | `audit_feed(from, to, branch, group, member, staff, limit)` | 異動紀錄查詢（總部後台「異動紀錄」頁）：附員工、會員、方案／品項名稱、轉讓對象；分館以紀錄分館或會員主要分館為準；店長只看自己分館 |
 
 入場扣錯要加回次數，請用「取消入場」（`cancel_checkin`，會自動加回並留紀錄）。
+
+## 19. 員工使用足跡（migration 0015）
+
+| 項目 | 內容 |
+|---|---|
+| `staff_activity` | 所有員工帳號（總部、店長、櫃檯）的足跡：`login`／`logout`／`open`（開啟系統）／`page_view`（頁面）／`member_view`（查看哪位會員）／`export`（匯出 Excel 檔名）；記錄系統（counter／admin）、分館、IP、瀏覽器。只能新增，不能修改或刪除；不開放直接讀寫 |
+| `log_activity(app, action, target, member, branch)` | 畫面呼叫寫入；非員工（入場機、會員）不記；IP 與瀏覽器由伺服器從連線資訊取得 |
+| `activity_feed(from, to, branch, staff, action, member, limit)` | 總部看全部；店長看自己分館的員工（看不到總部帳號） |
+
+修改內容仍記在 `audit_logs`（異動紀錄）；足跡只記「看了什麼、做了什麼操作」。

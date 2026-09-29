@@ -1,7 +1,8 @@
 import { useState } from 'react'
+import { logActivity } from '../lib/activity'
 import { supabase, errorText } from '../lib/supabase'
 
-export default function Login({ title = '櫃檯登入' }) {
+export default function Login({ title = '櫃檯登入', app = 'counter' }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
@@ -11,6 +12,7 @@ export default function Login({ title = '櫃檯登入' }) {
     e.preventDefault()
     setBusy(true); setError('')
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+    if (!error) logActivity(app, 'login')
     if (error) setError(errorText(error))
     setBusy(false)
   }

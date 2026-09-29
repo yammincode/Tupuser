@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { NavLink, Navigate, Route, Routes } from 'react-router'
+import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router'
+import { logActivity, signOutWithLog } from '../lib/activity'
 import { supabase } from '../lib/supabase'
 import { unwrap } from '../lib/useAsync'
 import { ROLE_TEXT } from '../lib/format'
@@ -46,16 +47,27 @@ export default function AdminApp() {
     loadBranches()
   }, [session])
 
+  // 使用足跡：開啟系統、打開的頁面（含報表種類）
+  const location = useLocation()
+  useEffect(() => { if (staff) logActivity('admin', 'open') }, [staff])
+  useEffect(() => {
+    if (!staff || location.pathname === '/admin' || location.pathname === '/admin/') return
+    // 只記頁面與報表種類，不記會員 id 等（查看會員另外記）
+    const q = new URLSearchParams(location.search)
+    const keep = ['v', 'm'].filter((k) => q.get(k)).map((k) => `${k}=${q.get(k)}`).join('&')
+    logActivity('admin', 'page_view', { target: location.pathname + (keep ? '?' + keep : '') })
+  }, [staff, location.pathname, location.search])
+
   const ctx = useMemo(() => ({ staff, branches, isHq: staff?.role === 'hq', reloadBranches: loadBranches }), [staff, branches])
 
   if (session === undefined) return <div className="center muted">載入中…</div>
-  if (!session) return <Login title="總部後台登入" />
+  if (!session) return <Login title="總部後台登入" app="admin" />
   if (staff === undefined) return <div className="center muted">讀取員工資料…</div>
   if (!staff || staff.role === 'cashier') {
     return (
       <div className="center">
         <p>總部後台只有總部與店長可以使用。</p>
-        <button className="ds-btn" onClick={() => supabase.auth.signOut()}>登出</button>
+        <button className="ds-btn" onClick={() => signOutWithLog('admin')}>登出</button>
       </div>
     )
   }
@@ -80,7 +92,7 @@ export default function AdminApp() {
               {menu && (
                 <div className="staff-menu-pop" onClick={() => setMenu(false)}>
                   <button onClick={() => { window.location.href = '/counter' }}>前往櫃檯</button>
-                  <button onClick={() => supabase.auth.signOut()}>登出</button>
+                  <button onClick={() => signOutWithLog('admin')}>登出</button>
                 </div>
               )}
             </div>

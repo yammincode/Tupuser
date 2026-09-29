@@ -6,6 +6,7 @@ import { downloadCsv } from '../../lib/csv'
 import { money, phoneText, slashDate, todayTPE, whenText } from '../../lib/format'
 import { useAdmin } from '../AdminContext'
 import { PRESETS, range } from '../reports/common'
+import Activity from './Activity'
 
 const GROUPS = [['', '全部'], ['plan', '方案（票券、月票、課程）'], ['order', '訂單與退費'], ['checkin', '入場'], ['product', '品項'],
   ['member', '會員資料'], ['staff', '員工與入場機'], ['closing', '關帳']]
@@ -81,9 +82,28 @@ export function describe(r, branchName) {
 
 // 異動紀錄：誰、什麼時候、改了什麼（總部看全部，店長看自己分館）
 export default function Audit() {
-  const { branches, isHq } = useAdmin()
   const [params, setParams] = useSearchParams()
   const memberId = params.get('member')
+  const mode = params.get('m') === 'activity' ? 'activity' : 'changes'
+  const { data: member } = useAsync(async () => (memberId
+    ? unwrap(await supabase.from('members').select('name, member_no').eq('id', memberId).single()) : null), [memberId])
+  const setMode = (m) => setParams({ ...(m === 'activity' ? { m } : {}), ...(memberId ? { member: memberId } : {}) })
+  const clearMember = () => setParams(mode === 'activity' ? { m: 'activity' } : {})
+  return (
+    <div className="page" style={{ flexDirection: 'column' }}>
+      <div className="rpt-views">
+        <button type="button" className={'rpt-view' + (mode === 'changes' ? ' on' : '')} onClick={() => setMode('changes')}>修改紀錄</button>
+        <button type="button" className={'rpt-view' + (mode === 'activity' ? ' on' : '')} onClick={() => setMode('activity')}>使用足跡（登入、查看、匯出）</button>
+      </div>
+      {mode === 'activity'
+        ? <Activity memberId={memberId} member={member} clearMember={clearMember} />
+        : <Changes memberId={memberId} member={member} clearMember={clearMember} />}
+    </div>
+  )
+}
+
+function Changes({ memberId, member, clearMember }) {
+  const { branches, isHq } = useAdmin()
   const [preset, setPreset] = useState(memberId ? 'year' : 'month')
   const [[from, to], setRange] = useState(range(memberId ? 'year' : 'month'))
   const [branchId, setBranchId] = useState('')
@@ -96,9 +116,6 @@ export default function Audit() {
     p_from: from, p_to: to, p_branch_id: isHq ? branchId || null : null, p_group: group || null,
     p_member_id: memberId || null, p_staff_id: staffId || null, p_limit: 1000,
   }), [from, to, branchId, group, staffId, memberId])
-  const { data: member } = useAsync(async () => (memberId
-    ? unwrap(await supabase.from('members').select('name, member_no').eq('id', memberId).single()) : null), [memberId])
-
   const rows = (data || []).map((r) => ({ ...r, d: describe(r, branchName) }))
   const pick = (k) => { setPreset(k); setRange(range(k)) }
   const cols = '130px 120px minmax(0, 1.2fr) minmax(0, 1.8fr) minmax(0, 1fr) 90px 80px'
@@ -112,10 +129,9 @@ export default function Audit() {
   }
 
   return (
-    <div className="page" style={{ flexDirection: 'column' }}>
+    <>
       <div className="ds-card rpt-toolbar">
         <div className="rpt-filters">
-          <span className="ds-card-title" style={{ marginRight: 8 }}>異動紀錄</span>
           {PRESETS.map(([k, l]) => <button key={k} className={'ds-btn' + (preset === k ? ' selected' : '')} onClick={() => pick(k)}>{l}</button>)}
           <input className="ds-input" type="date" value={from} max={to} onChange={(e) => { setPreset(''); setRange([e.target.value, to]) }} aria-label="開始日期" />
           <span>–</span>
@@ -138,7 +154,7 @@ export default function Audit() {
           {memberId && (
             <span className="ds-pill ok" style={{ fontSize: 14, padding: '6px 12px' }}>
               會員：{member ? `${member.name}（${member.member_no}）` : '…'}
-              <button type="button" onClick={() => setParams({})} style={{ border: 0, background: 'none', marginLeft: 6, cursor: 'pointer', fontSize: 14 }} aria-label="清除會員篩選">✕</button>
+              <button type="button" onClick={clearMember} style={{ border: 0, background: 'none', marginLeft: 6, cursor: 'pointer', fontSize: 14 }} aria-label="清除會員篩選">✕</button>
             </span>
           )}
           <div className="grow" />
@@ -167,6 +183,6 @@ export default function Audit() {
           ))}
         </div>
       </div>
-    </div>
+    </>
   )
 }
