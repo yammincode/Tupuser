@@ -4,6 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
 import { configured } from './lib/supabase'
 import { ToastProvider } from './components/Toast'
 import CounterApp from './counter/CounterApp'
+import KioskApp from './kiosk/KioskApp'
 import './styles.css'
 
 function NotConfigured() {
@@ -22,6 +23,7 @@ createRoot(document.getElementById('root')).render(
         {configured ? (
           <Routes>
             <Route path="/counter/*" element={<CounterApp />} />
+            <Route path="/kiosk" element={<KioskApp />} />
             <Route path="*" element={<Navigate to="/counter" replace />} />
           </Routes>
         ) : <NotConfigured />}
