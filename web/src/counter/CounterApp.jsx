@@ -122,10 +122,10 @@ export default function CounterApp() {
   if (session === undefined) return <div className="center muted">載入中…</div>
   if (!session) return <Login />
   if (staff === undefined) return <div className="center muted">讀取員工資料…</div>
-  if (staff === null) {
+  if (staff === null || staff.role === 'accountant') {
     return (
       <div className="center">
-        <p>這個帳號不是員工帳號，或已被停用。</p>
+        <p>{staff ? '會計帳號請使用總部後台（/admin）查看會計報表。' : '這個帳號不是員工帳號，或已被停用。'}</p>
         <button className="ds-btn" onClick={() => signOutWithLog('counter', branch?.id)}>登出</button>
       </div>
     )

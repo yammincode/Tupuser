@@ -50,6 +50,7 @@
   - 店長另外可以：退款、方案暫停／延期／轉讓、修改已關帳訂單、新增修改**只在自己分館販售**的品項。
   - 會員：只能看自己的資料，看不到櫃檯備註。
   - 入場機：只能呼叫入場函式。
+  - 會計（accountant，2026-10-02 新增）：只能看總部後台「報表 → 會計」（全部分館）；`app.staff_id()` 等身分函式排除會計，其他員工權限一律沒有。
 - 訂單、入場、簽署等紀錄不做實體刪除，用狀態欄位（作廢、取消）處理。
 - **不收集身分證字號和病史**（任何健康資料都不收）。
 
@@ -109,7 +110,7 @@
 
 ## 目前進度
 
-- Supabase 專案已建立（東京），migration 0001～0016 全部已執行（2026-10-01 老闆確認，用檢查 SQL 驗證過）；**0017（庫存）、0018（會計報表）待執行，admin-users 需重新部署**（新增 `member_test_password`）；Edge Function admin-users 已部署（Verify JWT with legacy secret 已關閉）；Netlify 正式版（production 分支）已上線。
+- Supabase 專案已建立（東京），migration 0001～0016 全部已執行（2026-10-01 老闆確認，用檢查 SQL 驗證過）；**0017（庫存）、0018（會計報表＋會計帳號）待執行，admin-users 需重新部署**（新增 `member_test_password`、建立會計帳號）；Edge Function admin-users 已部署（Verify JWT with legacy secret 已關閉）；Netlify 正式版（production 分支）已上線。
 - 分館資料：`supabase/seed/01_branches.sql`，依 decisions.md 分館表（中壢店 ZL 籌備中，is_active = false，地址電話待定；A19 不建立）。
 - 總部帳號已建立（老闆本人，role = hq）；個人 Email 不寫進 repo。
 - 同意書 2026.1 為開發時擬定的**草稿**（`supabase/seed/02_waiver_v1.sql`），正式上線前需律師審閱，修改時建立新版本。

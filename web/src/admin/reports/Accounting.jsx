@@ -4,6 +4,7 @@ import { useAsync } from '../../lib/useAsync'
 import { downloadCsv } from '../../lib/csv'
 import { money, slashDate, time } from '../../lib/format'
 import { Card, Stat, num } from './common'
+import { useAdmin } from '../AdminContext'
 
 const STATUS_TEXT = { paid: '已付款', voided: '作廢', refunded: '已退費' }
 const METHOD_TEXT = { cash: '現金', line_pay: 'LINE Pay' }
@@ -16,6 +17,7 @@ const SHOW = 300
 export default function Accounting({ from, to, branchId, branchName, fileTag, setExporter }) {
   const { data, error, loading } = useAsync(() => rpc('report_accounting', { p_from: from, p_to: to, p_branch_id: branchId }), [from, to, branchId])
   const [filter, setFilter] = useState('all')
+  const { isAccountant } = useAdmin()
 
   useEffect(() => {
     if (!data) { setExporter(null); return }
@@ -62,7 +64,7 @@ export default function Accounting({ from, to, branchId, branchName, fileTag, se
           sub={s.refunds ? `退款：現金 ${money(s.refund_cash)}、LINE Pay ${money(s.refund_line_pay)}` : ''} />
       </div>
       {s.no_invoice_no > 0 && (
-        <div className="ds-note">有 {num(s.no_invoice_no)} 筆訂單還沒有發票號碼。電子發票串接加值中心之後，發票號碼會自動填入；在那之前可到「訂單」頁手動補上。</div>
+        <div className="ds-note">有 {num(s.no_invoice_no)} 筆訂單還沒有發票號碼。電子發票串接加值中心之後，發票號碼會自動填入；{isAccountant ? '在那之前由總部在「訂單」頁手動補上。' : '在那之前可到「訂單」頁手動補上。'}</div>
       )}
       <div className="muted" style={{ fontSize: 13 }}>
         作廢 {num(s.voided)} 筆（{money(s.voided_amount)}，不計入銷售）・開統編 {num(s.with_tax_id)} 張・手機載具 {num(s.carrier)} 張。按右上角「匯出 Excel」可下載完整明細給會計。

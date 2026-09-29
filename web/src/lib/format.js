@@ -49,7 +49,7 @@ export function phoneText(p) {
   return local.replace(/^(\d{4})(\d{3})(\d{3})$/, '$1-$2-$3')
 }
 
-export const ROLE_TEXT = { hq: '總部', manager: '店長', cashier: '櫃檯' }
+export const ROLE_TEXT = { hq: '總部', manager: '店長', cashier: '櫃檯', accountant: '會計' }
 
 export const CONTENT_TEXT = { single: '單次', punch: '次數', days: '天數', course: '課程', rental: '租借' }
 

@@ -7,14 +7,44 @@
 --     invoices     每筆訂單（含作廢）：發票號碼、載具／統編、品項、金額、付款方式、狀態
 --     refunds      每筆退款：退款日、原訂單與發票號碼、金額、方式、原因
 --   明細（invoices、refunds）最多 62 天，避免一次拿太多資料；每月匯出一次即可
+-- 會計帳號（角色 accountant）：只能登入總部後台看「報表 → 會計」（全部分館），其他功能一律不能用
+--   做法：身分判斷函式 app.staff_id／staff_role／staff_branch_id 把會計排除，
+--   所以所有「員工才能做」的權限（RLS、結帳、入場、查會員……）會計都沒有
+--   （本檔用 role::text 比較，因為新增的角色值在同一個交易裡還不能直接當 enum 使用）
 -- =====================================================================
+
+alter type public.staff_role add value if not exists 'accountant';
+
+alter table public.staff drop constraint staff_branch_required;
+alter table public.staff add constraint staff_branch_required
+  check (role::text in ('hq', 'accountant') or branch_id is not null);
+
+create or replace function app.staff_id() returns uuid
+language sql stable security definer set search_path = public, pg_temp as $$
+  select id from public.staff where auth_user_id = auth.uid() and status = 'active' and role::text <> 'accountant'
+$$;
+
+create or replace function app.staff_role() returns public.staff_role
+language sql stable security definer set search_path = public, pg_temp as $$
+  select role from public.staff where auth_user_id = auth.uid() and status = 'active' and role::text <> 'accountant'
+$$;
+
+create or replace function app.staff_branch_id() returns uuid
+language sql stable security definer set search_path = public, pg_temp as $$
+  select branch_id from public.staff where auth_user_id = auth.uid() and status = 'active' and role::text <> 'accountant'
+$$;
 
 create or replace function public.report_accounting(p_from date, p_to date, p_branch_id uuid default null)
 returns jsonb
 language plpgsql stable security definer set search_path = public, pg_temp as $$
 declare v_b uuid[];
 begin
-  v_b := app.report_branches(p_branch_id);
+  -- 會計帳號看全部分館（可指定分館）；其他人照報表權限（總部全部、店長自己分館）
+  if exists (select 1 from public.staff where auth_user_id = auth.uid() and status = 'active' and role::text = 'accountant') then
+    v_b := case when p_branch_id is not null then array[p_branch_id] else (select array_agg(id) from public.branches) end;
+  else
+    v_b := app.report_branches(p_branch_id);
+  end if;
   perform app.report_check_range(p_from, p_to);
   if p_to - p_from > 61 then
     raise exception '會計明細一次最多兩個月，請分月查詢' using errcode = '22023';

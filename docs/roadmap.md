@@ -26,6 +26,7 @@
 | **後台手機版** | 總部後台在手機上自動改成手機排版（報表、會員、訂單、異動紀錄等都能看） | `web/src/styles.css` |
 | **庫存** | 每間分館各算：進貨、賣出自動扣、盤點（差異由店長確認）、調撥、報廢；櫃檯「庫存」分頁、後台「報表 → 庫存」 | migration 0017、`web/src/counter/pages/Stock.jsx` |
 | **會計報表** | 後台「報表 → 會計」：銷售總額（含稅、未稅、稅額）、現金／LINE Pay、退款、每日彙總、每筆發票明細、退款明細，匯出 Excel 給會計 | migration 0018、`web/src/admin/reports/Accounting.jsx` |
+| **會計帳號** | 會計自己登入後台，只能看會計報表並匯出 | migration 0018、`admin-users` |
 | **App 測試登入** | 簡訊服務商選定前，總部可幫會員設測試密碼登入 App | `supabase/functions/admin-users/`、`web/src/member/pages/Login.jsx` |
 | 硬體清單 | 每間分館要買的平板、掃碼器、支架等 | `docs/hardware.md` |
 | 說明文件 | Supabase 設定、試用櫃檯、後台與入場機設定 | `docs/setup-supabase.md`、`docs/setup-counter.md`、`docs/setup-admin.md` |

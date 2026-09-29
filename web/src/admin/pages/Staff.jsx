@@ -6,7 +6,10 @@ import { useAdmin } from '../AdminContext'
 import Modal from '../../components/Modal'
 import { useToast } from '../../components/Toast'
 
-const ROLE = { hq: ['總部', 'var(--role-hq-bg)', 'var(--role-hq-fg)'], manager: ['店長', 'var(--role-manager-bg)', 'var(--role-manager-fg)'], cashier: ['櫃檯', 'var(--role-cashier-bg)', 'var(--role-cashier-fg)'] }
+const ROLE = { hq: ['總部', 'var(--role-hq-bg)', 'var(--role-hq-fg)'], manager: ['店長', 'var(--role-manager-bg)', 'var(--role-manager-fg)'], cashier: ['櫃檯', 'var(--role-cashier-bg)', 'var(--role-cashier-fg)'],
+  accountant: ['會計', 'var(--role-cashier-bg)', 'var(--role-cashier-fg)'] }
+// 總部與會計不屬於任何分館
+const noBranch = (role) => role === 'hq' || role === 'accountant'
 
 // 各角色權限（依 design/AdminStaff 與老闆 2026-09-29 決定）
 const PERMS = [
@@ -69,6 +72,7 @@ export default function Staff() {
           </div>
         ))}
         <span style={{ fontSize: 13, paddingTop: 6, color: 'var(--c-muted)' }}>✓ 全部分館　◐ 只限自己的分館　— 沒有權限</span>
+        <span style={{ fontSize: 13, color: 'var(--c-muted)' }}>會計：只能看「報表 → 會計」（全部分館）並匯出，不能查會員、不能修改任何資料；只有總部可以新增。</span>
       </div>
 
       {dialog?.type === 'new' && <NewStaff onClose={() => setDialog(null)} onDone={() => { toast('員工帳號已建立'); reload() }} />}
@@ -110,15 +114,16 @@ function NewStaff({ onClose, onDone }) {
             <option value="cashier">櫃檯</option>
             {isHq && <option value="manager">店長</option>}
             {isHq && <option value="hq">總部</option>}
+            {isHq && <option value="accountant">會計（只看會計報表）</option>}
           </select></div>
         <div className="ds-field"><span className="ds-label">分館</span>
-          {f.role === 'hq' ? <div className="ds-note">總部可管理全部分館</div>
+          {noBranch(f.role) ? <div className="ds-note">{f.role === 'hq' ? '總部可管理全部分館' : '會計可看全部分館的會計報表'}</div>
             : <BranchSelect value={f.branch_id} onChange={(v) => setF({ ...f, branch_id: v })} disabled={!isHq} />}</div>
       </div>
       {error && <div className="ds-error">{error}</div>}
       <div className="dlg-actions">
         <button className="ds-btn" style={{ height: 52 }} onClick={onClose}>取消</button>
-        <button className="ds-btn-primary" disabled={busy || !f.name || !f.email || f.password.length < 8 || (f.role !== 'hq' && !f.branch_id)} onClick={submit}>
+        <button className="ds-btn-primary" disabled={busy || !f.name || !f.email || f.password.length < 8 || (!noBranch(f.role) && !f.branch_id)} onClick={submit}>
           {busy ? '建立中…' : '建立帳號'}</button>
       </div>
     </Modal>
@@ -136,7 +141,7 @@ function EditStaff({ s, onClose, onDone }) {
   async function save() {
     setBusy(true); setError('')
     const { error } = await supabase.from('staff').update({
-      name: f.name.trim(), role: f.role, branch_id: f.role === 'hq' ? null : f.branch_id, status: f.status,
+      name: f.name.trim(), role: f.role, branch_id: noBranch(f.role) ? null : f.branch_id, status: f.status,
     }).eq('id', s.id)
     setBusy(false)
     if (error) setError(errorText(error)); else { onDone('員工資料已更新'); onClose() }
@@ -153,10 +158,10 @@ function EditStaff({ s, onClose, onDone }) {
       <div className="co-grid2" style={{ gap: 12 }}>
         <div className="ds-field"><span className="ds-label">角色</span>
           <select className="ds-select" value={f.role} onChange={(e) => setF({ ...f, role: e.target.value })} disabled={!isHq || self}>
-            <option value="cashier">櫃檯</option><option value="manager">店長</option><option value="hq">總部</option>
+            <option value="cashier">櫃檯</option><option value="manager">店長</option><option value="hq">總部</option><option value="accountant">會計</option>
           </select></div>
         <div className="ds-field"><span className="ds-label">分館</span>
-          {f.role === 'hq' ? <div className="ds-note">全部分館</div>
+          {noBranch(f.role) ? <div className="ds-note">全部分館</div>
             : <BranchSelect value={f.branch_id} onChange={(v) => setF({ ...f, branch_id: v })} disabled={!isHq} />}</div>
       </div>
       <div className="ds-field"><span className="ds-label">狀態</span>
@@ -167,7 +172,7 @@ function EditStaff({ s, onClose, onDone }) {
       {error && <div className="ds-error">{error}</div>}
       <div className="dlg-actions">
         <button className="ds-btn" style={{ height: 52 }} onClick={onClose}>取消</button>
-        <button className="ds-btn-primary" disabled={busy || !f.name.trim() || (f.role !== 'hq' && !f.branch_id)} onClick={save}>儲存</button>
+        <button className="ds-btn-primary" disabled={busy || !f.name.trim() || (!noBranch(f.role) && !f.branch_id)} onClick={save}>儲存</button>
       </div>
       <div style={{ borderTop: '1px solid var(--c-line)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <span className="ds-label">重設密碼（員工忘記密碼時）</span>

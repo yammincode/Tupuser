@@ -697,3 +697,5 @@ erDiagram
 | refunds | 每筆退款：退款日、原訂單編號與發票號碼、原訂單日期、金額、方式、原因 |
 
 發票號碼（`orders.invoice_no`）在串接電子發票加值中心之前為空，可在後台「訂單」手動補上。
+
+會計帳號（同一個 migration）：`staff_role` 新增 `accountant`（不屬於任何分館，`staff_branch_required` 放寬）。`app.staff_id()`、`app.staff_role()`、`app.staff_branch_id()` 排除會計，所以所有員工權限（RLS、結帳、入場、查會員、其他報表）會計都沒有；`report_accounting` 另外允許會計看全部分館。會計帳號只有總部能建立（Edge Function `admin-users`）。
