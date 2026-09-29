@@ -97,7 +97,9 @@ export default function Checkout() {
     : subtotal - Math.round(subtotal * Number(discount))
   const total = subtotal - discountValue
   const cashAmt = Math.min(Math.max(Number(cashPart) || 0, 0), total)
-  const change = received - total
+  // 沒選實收金額 = 收剛好（直接按結帳即可）
+  const paid = received || total
+  const change = paid - total
   const quick = total <= 0 ? [] : [...new Set([total, Math.ceil(total / 500) * 500, Math.ceil(total / 1000) * 1000, Math.ceil(total / 1000) * 1000 + 1000])]
     .filter((n) => n >= total).slice(0, 4)
   const primaryPlan = member?.activePlans?.[0]
@@ -130,14 +132,15 @@ export default function Checkout() {
 
   async function submit() {
     if (rows.length === 0) { setError('請先選擇項目'); return }
-    if (!member && rows.some((r) => r.p.content_type !== 'rental')) { setError('入場票、套票和課程需要先選擇會員'); return }
-    if (pay === 'cash' && total > 0 && received < total) { setError('請先選擇實收金額'); return }
+    // 單次入場票與租借不需要會員；次數票、年月票、課程要先選會員
+    if (!member && rows.some((r) => !['rental', 'single'].includes(r.p.content_type))) { setError('十次券、年月票和課程需要先選擇會員'); return }
+    if (pay === 'cash' && total > 0 && received > 0 && received < total) { setError('實收金額不夠'); return }
     if (pay === 'mixed' && (cashAmt <= 0 || cashAmt >= total)) { setError('請輸入現金收多少（其餘用 LINE Pay）'); return }
     if (carrier && !/^\/[0-9A-Z.+-]{7}$/.test(code)) { setError('載具格式應為 / 加 7 碼'); return }
     if (!carrier && taxId && !/^\d{8}$/.test(taxId)) { setError('統一編號應為 8 碼數字'); return }
 
     const payments = total === 0 ? [] : pay === 'cash'
-      ? [{ method: 'cash', amount: total, cash_received: received }]
+      ? [{ method: 'cash', amount: total, cash_received: paid }]
       : pay === 'line'
         ? [{ method: 'line_pay', amount: total }]
         : [{ method: 'cash', amount: cashAmt, cash_received: cashAmt }, { method: 'line_pay', amount: total - cashAmt }]
@@ -158,17 +161,18 @@ export default function Checkout() {
         note: note || null,
         payments,
       } })
-      const payLine = pay === 'cash' ? `現金 ${money(total)}，找零 ${money(change)}`
+      const payLine = pay === 'cash' ? `現金 ${money(total)}${change > 0 ? `，找零 ${money(change)}` : ''}`
         : pay === 'line' ? `LINE Pay ${money(total)}`
           : `現金 ${money(cashAmt)}＋LINE Pay ${money(total - cashAmt)}`
       const inv = carrier ? `發票已存入載具 ${code}` : `已列印電子發票證明聯${taxId ? `（統編 ${taxId}）` : ''}`
       const repName = data.colleagues.find((s) => s.id === rep)?.name
       setDone({
         orderNo: res.order_no,
-        lines: [member ? `會員：${member.name}` : '未指定會員', payLine, inv, repName ? `業務代表：${repName}` : null].filter(Boolean),
+        lines: [member ? `會員：${member.name}` : rows.some((r) => r.p.content_type === 'single') ? '非會員（已記入今日入場）' : '未指定會員', payLine, inv, repName ? `業務代表：${repName}` : null].filter(Boolean),
         canEnter: member && rows.some((r) => ENTRY_TYPES.includes(r.p.content_type)),
       })
       if (member) setMember(await loadMember(member.id))
+      refreshCount()
     } catch (e) { setError(e.message) } finally { setBusy(false) }
   }
 
@@ -284,7 +288,7 @@ export default function Checkout() {
                   onClick={() => { setReceived(n); setError('') }}>{n === total ? '剛好' : n.toLocaleString('en-US')}</button>
               ))}
               {quick.length === 0 && <span className="grow" />}
-              <span className="co-change">找零 {received && change >= 0 ? money(change) : '—'}</span>
+              <span className="co-change">{received ? `找零 ${change >= 0 ? money(change) : '—'}` : '沒選就是收剛好'}</span>
             </div>
           )}
           {pay === 'mixed' && (

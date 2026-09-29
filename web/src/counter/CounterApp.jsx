@@ -82,7 +82,9 @@ export default function CounterApp() {
     if (!branch) return
     const { data } = await supabase.from('checkins').select('member_id')
       .eq('branch_id', branch.id).eq('business_date', todayTPE()).eq('result', 'success').is('cancelled_at', null)
-    setTodayCount(new Set((data || []).map((r) => r.member_id)).size)
+    // 會員算不重複人數；非會員單次票每張算一人
+    const rows = data || []
+    setTodayCount(new Set(rows.filter((r) => r.member_id).map((r) => r.member_id)).size + rows.filter((r) => !r.member_id).length)
   }, [branch])
   useEffect(() => {
     refreshCount()
@@ -167,6 +169,8 @@ export default function CounterApp() {
                     <div className="staff-menu-pop" onClick={() => setMenu(false)}>
                       <button onClick={() => setTouring(true)}>使用導覽</button>
                       {staff.role === 'hq' && <button onClick={() => setPicking(true)}>切換分館</button>}
+                      {/* 總部與店長可以切到總部後台；櫃檯人員看不到這個選項 */}
+                      {staff.role !== 'cashier' && <button onClick={() => { window.location.href = '/admin' }}>前往總部後台</button>}
                       <button onClick={() => signOutWithLog('counter', branch?.id)}>登出</button>
                     </div>
                   )}

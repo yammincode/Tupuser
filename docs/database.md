@@ -654,3 +654,14 @@ erDiagram
 | `activity_feed(from, to, branch, staff, action, member, limit)` | 總部看全部；店長看自己分館的員工（看不到總部帳號） |
 
 修改內容仍記在 `audit_logs`（異動紀錄）；足跡只記「看了什麼、做了什麼操作」。
+
+## 20. 非會員單次票（migration 0016）
+
+| 項目 | 內容 |
+|---|---|
+| `checkout` | 單次票與租借不需要會員；次數票、年月票、課程仍要指定會員。非會員的單次票不建立方案，改為每張票直接寫一筆入場（`checkins.member_id` 為空、`order_item_id` 指向訂單明細、方式＝櫃檯） |
+| `checkins.order_item_id` | 非會員單次票由哪筆訂單明細產生；`success_has_plan` 條件放寬為「有方案，或是非會員單次票」 |
+| 作廢／退費 | 訂單變成作廢或退費時，觸發器自動取消這些入場 |
+| `report_checkins` | 非會員單次票算在「單次入場」人次，另回傳 `walkins`；人數只算會員（非會員無法辨識） |
+
+注意：非會員沒有同意書簽署紀錄。

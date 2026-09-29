@@ -44,7 +44,7 @@ export default function Checkins({ from, to, branchId, branchName, fileTag, setE
     <>
       <div className="rpt-grid five" style={{ gridTemplateColumns: 'repeat(5, minmax(0, 1fr))' }}>
         <Stat label="入場人次" value={num(s.visits)} accent sub="單次＋票券＋年月票，不含上課" />
-        <Stat label="入場人數" value={num(s.people)} sub={s.people ? `平均每人來 ${(s.visits / s.people).toFixed(1)} 次` : ''} />
+        <Stat label="會員人數" value={num(s.people)} sub={s.walkins ? `另有非會員單次票 ${num(s.walkins)} 人次` : s.people ? `平均每人來 ${(s.visits / s.people).toFixed(1)} 次` : ''} />
         <Stat label="上課人次" value={num(s.course_visits)} sub={`${num(s.course_people)} 位學員`} />
         <Stat label="平均每天入場" value={num(Math.round(s.visits / s.days))} sub={`共 ${s.days} 天`} />
         <Stat label="被擋下" value={num(s.blocked)} sub="方案到期、沒簽同意書等" />
@@ -66,7 +66,7 @@ export default function Checkins({ from, to, branchId, branchName, fileTag, setE
             </div>
           ))}
           {data.by_type.length === 0 && <div className="co-empty">這段期間沒有入場</div>}
-          <div className="muted" style={{ fontSize: 13, paddingTop: 8 }}>「人次」是進場幾次；「人數」是幾個不同的人（同一人來 3 次算 1 人）。上課另外列，不算在入場人次裡；課程明細請看「課程」報表。</div>
+          <div className="muted" style={{ fontSize: 13, paddingTop: 8 }}>「人次」是進場幾次；「人數」是幾個不同的人（同一人來 3 次算 1 人）。上課另外列，不算在入場人次裡；課程明細請看「課程」報表。{s.walkins ? `單次入場含非會員 ${num(s.walkins)} 人次（非會員無法辨識是誰，不計入人數）。` : ''}</div>
         </Card>
         <Card title="依方案（前 30 名）" style={{ flex: 1 }}>
           <div style={{ maxHeight: 300, overflowY: 'auto', marginTop: 8 }}>
