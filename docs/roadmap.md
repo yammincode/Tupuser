@@ -22,6 +22,7 @@
 | **課程分類與入場三類** | 課程品項可設統計分類與教練，報表「課程」頁依分類、教練加總；入場分單次／票券／年月票三類，上課另列 | migration 0013 |
 | **會員管理與異動紀錄** | 總部後台「會員」頁（延期、調整次數、暫停、轉讓、退費、取消入場）、「異動紀錄」頁（篩選、匯出）；課程可設使用期限 | `web/src/admin/pages/Members.jsx`、`Audit.jsx`、migration 0014 |
 | **員工使用足跡** | 所有員工帳號的登入／登出、瀏覽頁面、查看會員、匯出，記錄裝置與 IP；後台「異動紀錄 → 使用足跡」查看 | migration 0015、`web/src/lib/activity.js` |
+| **上線（Netlify）** | 網址 https://tupcount.netlify.app （`/counter` 櫃檯、`/admin` 總部後台、`/kiosk` 入場機、`/app` 會員 App），2026-10-01 部署完成 | Netlify 專案 tupcount |
 | 硬體清單 | 每間分館要買的平板、掃碼器、支架等 | `docs/hardware.md` |
 | 說明文件 | Supabase 設定、試用櫃檯、後台與入場機設定 | `docs/setup-supabase.md`、`docs/setup-counter.md`、`docs/setup-admin.md` |
 
@@ -33,12 +34,12 @@
 | App 圖示 | 目前是暫用圖示，請提供原岩 Logo |
 | 部署帳號管理功能 | 照 `docs/setup-admin.md` 步驟 2，在 Supabase 部署 admin-users |
 | 在筆電試用櫃檯 | 照 `docs/setup-counter.md` |
-| 建立 Netlify 網站 | 照 `docs/setup-netlify.md`（約 15 分鐘） |
 | 各店固定零用金、國定假日、員工帳號 | 後台已做好，可以自己在 `/admin` 設定 |
 | decisions.md「尚待提供」 | 套票次數；月票／年票分單店或全店通；是否需要年票；電子發票加值中心選擇；17FIT 資料匯出 |
 | 同意書 | 請律師審閱草稿，定稿後在後台「同意書」分頁發布正式版 |
 | 設定課程 | 在後台品項管理幫每個課程填「使用期限」「統計分類」「教練」（報表課程頁會列出還沒填分類與教練的） |
 | 告知員工 | 系統會記錄員工帳號的使用足跡，建議寫進員工守則並告知 |
+| Netlify 設定 | 按「Make public」讓分館平板與會員打得開；關閉自動部署以節省點數（免費點數有限） |
 | 採購硬體 | 先買試跑分館那一套，見 `docs/hardware.md` |
 | 安全設定 | GitHub 專案改為私人；正式上線前重設資料庫密碼；Supabase 升級 Pro（每日備份、不會自動暫停） |
 
