@@ -92,6 +92,15 @@ npm install
 npm run dev
 ```
 
+> **如果出現紅字「因為這個系統上已停用指令碼執行，所以無法載入 …npm.ps1」**：這是 Windows 的安全設定。
+> 貼上下面這行按 Enter，問「是否要變更」時輸入 `Y`，之後就能正常執行（每台電腦只要做一次）：
+>
+> ```powershell
+> Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+> ```
+>
+> 不想改設定的話，也可以改打 `npm.cmd install`、`npm.cmd run dev`。
+
 - `npm install`：下載需要的套件，只有第一次需要，大約 1～3 分鐘。
 - `npm run dev`：啟動系統。畫面會出現類似這樣的文字：
 
