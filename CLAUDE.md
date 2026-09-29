@@ -110,7 +110,7 @@
 
 ## 目前進度
 
-- Supabase 專案已建立（東京），migration 0001～0016 全部已執行（2026-10-01 老闆確認，用檢查 SQL 驗證過）；**0017（庫存）、0018（會計報表＋會計帳號）待執行，admin-users 需重新部署**（新增 `member_test_password`、建立會計帳號）；Edge Function admin-users 已部署（Verify JWT with legacy secret 已關閉）；Netlify 正式版（production 分支）已上線。
+- Supabase 專案已建立（東京），migration 0001～0016 全部已執行（2026-10-01 老闆確認，用檢查 SQL 驗證過）；**0017（庫存）、0018（會計報表＋會計帳號）、0019（顧客標籤與行為紀錄）待執行，admin-users 需重新部署**（新增 `member_test_password`、建立會計帳號）；Edge Function admin-users 已部署（Verify JWT with legacy secret 已關閉）；Netlify 正式版（production 分支）已上線。
 - 分館資料：`supabase/seed/01_branches.sql`，依 decisions.md 分館表（中壢店 ZL 籌備中，is_active = false，地址電話待定；A19 不建立）。
 - 總部帳號已建立（老闆本人，role = hq）；個人 Email 不寫進 repo。
 - 同意書 2026.1 為開發時擬定的**草稿**（`supabase/seed/02_waiver_v1.sql`），正式上線前需律師審閱，修改時建立新版本。
@@ -132,6 +132,7 @@
 - 員工使用足跡（`lib/activity.js` → `log_activity`）：櫃檯與後台記錄登入／登出、開啟系統、頁面、查看會員、匯出（`lib/csv.js`）；所有員工帳號都記（老闆 2026-09-30 決定）。
 - 庫存（migration 0017，老闆 2026-10-01 決定）：每間分館各自計算；`products.track_stock` 只給「商品／租借」；庫存＝`stock_movements` 加總（結帳與作廢退費由觸發器自動寫）；櫃檯 `pages/Stock.jsx`（庫存分頁：進貨、盤點；店長另可調撥、報廢、確認盤點差異）、後台 `reports/Stock.jsx`（報表 → 庫存）。櫃檯不做手機版（老闆決定維持平板／電腦）。
 - 會員 App 測試登入（簡訊服務商選定前）：總部在後台會員頁設「App 測試密碼」（Edge Function `member_test_password`，帳號 Email `test09XXXXXXXX@members.tupcount.app`）；App 登入頁「測試期間：用測試密碼登入」。
+- 顧客標籤與行為紀錄（migration 0019，`components/MemberTags.jsx`）：後台會員頁左下「依標籤查看」與「管理標籤」（總部），會員詳情可貼標籤（總部、店長）與新增／隱藏行為紀錄；櫃檯會員頁顯示標籤、在櫃檯備註卡片下方新增行為紀錄（隱藏限店長以上）。不做會員線上買票（老闆 2026-10-02）。
 - 硬體採購清單：`docs/hardware.md`。
 - 開發進度總表：`docs/roadmap.md`（完成一項就更新）。
 - 本機完整測試：`npx supabase start`（Docker）會套用 migrations 與 `supabase/seed/*.sql`；`web/.env.local` 指向 `http://127.0.0.1:54321`。老闆的試用步驟見 `docs/setup-counter.md`。

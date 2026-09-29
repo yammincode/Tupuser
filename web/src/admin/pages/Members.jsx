@@ -12,6 +12,7 @@ import { adminUsers } from '../../lib/adminUsers'
 import { useToast } from '../../components/Toast'
 import { logActivity } from '../../lib/activity'
 import { AdjustDialog, ExtendDialog, ReasonDialog, RefundDialog, TransferDialog } from '../../components/PlanDialogs'
+import { MemberNotes, TagEditDialog, TagManagerDialog, TagPill, TagPills, useMemberTags } from '../../components/MemberTags'
 
 const STATUS_PILL = { active: ['正常', 'ok'], suspended: ['暫停', 'warn'], inactive: ['停用', 'off'] }
 const PLAN_PILL = { active: ['使用中', 'ok'], frozen: ['暫停中', 'warn'], expired: ['已到期', 'off'], used_up: ['已用完', 'off'], cancelled: ['已取消', 'off'] }
@@ -24,17 +25,68 @@ const RESULT_TEXT = {
 // 會員（總部後台）：查會員、看全部方案、延期／調整次數／暫停／轉讓／退費、取消入場
 // 店長只能異動自己分館的會員或自己分館賣出的方案（資料庫會檢查）
 export default function Members() {
+  const { isHq } = useAdmin()
   const [params, setParams] = useSearchParams()
   const memberId = params.get('id')
+  const tagId = params.get('tag')
+  const [tags, setTags] = useState([])
+  const [managing, setManaging] = useState(false)
+  const loadTags = useCallback(() => supabase.from('member_tags').select('*').eq('is_active', true).order('sort_order').order('name')
+    .then(unwrap).then(setTags).catch(() => {}), [])
+  useEffect(() => { loadTags() }, [loadTags])
   return (
     <div className="page">
       <div className="mem-search">
         <span className="ds-card-title">查詢會員</span>
         <MemberSearch inline selectedId={memberId} onPick={(m) => setParams({ id: m.id })} autoFocus placeholder="手機號碼或姓名" />
+        <div style={{ borderTop: '1px solid var(--c-line)', paddingTop: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span className="ds-label">依標籤查看</span>
+            {isHq && <button type="button" className="ds-btn" style={{ height: 32, padding: '0 10px', fontSize: 13 }} onClick={() => setManaging(true)}>管理標籤</button>}
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {tags.map((t) => (
+              <button key={t.id} type="button" onClick={() => setParams({ tag: t.id })} aria-pressed={t.id === tagId}
+                style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer', outline: t.id === tagId ? '2px solid var(--c-ink)' : 'none', borderRadius: 'var(--r-pill)' }}>
+                <TagPill tag={t} />
+              </button>
+            ))}
+            {tags.length === 0 && <span className="muted" style={{ fontSize: 13 }}>{isHq ? '還沒有標籤，按「管理標籤」新增' : '還沒有標籤（由總部新增）'}</span>}
+          </div>
+        </div>
       </div>
       <div className="col grow" style={{ overflowY: 'auto' }}>
-        {memberId ? <MemberDetail key={memberId} memberId={memberId} /> : <div className="ds-card empty-card">輸入手機號碼或姓名查詢會員</div>}
+        {memberId ? <MemberDetail key={memberId} memberId={memberId} />
+          : tagId ? <TagMembers key={tagId} tag={tags.find((t) => t.id === tagId)} tagId={tagId} onPick={(id) => setParams({ id })} />
+          : <div className="ds-card empty-card">輸入手機號碼或姓名查詢會員，或點左下的標籤</div>}
       </div>
+      {managing && <TagManagerDialog onClose={() => setManaging(false)} onChanged={loadTags} />}
+    </div>
+  )
+}
+
+// 貼了某個標籤的會員
+function TagMembers({ tag, tagId, onPick }) {
+  const [rows, setRows] = useState(null)
+  const [error, setError] = useState('')
+  useEffect(() => {
+    supabase.from('member_tag_links').select('added_at, members(id, member_no, name, phone, status)').eq('tag_id', tagId)
+      .order('added_at', { ascending: false }).limit(1000).then(unwrap).then(setRows).catch((e) => setError(e.message))
+  }, [tagId])
+  if (error) return <div className="ds-card ds-error">{error}</div>
+  if (!rows) return <div className="ds-card empty-card">載入中…</div>
+  return (
+    <div className="ds-card">
+      <span className="ds-card-title" style={{ display: 'flex', gap: 10, alignItems: 'center' }}>{tag && <TagPill tag={tag} />}{rows.length} 位會員</span>
+      {rows.length === 0 && <div className="co-empty">還沒有會員貼這個標籤</div>}
+      {rows.map((r) => (
+        <div key={r.members.id} className="rpt-table-row rpt-clickable" style={{ gridTemplateColumns: 'minmax(0, 1fr) 140px 130px 110px' }} onClick={() => onPick(r.members.id)}>
+          <span style={{ fontWeight: 500 }}>{r.members.name}</span>
+          <span className="muted">{phoneText(r.members.phone)}</span>
+          <span className="muted">{r.members.member_no}</span>
+          <span className="muted" style={{ fontSize: 13 }}>貼上 {slashDate(r.added_at.slice(0, 10))}</span>
+        </div>
+      ))}
     </div>
   )
 }
@@ -46,6 +98,7 @@ function MemberDetail({ memberId }) {
   const [error, setError] = useState('')
   const [planId, setPlanId] = useState(null)
   const [dialog, setDialog] = useState(null)
+  const tagData = useMemberTags(memberId)
 
   const load = useCallback(async () => {
     try {
@@ -89,6 +142,8 @@ function MemberDetail({ memberId }) {
         </div>
         <span className={'ds-pill ' + (waiverOk ? 'ok' : 'warn')}>{waiverOk ? '已簽目前同意書' : '需要簽同意書'}</span>
         {m.marketing_opt_in && <span className="ds-pill ok">同意行銷</span>}
+        <TagPills tags={tagData.tags} />
+        <button type="button" className="ds-btn" style={{ height: 34, padding: '0 12px', fontSize: 14 }} onClick={() => setDialog('tags')}>{tagData.tags.length ? '編輯標籤' : '＋ 標籤'}</button>
         <div className="grow" />
         <Link className="ds-btn" to={`/admin/audit?member=${m.id}`}>這位會員的異動紀錄</Link>
         <Link className="ds-btn" to={`/admin/audit?m=activity&member=${m.id}`}>誰看過這位會員</Link>
@@ -132,6 +187,11 @@ function MemberDetail({ memberId }) {
         )}
       </div>
 
+      <div className="ds-card" style={{ gap: 4 }}>
+        <MemberNotes memberId={m.id} notes={tagData.notes} canHide onChanged={tagData.reload} toast={toast} />
+        {m.staff_note && <div className="muted" style={{ fontSize: 13, paddingTop: 6 }}>櫃檯備註：{m.staff_note}</div>}
+      </div>
+
       <div className="rpt-row">
         <div className="ds-card" style={{ flex: 1, minWidth: 0 }}>
           <span className="ds-card-title">入場紀錄（最近 30 筆）</span>
@@ -164,6 +224,7 @@ function MemberDetail({ memberId }) {
         </div>
       </div>
 
+      {dialog === 'tags' && <TagEditDialog memberId={m.id} current={tagData.tags} onClose={() => setDialog(null)} onDone={() => { toast('標籤已更新'); tagData.reload() }} />}
       {dialog === 'testpw' && <TestPasswordDialog m={m} onClose={() => setDialog(null)} onDone={() => toast('已設定測試密碼')} />}
       {dialog === 'extend' && <ExtendDialog plan={plan} onClose={() => setDialog(null)} onDone={done('已延期')} />}
       {dialog === 'adjust' && <AdjustDialog plan={plan} onClose={() => setDialog(null)} onDone={done('已調整')} />}

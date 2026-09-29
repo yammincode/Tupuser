@@ -11,6 +11,7 @@ import ConfirmDialog from '../../components/ConfirmDialog'
 import { useToast } from '../../components/Toast'
 import { logActivity } from '../../lib/activity'
 import { AdjustDialog, ExtendDialog, ReasonDialog, RefundDialog, TransferDialog } from '../../components/PlanDialogs'
+import { MemberNotes, TagEditDialog, TagPills, useMemberTags } from '../../components/MemberTags'
 
 const STATUS_PILL = { active: ['正常', 'ok'], suspended: ['暫停', 'warn'], inactive: ['停用', 'off'] }
 const PLAN_PILL = {
@@ -59,6 +60,7 @@ function MemberDetail({ memberId }) {
   const [dialog, setDialog] = useState(null)
   const [checkin, setCheckin] = useState(null)
   const isManager = staff.role !== 'cashier'
+  const tagData = useMemberTags(memberId)
 
   async function load() {
     try {
@@ -120,6 +122,8 @@ function MemberDetail({ memberId }) {
         <div className="grow" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span className="mem-name">{m.name}</span><span className={'ds-pill ' + tone}>{st}</span>
+            <TagPills tags={tagData.tags} />
+            {isManager && <button type="button" className="ds-btn" style={{ height: 28, padding: '0 10px', fontSize: 13 }} onClick={() => setDialog('tags')}>{tagData.tags.length ? '編輯標籤' : '＋ 標籤'}</button>}
           </div>
           <div className="mem-meta">{phoneText(m.phone)}・{slashDate(m.birthday)}・主要分館 {branchName(m.home_branch_id)}</div>
           {sig || !waiver ? (
@@ -196,12 +200,16 @@ function MemberDetail({ memberId }) {
 
         <div className="ds-card" style={{ gap: 8 }}>
           <label htmlFor="memo" className="ds-card-title">櫃檯備註（會員看不到）</label>
-          <textarea id="memo" className="ds-textarea" style={{ flexGrow: 1, minHeight: 80 }} value={noteDraft}
+          <textarea id="memo" className="ds-textarea" style={{ minHeight: 64, flexShrink: 0 }} value={noteDraft}
             readOnly={!isManager} placeholder={isManager ? '' : '（店長以上可以編輯）'}
             onChange={(e) => setNoteDraft(e.target.value)} onBlur={isManager ? saveNote : undefined} />
+          <div style={{ borderTop: '1px solid var(--c-line)', paddingTop: 8, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <MemberNotes memberId={m.id} notes={tagData.notes} branchId={branch?.id} canHide={isManager} onChanged={tagData.reload} toast={toast} limit={5} />
+          </div>
         </div>
       </div>
 
+      {dialog === 'tags' && <TagEditDialog memberId={m.id} current={tagData.tags} onClose={() => setDialog(null)} onDone={() => { toast('標籤已更新'); tagData.reload() }} />}
       {dialog === 'freeze' && <ReasonDialog title={`暫停「${plan.name}」`} hint="暫停期間不能入場；恢復時會依暫停天數自動延長到期日。"
         confirmText="確認暫停" onClose={() => setDialog(null)}
         onConfirm={async (reason) => { await rpc('freeze_plan', { p_plan_id: plan.id, p_reason: reason }); toast('方案已暫停'); load() }} />}

@@ -18,6 +18,7 @@ export const ACTION_TEXT = {
   'checkin.cancelled': '取消入場',
   'product.created': '新增品項', 'product.updated': '修改品項', 'product.price_changed': '修改價格',
   'member.phone_changed': '修改手機號碼', 'member.status_changed': '會員狀態', 'member.test_login_set': '設定 App 測試密碼',
+  'member.tags_changed': '修改標籤', 'member.note_hidden': '隱藏行為紀錄', 'member_tag.created': '新增標籤', 'member_tag.updated': '修改標籤設定',
   'staff.created': '新增員工', 'staff.updated': '修改員工', 'staff.password_reset': '重設員工密碼',
   'device.created': '新增入場機', 'device.password_reset': '重設入場機密碼',
   'closing.reopened': '重新開帳', 'closing.reclosed': '重新關帳',
@@ -71,6 +72,10 @@ export function describe(r, branchName) {
     case 'checkin.cancelled': return [who, `${slashDate(b.business_date)} 的入場${b.deducted ? '，次數加回 1' : ''}`, '']
     case 'product.created': return [a.name || r.product_name, `價格 ${money(a.price)}`, '']
     case 'member.phone_changed': return [who, `${phoneText(b.phone)} → ${phoneText(a.phone)}`, '']
+    case 'member.tags_changed': return [who, `${(b.tags || []).join('、') || '（無）'} → ${(a.tags || []).join('、') || '（無）'}`, '']
+    case 'member.note_hidden': return [who, `隱藏：${b.note || ''}`, a.reason]
+    case 'member_tag.created': return [`標籤「${a.name}」`, '新增', '']
+    case 'member_tag.updated': return [`標籤「${a.name}」`, b.name !== a.name ? `改名：${b.name} → ${a.name}` : a.is_active === b.is_active ? '修改顏色或排序' : a.is_active ? '啟用' : '停用', '']
     case 'member.status_changed': return [who, `${STATUS[b.status] || b.status} → ${STATUS[a.status] || a.status}`, '']
     case 'stock.stocktake_approved':
     case 'stock.stocktake_rejected':

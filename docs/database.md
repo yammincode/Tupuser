@@ -699,3 +699,16 @@ erDiagram
 發票號碼（`orders.invoice_no`）在串接電子發票加值中心之前為空，可在後台「訂單」手動補上。
 
 會計帳號（同一個 migration）：`staff_role` 新增 `accountant`（不屬於任何分館，`staff_branch_required` 放寬）。`app.staff_id()`、`app.staff_role()`、`app.staff_branch_id()` 排除會計，所以所有員工權限（RLS、結帳、入場、查會員、其他報表）會計都沒有；`report_accounting` 另外允許會計看全部分館。會計帳號只有總部能建立（Edge Function `admin-users`）。
+
+## 23. 顧客標籤與行為紀錄（migration 0019）
+
+老闆 2026-10-02 決定：後台可以新增顧客標籤（有顏色），也可以記錄顧客的行為。
+
+| 項目 | 內容 |
+|---|---|
+| `member_tags` | 標籤名稱（最多 20 字，不可重複）、底色、文字色、排序、啟用；總部新增修改，不能刪除（停用），修改寫入異動紀錄 `member_tag.created／updated` |
+| `member_tag_links` | 會員貼了哪些標籤；只能透過 `set_member_tags(member, tag_ids[])`（總部、店長），差異寫入 `member.tags_changed` |
+| `member_notes` | 行為紀錄（最多 500 字）：`add_member_note`（所有員工，櫃檯記自己分館）；不能修改刪除，`hide_member_note`（店長以上、必填原因）只隱藏，寫入 `member.note_hidden` |
+| 權限 | 三張表員工都能讀（`app.is_staff()`）；會員本人與會計帳號都看不到 |
+
+畫面提醒不要記錄健康狀況或病史（依規定不收集健康資料）。顏色從設計規範的 9 組顏色中選。
