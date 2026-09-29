@@ -37,8 +37,24 @@
 
 ---
 
-# 待執行：0016
+# 0016（✅ 2026-10-01 已執行）
 
 | ✓ | 順序 | 檔名 | 行數 | 做什麼 |
 |---|---|---|---|---|
-| ☐ | 0016 | `20261001000016_walkin_single_tickets.sql` | 252 | 非會員可以直接買單次票，並自動記入今日入場 |
+| ✅ | 0016 | `20261001000016_walkin_single_tickets.sql` | 252 | 非會員可以直接買單次票，並自動記入今日入場 |
+
+---
+
+## 檢查資料庫更新有沒有都執行（隨時可用，只查看、不會改資料）
+
+```sql
+select '0008' as 更新, exists (select 1 from information_schema.columns where table_name = 'product_categories' and column_name = 'dot_color') as 已執行
+union all select '0009', to_regprocedure('public.kiosk_info()') is not null
+union all select '0010', to_regprocedure('public.sales_report(date,date,uuid)') is not null
+union all select '0011', to_regprocedure('public.my_app_home()') is not null
+union all select '0012', to_regprocedure('public.report_sales(date,date,uuid)') is not null
+union all select '0013', exists (select 1 from information_schema.columns where table_name = 'products' and column_name = 'report_group')
+union all select '0014', to_regprocedure('public.adjust_plan_count(uuid,integer,text)') is not null
+union all select '0015', to_regclass('public.staff_activity') is not null
+union all select '0016', exists (select 1 from information_schema.columns where table_name = 'checkins' and column_name = 'order_item_id');
+```

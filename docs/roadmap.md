@@ -9,7 +9,7 @@
 | 資料庫設計 | 18 張資料表、權限規則、結帳／入場／退款／關帳等規則全部寫在資料庫裡 | `docs/database.md`、`supabase/migrations/` |
 | 資料庫調整 | 依 decisions.md 與老闆決定調整（退費權限、QR 指定方案、同意書三勾選、方案暫停延期轉讓、6 類品項分類等） | migration 0005～0008 |
 | 自動化測試 | 用不同身分（總部、店長、櫃檯、入場機、會員）測試所有規則 | `supabase/tests/` |
-| Supabase 專案 | 已建立（東京），RLS 權限保護已開啟；資料庫更新 0001～0015 全部執行完成 | 老闆的 Supabase |
+| Supabase 專案 | 已建立（東京），RLS 權限保護已開啟；資料庫更新 0001～0016 全部執行完成；帳號管理功能 admin-users 已部署 | 老闆的 Supabase |
 | 基本資料 | 6 間分館（中壢籌備中）、總部帳號、同意書草稿、116 個品項 | `supabase/seed/` |
 | 設計規範 | 從 17 份設計稿整理出顏色、字體、按鈕、間距 | `web/src/design/tokens.css`、`docs/design-system.md` |
 | **櫃檯系統** | 照設計稿完成：結帳、會員（查詢、方案、入場、購買紀錄、備註、暫停／延期／轉讓／退費）、新增會員（拍大頭照）、客人簽同意書（含未成年）、今日（入場名單、今日訂單、作廢）、關帳；分店顏色、導覽、掃碼器 | `web/src/counter/` |
@@ -22,7 +22,7 @@
 | **課程分類與入場三類** | 課程品項可設統計分類與教練，報表「課程」頁依分類、教練加總；入場分單次／票券／年月票三類，上課另列 | migration 0013 |
 | **會員管理與異動紀錄** | 總部後台「會員」頁（延期、調整次數、暫停、轉讓、退費、取消入場）、「異動紀錄」頁（篩選、匯出）；課程可設使用期限 | `web/src/admin/pages/Members.jsx`、`Audit.jsx`、migration 0014 |
 | **員工使用足跡** | 所有員工帳號的登入／登出、瀏覽頁面、查看會員、匯出，記錄裝置與 IP；後台「異動紀錄 → 使用足跡」查看 | migration 0015、`web/src/lib/activity.js` |
-| **上線（Netlify）** | 網址 https://tupcount.netlify.app （`/counter` 櫃檯、`/admin` 總部後台、`/kiosk` 入場機、`/app` 會員 App），2026-10-01 部署完成 | Netlify 專案 tupcount |
+| **上線（Netlify）** | 正式版（`production` 分支）自動部署；網址 https://tupcount.netlify.app （`/counter` 櫃檯、`/admin` 總部後台、`/kiosk` 入場機、`/app` 會員 App），2026-10-01 部署完成 | Netlify 專案 tupcount |
 | **後台手機版** | 總部後台在手機上自動改成手機排版（報表、會員、訂單、異動紀錄等都能看） | `web/src/styles.css` |
 | 硬體清單 | 每間分館要買的平板、掃碼器、支架等 | `docs/hardware.md` |
 | 說明文件 | Supabase 設定、試用櫃檯、後台與入場機設定 | `docs/setup-supabase.md`、`docs/setup-counter.md`、`docs/setup-admin.md` |
@@ -33,14 +33,12 @@
 |---|---|
 | 選簡訊服務商 | Twilio 或台灣廠商（三竹、every8d），見 `docs/setup-member-app.md`；先確認教練 app 的登入方式 |
 | App 圖示 | 目前是暫用圖示，請提供原岩 Logo |
-| 部署帳號管理功能 | 照 `docs/setup-admin.md` 步驟 2，在 Supabase 部署 admin-users |
 | 在筆電試用櫃檯 | 照 `docs/setup-counter.md` |
 | 各店固定零用金、國定假日、員工帳號 | 後台已做好，可以自己在 `/admin` 設定 |
 | decisions.md「尚待提供」 | 套票次數；月票／年票分單店或全店通；是否需要年票；電子發票加值中心選擇；17FIT 資料匯出 |
 | 同意書 | 請律師審閱草稿，定稿後在後台「同意書」分頁發布正式版 |
 | 設定課程 | 在後台品項管理幫每個課程填「使用期限」「統計分類」「教練」（報表課程頁會列出還沒填分類與教練的） |
 | 告知員工 | 系統會記錄員工帳號的使用足跡，建議寫進員工守則並告知 |
-| Netlify 設定 | 按「Make public」讓分館平板與會員打得開；Production branch 改成 `production`（見 `docs/setup-netlify.md` 最後一節） |
 | 採購硬體 | 先買試跑分館那一套，見 `docs/hardware.md` |
 | 安全設定 | GitHub 專案改為私人；正式上線前重設資料庫密碼；Supabase 升級 Pro（每日備份、不會自動暫停） |
 
