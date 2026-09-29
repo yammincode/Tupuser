@@ -255,17 +255,22 @@ otp_expiry = 3600
 
 [auth.sms]
 # Allow/disallow new user signups via SMS to your project.
-enable_signup = false
+# 會員 App 用手機簡訊登入（本機測試用下面的固定驗證碼，不會真的發簡訊）
+enable_signup = true
 # If enabled, users need to confirm their phone number before signing in.
 enable_confirmations = false
 # Template for sending OTP to users
-template = "Your code is {{ .Code }}"
+template = "【原岩攀岩館】您的登入驗證碼：{{ .Code }}"
 # Controls the minimum amount of time that must pass before sending another sms otp.
 max_frequency = "5s"
 
 # Use pre-defined map of phone number to OTP for testing.
-# [auth.sms.test_otp]
-# 4152127777 = "123456"
+# 本機測試用：這些測試會員手機輸入 123456 就能登入
+[auth.sms.test_otp]
+886912345678 = "123456"
+886933222111 = "123456"
+886955666777 = "123456"
+886900000000 = "123456"
 
 # Configure logged in session timeouts.
 # [auth.sessions]
@@ -286,11 +291,12 @@ max_frequency = "5s"
 
 # Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
 [auth.sms.twilio]
-enabled = false
-account_sid = ""
-message_service_sid = ""
+# 本機只用上面的測試驗證碼；正式的簡訊服務在 Supabase 後台設定
+enabled = true
+account_sid = "local-test-only"
+message_service_sid = "local-test-only"
 # DO NOT commit your Twilio auth token to git. Use environment variable substitution instead:
-auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
+auth_token = "local-test-only"
 
 # Multi-factor-authentication is available to Supabase Pro plan.
 [auth.mfa]
@@ -307,7 +313,7 @@ verify_enabled = false
 enroll_enabled = false
 verify_enabled = false
 otp_length = 6
-template = "Your code is {{ .Code }}"
+template = "【原岩攀岩館】您的登入驗證碼：{{ .Code }}"
 max_frequency = "5s"
 
 # Configure MFA via WebAuthn

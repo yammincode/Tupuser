@@ -108,7 +108,7 @@
 
 ## 目前進度
 
-- Supabase 專案已建立（東京），migration 0001～0005 已執行；0006（分館主題色）、0007 已執行；0008（6 類分類、刪除中壢品項）、0009（入場機）、0010（營收報表）待老闆執行；Edge Function admin-users 待部署。
+- Supabase 專案已建立（東京），migration 0001～0005 已執行；0006（分館主題色）、0007 已執行；0008（6 類分類、刪除中壢品項）、0009（入場機）、0010（營收報表）、0011（會員 App）待老闆執行；Edge Function admin-users 待部署。
 - 分館資料：`supabase/seed/01_branches.sql`，依 decisions.md 分館表（中壢店 ZL 籌備中，is_active = false，地址電話待定；A19 不建立）。
 - 總部帳號已建立（老闆本人，role = hq）；個人 Email 不寫進 repo。
 - 同意書 2026.1 為開發時擬定的**草稿**（`supabase/seed/02_waiver_v1.sql`），正式上線前需律師審閱，修改時建立新版本。
@@ -117,13 +117,14 @@
 
 ## 前端（`web/`）
 
-- 單一 Vite + React 專案，用網址區分各系統：`/counter` 櫃檯、`/kiosk` 入場機、`/admin` 總部後台（已完成）；之後加 `/app` 會員 App。
+- 單一 Vite + React 專案，用網址區分各系統：`/counter` 櫃檯、`/kiosk` 入場機、`/admin` 總部後台、`/app` 會員 App（都已完成）。
 - 入場機（`web/src/kiosk/`）：入場機專用帳號登入 → `kiosk_info()` 取分館與音量；掃碼器鍵盤輸入 → `kiosk_checkin`；畫面依回傳 `screen` 切換；提示音用 Web Audio（`kiosk/sound.js`），需點一下開始才能發聲。
 - 總部後台（`web/src/admin/`）：品項管理（總部另有分類管理）、員工與權限、分館與入場機（含國定假日）、訂單（任何日期作廢、退費、修改已關帳訂單）、報表（`sales_report`）、同意書版本；建立登入帳號與重設密碼走 Edge Function `supabase/functions/admin-users`（不用外部套件，直接呼叫 Supabase API），部署步驟見 `docs/setup-admin.md`。頂欄照設計稿用深色。
 - 櫃檯已依設計稿重做（2026-09-29）：頂端分頁 結帳｜會員｜今日｜關帳；另有新增／編輯會員（`/counter/members/new`、`/counter/members/:id/edit`）與全螢幕客人簽同意書（`/counter/waiver/:memberId`）。頂欄底色用 `branches.color`（老闆決定保留分店色），店名後接 `brand_label`；首次登入播放導覽；掃碼器在任何分頁有效（`lib/useScanner.js` → `resolve_member_qr`）。
 - 今日訂單與作廢放在「今日」分頁的「今日訂單」切換裡（設計稿沒有，老闆決定櫃檯可作廢當日訂單）。退費在會員頁方案區與今日訂單（限店長以上）。
 - 畫面樣式只用 `web/src/design/tokens.css` 的 `ds-*` 元件與變數；頁面版面在 `web/src/styles.css`。
 - 路由連結一律用絕對路徑（`/counter/...`），相對路徑在 `/counter/*` 底下會無限疊加。
+- 會員 App（`web/src/member/`，獨立入口 `web/app.html`，Netlify 把 `/app/*` 導到 app.html；開發時 vite.config.js 的 middleware 處理）：手機簡訊登入（登入紀錄 storageKey 與櫃檯分開）→ `my_app_home()`、`get_my_qr_secret()`；入場碼在手機用純 JS 算 TOTP（`member/totp.js`，與 `app.totp` 相同，已驗證），用伺服器時間校正；入場碼頁 QR 不帶方案（入場機自動挑），方案頁 QR 帶方案 id；App 內簽同意書 method = app；PWA（`public/app.webmanifest`、`public/app-sw.js`）。本機測試手機 0955666777 等用驗證碼 123456（`supabase/config.toml` test_otp）。簡訊服務商待老闆選。說明見 `docs/setup-member-app.md`。
 - 部署：`netlify.toml`（base = web）；環境變數 `VITE_SUPABASE_URL`、`VITE_SUPABASE_ANON_KEY`；填成秘密金鑰時畫面會拒絕啟動。老闆步驟見 `docs/setup-netlify.md`。目前部署開發分支，試跑前改成正式版分支。
 - 硬體採購清單：`docs/hardware.md`。
 - 開發進度總表：`docs/roadmap.md`（完成一項就更新）。

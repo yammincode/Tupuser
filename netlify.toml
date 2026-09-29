@@ -9,7 +9,18 @@
 [build.environment]
   NODE_VERSION = "22"
 
-# 任何網址（/counter、/kiosk、/admin…）都交給網站程式處理
+# 會員 App（/app 開頭）用自己的頁面
+[[redirects]]
+  from = "/app"
+  to = "/app.html"
+  status = 200
+
+[[redirects]]
+  from = "/app/*"
+  to = "/app.html"
+  status = 200
+
+# 其他網址（/counter、/kiosk、/admin…）交給櫃檯／後台程式處理
 [[redirects]]
   from = "/*"
   to = "/index.html"
@@ -29,3 +40,9 @@
   for = "/assets/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+
+# 離線支援程式要隨時拿最新版
+[[headers]]
+  for = "/app-sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"

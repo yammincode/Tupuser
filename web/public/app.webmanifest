@@ -1,0 +1,17 @@
+{
+  "name": "原岩攀岩館 會員",
+  "short_name": "原岩會員",
+  "description": "入場碼、方案與入場紀錄",
+  "lang": "zh-Hant-TW",
+  "start_url": "/app",
+  "scope": "/app",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F3F0EA",
+  "theme_color": "#F3F0EA",
+  "icons": [
+    { "src": "/app-icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/app-icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/app-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

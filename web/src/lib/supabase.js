@@ -11,6 +11,8 @@ function isSecretKey(k) {
 }
 export const secretKeyMisused = isSecretKey(key)
 export const configured = Boolean(url && key) && !secretKeyMisused
+export const supabaseUrl = url
+export const supabaseKey = key
 
 export const supabase = configured
   ? createClient(url, key, { auth: { persistSession: true, autoRefreshToken: true } })

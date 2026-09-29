@@ -90,7 +90,9 @@ reset role; set role authenticated; set request.jwt.claim.sub = '00000000-0000-0
 \echo '--- 會員看自己資料（不應有 staff_note）'
 select get_my_profile() ? 'staff_note' as has_note, get_my_profile()->>'name', get_my_profile()->>'waiver_required';
 select count(*) as members_visible from members;
-select count(*) as my_plans from member_plans;
+select count(*) as plans_direct_read_should_be_0 from member_plans;
+select jsonb_array_length(my_app_home()->'plans') as my_plans, my_app_home()->'member'->>'name' as app_name;
+select jsonb_array_length(my_checkins()) as my_checkins;
 select update_my_profile('{"phone":"0900000000"}');
 select get_my_qr_secret() ? 'secret_hex';
 
