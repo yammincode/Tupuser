@@ -6,6 +6,7 @@ import { PRESETS, range } from '../reports/common'
 import Overview from '../reports/Overview'
 import Sales from '../reports/Sales'
 import Checkins from '../reports/Checkins'
+import Courses from '../reports/Courses'
 import Trend from '../reports/Trend'
 import Members from '../reports/Members'
 import Liability from '../reports/Liability'
@@ -15,6 +16,7 @@ const VIEWS = [
   ['overview', '總覽', Overview, true],
   ['sales', '銷售', Sales, true],
   ['checkins', '入場', Checkins, true],
+  ['courses', '課程', Courses, true],
   ['trend', '月／年比較', Trend, false],
   ['members', '會員', Members, true],
   ['liability', '未使用餘額', Liability, false],

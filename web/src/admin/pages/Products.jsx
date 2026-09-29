@@ -23,7 +23,7 @@ function ruleText(p) {
 
 const EMPTY = {
   id: null, name: '', category_id: '', price: '', content_type: 'single', quantity: '1', usage_rule: 'any',
-  slot_start: '', slot_end: '', branch: 'all', sale_start: '', sale_end: '', status: 'on_sale',
+  slot_start: '', slot_end: '', branch: 'all', sale_start: '', sale_end: '', status: 'on_sale', report_group: '', coach: '',
 }
 
 // 品項管理：品項不能刪除，只能下架；舊訂單保留當時的品名和價格
@@ -80,6 +80,7 @@ export default function Products() {
       quantity: String(p.quantity), usage_rule: p.usage_rule, slot_start: p.slot_start?.slice(0, 5) || '', slot_end: p.slot_end?.slice(0, 5) || '',
       branch: p.all_branches ? 'all' : ids.length === 1 ? ids[0] : 'multi', multi: ids,
       sale_start: p.sale_start || '', sale_end: p.sale_end || '', status: p.status,
+      report_group: p.report_group || '', coach: p.coach || '',
     })
   }
 
@@ -100,6 +101,9 @@ export default function Products() {
       usage_rule: form.usage_rule, slot_start: form.slot_start || null, slot_end: form.slot_end || null,
       all_branches: form.branch === 'all', sale_start: form.sale_start || null, sale_end: form.sale_end || null,
       status: nextStatus || form.status,
+      // 課程才有統計分類與教練
+      report_group: form.content_type === 'course' ? form.report_group.trim() || null : null,
+      coach: form.content_type === 'course' ? form.coach.trim() || null : null,
     }
     setBusy(true)
     try {
@@ -183,6 +187,16 @@ export default function Products() {
               <input id="p5" className="ds-input" style={{ width: '100%' }} placeholder="次數、天數或堂數" inputMode="numeric" disabled={fixedQty}
                 value={fixedQty ? '1' : form.quantity} onChange={(e) => set('quantity', e.target.value.replace(/\D/g, ''))} /></div>
           </div>
+          {form.content_type === 'course' && (
+            <div className="co-grid2" style={{ gap: 12 }}>
+              <div className="ds-field"><label className="ds-label" htmlFor="p7">統計分類（報表加總用）</label>
+                <input id="p7" className="ds-input" style={{ width: '100%' }} list="report-groups" placeholder="例：一對一成人" value={form.report_group} onChange={(e) => set('report_group', e.target.value)} />
+                <datalist id="report-groups">{[...new Set(data.prods.map((p) => p.report_group).filter(Boolean))].map((g) => <option key={g} value={g} />)}</datalist></div>
+              <div className="ds-field"><label className="ds-label" htmlFor="p8">教練</label>
+                <input id="p8" className="ds-input" style={{ width: '100%' }} list="coaches" placeholder="教練姓名" value={form.coach} onChange={(e) => set('coach', e.target.value)} />
+                <datalist id="coaches">{[...new Set(data.prods.map((p) => p.coach).filter(Boolean))].map((g) => <option key={g} value={g} />)}</datalist></div>
+            </div>
+          )}
           <div className="ds-field"><span className="ds-label">適用條件</span>
             <div className="adm-choices">
               {RULES.map(([v, l]) => (

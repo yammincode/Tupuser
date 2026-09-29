@@ -4,8 +4,8 @@ import { useAsync } from '../../lib/useAsync'
 import { downloadCsv } from '../../lib/csv'
 import { money, todayTPE } from '../../lib/format'
 import { Bar, Card, Stat, num } from './common'
-import { TYPE_TEXT } from './Checkins'
 
+const TYPE_TEXT = { single: '單次票', punch: '票券（十次券等）', days: '年月票', course: '課程' }
 const UNIT = { single: '次', punch: '次', course: '堂', days: '天' }
 
 // 未使用餘額：已收款、但會員還沒用掉的部分（預收款）

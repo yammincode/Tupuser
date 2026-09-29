@@ -5,7 +5,8 @@ import { downloadCsv } from '../../lib/csv'
 import { CHECKIN_RESULT } from '../../lib/format'
 import { Bar, Card, Stat, num, pct } from './common'
 
-export const TYPE_TEXT = { single: '單次票', punch: '次數票（十次券等）', days: '天數票（月票、年票）', course: '課程' }
+// 入場分三類（老闆 2026-09-30）；上課另外列
+export const TYPE_TEXT = { single: '單次入場', punch: '票券入場（十次券等）', days: '年月票入場', course: '上課（課程）' }
 const METHOD = { kiosk: '入場機', counter: '櫃檯' }
 const DOW = ['', '週一', '週二', '週三', '週四', '週五', '週六', '週日']
 
@@ -17,8 +18,8 @@ export default function Checkins({ from, to, branchId, branchName, fileTag, setE
     if (!data) return
     const s = data.summary
     setExporter(() => () => downloadCsv(`origin_checkins_${fileTag}_${from}_${to}`, [
-      { title: `入場 ${from} ~ ${to} ${branchName}`, head: ['入場人次', '入場人數', '平均每天人次', '被擋下次數'], rows: [[s.visits, s.people, Math.round(s.visits / s.days), s.blocked]] },
-      { title: '依票種', head: ['票種', '人次', '人數', '平均每人'], rows: data.by_type.map((t) => [TYPE_TEXT[t.content_type] || t.content_type, t.visits, t.people, (t.visits / t.people).toFixed(1)]) },
+      { title: `入場 ${from} ~ ${to} ${branchName}`, head: ['入場人次（不含上課）', '入場人數', '上課人次', '上課人數', '平均每天入場人次', '被擋下次數'], rows: [[s.visits, s.people, s.course_visits, s.course_people, Math.round(s.visits / s.days), s.blocked]] },
+      { title: '入場分類', head: ['類別', '人次', '人數', '平均每人'], rows: data.by_type.map((t) => [TYPE_TEXT[t.content_type] || t.content_type, t.visits, t.people, (t.visits / t.people).toFixed(1)]) },
       { title: '依方案', head: ['方案', '人次', '人數', '扣次'], rows: data.by_plan.map((p) => [p.name, p.visits, p.people, p.deducted]) },
       { title: '入場方式', head: ['方式', '人次'], rows: data.by_method.map((m) => [METHOD[m.method], m.visits]) },
       { title: '被擋下原因', head: ['原因', '次數', '人數'], rows: data.blocked.map((b) => [CHECKIN_RESULT[b.result]?.text || b.result, b.count, b.people]) },
@@ -41,20 +42,22 @@ export default function Checkins({ from, to, branchId, branchName, fileTag, setE
 
   return (
     <>
-      <div className="rpt-grid" style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
-        <Stat label="入場人次" value={num(s.visits)} accent sub="每進場一次算一次" />
+      <div className="rpt-grid five" style={{ gridTemplateColumns: 'repeat(5, minmax(0, 1fr))' }}>
+        <Stat label="入場人次" value={num(s.visits)} accent sub="單次＋票券＋年月票，不含上課" />
         <Stat label="入場人數" value={num(s.people)} sub={s.people ? `平均每人來 ${(s.visits / s.people).toFixed(1)} 次` : ''} />
-        <Stat label="平均每天人次" value={num(Math.round(s.visits / s.days))} sub={`共 ${s.days} 天`} />
+        <Stat label="上課人次" value={num(s.course_visits)} sub={`${num(s.course_people)} 位學員`} />
+        <Stat label="平均每天入場" value={num(Math.round(s.visits / s.days))} sub={`共 ${s.days} 天`} />
         <Stat label="被擋下" value={num(s.blocked)} sub="方案到期、沒簽同意書等" />
       </div>
 
       <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-        <Card title="依票種" style={{ flex: 1 }}>
+        <Card title="入場分類" style={{ flex: 1 }}>
           <div className="ds-thead" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) 70px 70px 70px minmax(0, 1fr)', gap: 8, marginTop: 8 }}>
-            <span>票種</span><span>人次</span><span>人數</span><span>平均每人</span><span />
+            <span>類別</span><span>人次</span><span>人數</span><span>平均每人</span><span />
           </div>
           {data.by_type.map((t) => (
-            <div key={t.content_type} className="rpt-table-row" style={{ gridTemplateColumns: 'minmax(0, 1.4fr) 70px 70px 70px minmax(0, 1fr)' }}>
+            <div key={t.content_type} className="rpt-table-row" style={{ gridTemplateColumns: 'minmax(0, 1.4fr) 70px 70px 70px minmax(0, 1fr)',
+              ...(t.content_type === 'course' ? { borderTop: '2px solid var(--c-line-strong)', color: 'var(--c-muted)' } : {}) }}>
               <span style={{ fontWeight: 500 }}>{TYPE_TEXT[t.content_type] || t.content_type}</span>
               <span style={{ fontWeight: 500 }}>{num(t.visits)}</span>
               <span>{num(t.people)}</span>
@@ -63,7 +66,7 @@ export default function Checkins({ from, to, branchId, branchName, fileTag, setE
             </div>
           ))}
           {data.by_type.length === 0 && <div className="co-empty">這段期間沒有入場</div>}
-          <div className="muted" style={{ fontSize: 13, paddingTop: 8 }}>「人次」是進場幾次；「人數」是幾個不同的人（同一人來 3 次算 1 人）。</div>
+          <div className="muted" style={{ fontSize: 13, paddingTop: 8 }}>「人次」是進場幾次；「人數」是幾個不同的人（同一人來 3 次算 1 人）。上課另外列，不算在入場人次裡；課程明細請看「課程」報表。</div>
         </Card>
         <Card title="依方案（前 30 名）" style={{ flex: 1 }}>
           <div style={{ maxHeight: 300, overflowY: 'auto', marginTop: 8 }}>
@@ -79,7 +82,7 @@ export default function Checkins({ from, to, branchId, branchName, fileTag, setE
         </Card>
       </div>
 
-      <Card title="尖峰時段" right={<span className="muted" style={{ fontSize: 13 }}>顏色越深人越多（滑過格子看人次）</span>}>
+      <Card title="尖峰時段" right={<span className="muted" style={{ fontSize: 13 }}>含上課；顏色越深人越多（滑過格子看人次）</span>}>
         <Heatmap cells={data.heatmap} />
       </Card>
 
