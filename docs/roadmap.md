@@ -9,7 +9,7 @@
 | 資料庫設計 | 18 張資料表、權限規則、結帳／入場／退款／關帳等規則全部寫在資料庫裡 | `docs/database.md`、`supabase/migrations/` |
 | 資料庫調整 | 依 decisions.md 與老闆決定調整（退費權限、QR 指定方案、同意書三勾選、方案暫停延期轉讓、6 類品項分類等） | migration 0005～0008 |
 | 自動化測試 | 用不同身分（總部、店長、櫃檯、入場機、會員）測試所有規則 | `supabase/tests/` |
-| Supabase 專案 | 已建立（東京），RLS 權限保護已開啟 | 老闆的 Supabase |
+| Supabase 專案 | 已建立（東京），RLS 權限保護已開啟；資料庫更新 0001～0015 全部執行完成 | 老闆的 Supabase |
 | 基本資料 | 6 間分館（中壢籌備中）、總部帳號、同意書草稿、116 個品項 | `supabase/seed/` |
 | 設計規範 | 從 17 份設計稿整理出顏色、字體、按鈕、間距 | `web/src/design/tokens.css`、`docs/design-system.md` |
 | **櫃檯系統** | 照設計稿完成：結帳、會員（查詢、方案、入場、購買紀錄、備註、暫停／延期／轉讓／退費）、新增會員（拍大頭照）、客人簽同意書（含未成年）、今日（入場名單、今日訂單、作廢）、關帳；分店顏色、導覽、掃碼器 | `web/src/counter/` |
@@ -29,7 +29,6 @@
 
 | 項目 | 說明 |
 |---|---|
-| 執行 migration 0008～0015 | 清單與步驟見 `docs/pending-migrations.md`。內容：品項改 6 類、刪除中壢品項；入場機設定；營收報表；會員 App；報表擴充；課程分類；調整次數與異動紀錄；使用足跡 |
 | 選簡訊服務商 | Twilio 或台灣廠商（三竹、every8d），見 `docs/setup-member-app.md`；先確認教練 app 的登入方式 |
 | App 圖示 | 目前是暫用圖示，請提供原岩 Logo |
 | 部署帳號管理功能 | 照 `docs/setup-admin.md` 步驟 2，在 Supabase 部署 admin-users |

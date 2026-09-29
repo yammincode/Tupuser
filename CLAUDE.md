@@ -108,7 +108,7 @@
 
 ## 目前進度
 
-- Supabase 專案已建立（東京），migration 0001～0005 已執行；0006（分館主題色）、0007 已執行；0008（6 類分類、刪除中壢品項）、0009（入場機）、0010（營收報表）、0011（會員 App）、0012（報表擴充）、0013（課程統計分類與教練）、0014（調整次數、異動紀錄）、0015（員工使用足跡）待老闆執行；Edge Function admin-users 待部署。
+- Supabase 專案已建立（東京），migration 0001～0015 全部已執行（2026-09-30 老闆確認）；Edge Function admin-users 待部署。
 - 分館資料：`supabase/seed/01_branches.sql`，依 decisions.md 分館表（中壢店 ZL 籌備中，is_active = false，地址電話待定；A19 不建立）。
 - 總部帳號已建立（老闆本人，role = hq）；個人 Email 不寫進 repo。
 - 同意書 2026.1 為開發時擬定的**草稿**（`supabase/seed/02_waiver_v1.sql`），正式上線前需律師審閱，修改時建立新版本。
