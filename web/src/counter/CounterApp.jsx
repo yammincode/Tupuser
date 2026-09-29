@@ -15,11 +15,13 @@ import Register from './pages/Register'
 import WaiverSign from './pages/WaiverSign'
 import Today from './pages/Today'
 import Close from './pages/Close'
+import Stock from './pages/Stock'
 
 const TABS = [
   { to: 'checkout', label: '結帳', tour: '點左邊彩色格子把品項加入右邊清單，選好付款方式和發票就能結帳。不適用今天的票會變淡、不能點。' },
   { to: 'members', label: '會員', tour: '用手機或姓名查會員，看方案、最近入場、購買紀錄和櫃檯備註；也在這裡新增會員、請客人簽同意書。' },
   { to: 'today', label: '今日', tour: '今天的入場人數與名單，可以篩選入場機、櫃檯、被擋下；也可以看今日訂單、作廢打錯的單。' },
+  { to: 'stock', label: '庫存', tour: '商品的目前庫存。貨送到時按「進貨」登記；定期按「盤點」輸入實際數量，有差異時由店長確認。結帳賣出會自動扣庫存。' },
   { to: 'close', label: '關帳', tour: '打烊時點算現金，系統會算出抽屜應有金額和差額。關帳後今天的訂單就鎖定了。' },
 ]
 
@@ -185,6 +187,7 @@ export default function CounterApp() {
               <Route path="members/:memberId/edit" element={<Register />} />
               <Route path="today" element={<Today />} />
               <Route path="close" element={<Close />} />
+              <Route path="stock" element={<Stock />} />
               <Route path="*" element={<Navigate to="/counter/checkout" replace />} />
             </Routes>
             {touring && <Tour steps={tourSteps} onClose={endTour} />}

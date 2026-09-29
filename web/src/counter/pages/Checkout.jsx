@@ -84,6 +84,13 @@ export default function Checkout() {
       && (!p.sale_start || p.sale_start <= today) && (!p.sale_end || p.sale_end >= today))
     return { cats, prods: sellable, colleagues }
   }, [branch.id])
+  // 管理庫存的商品：格子上顯示目前庫存（結帳後更新）
+  const [stockKey, setStockKey] = useState(0)
+  const { data: stock } = useAsync(async () => {
+    if (!(data?.prods || []).some((p) => p.track_stock)) return {}
+    const ov = await rpc('stock_overview', { p_branch_id: branch.id })
+    return Object.fromEntries(ov.products.map((p) => [p.id, p.on_hand?.[branch.id] ?? 0]))
+  }, [branch.id, data, stockKey])
 
   const byId = useMemo(() => Object.fromEntries((data?.prods || []).map((p) => [p.id, p])), [data])
   const groups = (data?.cats || [])
@@ -173,6 +180,7 @@ export default function Checkout() {
       })
       if (member) setMember(await loadMember(member.id))
       refreshCount()
+      setStockKey((k) => k + 1)
     } catch (e) { setError(e.message) } finally { setBusy(false) }
   }
 
@@ -199,6 +207,7 @@ export default function Checkout() {
                     <span className="ds-tile-price">{money(p.price)}</span>
                     {q > 0 && <span className="ds-tile-qty">×{q}</span>}
                     {off && <span className="ds-tile-off">{off}</span>}
+                    {!off && p.track_stock && stock && <span className="ds-tile-off" style={stock[p.id] <= 0 ? { color: 'var(--c-bad)' } : undefined}>{stock[p.id] <= 0 ? '缺貨' : `庫存 ${stock[p.id]}`}</span>}
                   </button>
                 )
               })}

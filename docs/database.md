@@ -665,3 +665,21 @@ erDiagram
 | `report_checkins` | 非會員單次票算在「單次入場」人次，另回傳 `walkins`；人數只算會員（非會員無法辨識） |
 
 注意：非會員沒有同意書簽署紀錄。
+
+## 21. 庫存與會員 App 測試登入（migration 0017、Edge Function admin-users）
+
+老闆 2026-10-01 決定：每間分館各自計算庫存；櫃檯可以進貨、盤點，盤點差異由店長確認。
+
+| 項目 | 內容 |
+|---|---|
+| `products.track_stock` | 是否管理庫存；只有「商品／租借」類（content_type = rental）可以勾 |
+| `stock_movements` | 庫存異動（只能新增，不能修改刪除）：進貨 receive、賣出 sale、作廢退回 return、調撥 transfer_in／transfer_out、報廢 scrap、盤點調整 count。目前庫存＝該分館該品項所有異動加總 |
+| `stocktakes`／`stocktake_lines` | 盤點單與每個品項的系統數量、實點數量；沒有差異直接完成，有差異變「待店長確認」 |
+| 觸發器 | 結帳新增訂單明細時自動扣庫存（sale）；訂單作廢或退費時自動加回（return） |
+| `stock_receive` | 進貨（櫃檯以上，限自己分館） |
+| `stocktake_submit`／`stocktake_decide` | 送出盤點（櫃檯以上）；店長以上確認（寫入盤點調整）或退回，寫異動紀錄 |
+| `stock_transfer`／`stock_scrap` | 分館間調撥、報廢（店長以上，寫異動紀錄） |
+| `stock_overview`／`stock_moves` | 各分館庫存數量與待確認盤點；異動明細 |
+| `audit_feed` | 新增群組 `stock`（庫存） |
+
+會員 App 測試登入（簡訊服務商選定前使用）：總部在後台「會員」頁按「App 測試密碼」，Edge Function `admin-users` 的 `member_test_password` 幫會員建立（或更新）登入帳號，Email 為 `test09XXXXXXXX@members.tupcount.app`、手機同時寫入，並記入異動紀錄 `member.test_login_set`。會員在 App 登入頁點「測試期間：用測試密碼登入」，輸入手機與密碼。之後改用簡訊登入時沿用同一個帳號（`members.auth_user_id` 不變）。

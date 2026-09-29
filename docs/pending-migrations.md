@@ -45,6 +45,19 @@
 
 ---
 
+# 0017（⏳ 待執行，2026-10-01）
+
+| ✓ | 順序 | 檔名 | 行數 | 做什麼 |
+|---|---|---|---|---|
+| ⬜ | 0017 | `20261001000017_inventory.sql` | 417 | 庫存：進貨、賣出自動扣、盤點（差異由店長確認）、調撥、報廢 |
+
+執行完之後還要：
+
+- [ ] **重新部署** `admin-users`（新增「會員 App 測試密碼」功能）：照 `docs/setup-admin.md` 步驟 2，把新的程式碼整個貼上取代舊的，按 Deploy；「Verify JWT with legacy secret」維持**關閉**
+- [ ] 後台品項管理：要管庫存的商品（類型選「商品／租借」）勾「管理庫存」
+
+---
+
 ## 檢查資料庫更新有沒有都執行（隨時可用，只查看、不會改資料）
 
 ```sql
@@ -56,5 +69,6 @@ union all select '0012', to_regprocedure('public.report_sales(date,date,uuid)') 
 union all select '0013', exists (select 1 from information_schema.columns where table_name = 'products' and column_name = 'report_group')
 union all select '0014', to_regprocedure('public.adjust_plan_count(uuid,integer,text)') is not null
 union all select '0015', to_regclass('public.staff_activity') is not null
-union all select '0016', exists (select 1 from information_schema.columns where table_name = 'checkins' and column_name = 'order_item_id');
+union all select '0016', exists (select 1 from information_schema.columns where table_name = 'checkins' and column_name = 'order_item_id')
+union all select '0017', to_regclass('public.stock_movements') is not null;
 ```

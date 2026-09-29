@@ -7,6 +7,8 @@ import { age, money, phoneText, planSummary, slashDate, whenText } from '../../l
 import { useAdmin } from '../AdminContext'
 import MemberSearch from '../../components/MemberSearch'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import Modal from '../../components/Modal'
+import { adminUsers } from '../../lib/adminUsers'
 import { useToast } from '../../components/Toast'
 import { logActivity } from '../../lib/activity'
 import { AdjustDialog, ExtendDialog, ReasonDialog, RefundDialog, TransferDialog } from '../../components/PlanDialogs'
@@ -38,7 +40,7 @@ export default function Members() {
 }
 
 function MemberDetail({ memberId }) {
-  const { branches } = useAdmin()
+  const { branches, isHq } = useAdmin()
   const toast = useToast()
   const [d, setD] = useState(null)
   const [error, setError] = useState('')
@@ -90,6 +92,7 @@ function MemberDetail({ memberId }) {
         <div className="grow" />
         <Link className="ds-btn" to={`/admin/audit?member=${m.id}`}>這位會員的異動紀錄</Link>
         <Link className="ds-btn" to={`/admin/audit?m=activity&member=${m.id}`}>誰看過這位會員</Link>
+        {isHq && <button type="button" className="ds-btn" onClick={() => setDialog('testpw')}>App 測試密碼</button>}
       </div>
 
       <div className="ds-card">
@@ -161,6 +164,7 @@ function MemberDetail({ memberId }) {
         </div>
       </div>
 
+      {dialog === 'testpw' && <TestPasswordDialog m={m} onClose={() => setDialog(null)} onDone={() => toast('已設定測試密碼')} />}
       {dialog === 'extend' && <ExtendDialog plan={plan} onClose={() => setDialog(null)} onDone={done('已延期')} />}
       {dialog === 'adjust' && <AdjustDialog plan={plan} onClose={() => setDialog(null)} onDone={done('已調整')} />}
       {dialog === 'freeze' && <ReasonDialog title={`暫停「${plan.name}」`} hint="暫停期間不能入場；恢復時會依暫停天數自動延長到期日。"
@@ -176,5 +180,42 @@ function MemberDetail({ memberId }) {
           ['次數', dialog.cancel.deducted ? '會加回 1 次' : '這筆沒有扣次']]}
         onClose={() => setDialog(null)} onConfirm={async () => { await rpc('cancel_checkin', { p_checkin_id: dialog.cancel.id }); done('入場已取消')() }} />}
     </>
+  )
+}
+
+// 會員 App 測試登入（還沒接簡訊前）：總部幫會員設一組密碼
+function TestPasswordDialog({ m, onClose, onDone }) {
+  const [pw, setPw] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const [done, setDone] = useState(false)
+  async function save() {
+    setBusy(true); setError('')
+    try { await adminUsers({ action: 'member_test_password', member_id: m.id, password: pw }); setDone(true); onDone() }
+    catch (e) { setError(e.message) } finally { setBusy(false) }
+  }
+  return (
+    <Modal title="會員 App 測試密碼" onClose={onClose} width={480}>
+      {done ? (
+        <>
+          <div className="ds-note" style={{ color: 'var(--c-ink)', lineHeight: 1.8 }}>
+            請會員打開 <b>網址／app</b>，點「<b>測試期間：用測試密碼登入</b>」，輸入：<br />
+            手機號碼：<b>{phoneText(m.phone)}</b><br />密碼：<b>{pw}</b>
+          </div>
+          <div className="dlg-actions"><button className="ds-btn-dark" onClick={onClose}>完成</button></div>
+        </>
+      ) : (
+        <>
+          <div className="ds-note">簡訊登入還沒開通前，用這組密碼登入會員 App 測試。之後接上簡訊，會員照樣可以用簡訊登入，資料不受影響。</div>
+          <div className="ds-field"><label className="ds-label" htmlFor="tpw">密碼（至少 8 個字）</label>
+            <input id="tpw" className="ds-input" value={pw} onChange={(e) => setPw(e.target.value)} autoFocus /></div>
+          {error && <div className="ds-error">{error}</div>}
+          <div className="dlg-actions">
+            <button className="ds-btn" style={{ height: 52 }} onClick={onClose}>取消</button>
+            <button className="ds-btn-primary" disabled={pw.length < 8 || busy} onClick={save}>{busy ? '設定中…' : '設定'}</button>
+          </div>
+        </>
+      )}
+    </Modal>
   )
 }

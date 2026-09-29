@@ -11,11 +11,11 @@ const ACTION_TEXT = { login: '登入', logout: '登出', open: '開啟系統', p
 const APP_TEXT = { counter: '櫃檯', admin: '後台' }
 
 const PAGES = {
-  '/counter/checkout': '結帳', '/counter/members': '會員', '/counter/members/new': '新增會員', '/counter/today': '今日', '/counter/close': '關帳',
+  '/counter/checkout': '結帳', '/counter/members': '會員', '/counter/members/new': '新增會員', '/counter/today': '今日', '/counter/close': '關帳', '/counter/stock': '庫存',
   '/admin/products': '品項管理', '/admin/members': '會員', '/admin/orders': '訂單', '/admin/staff': '員工與權限',
   '/admin/branches': '分館與入場機', '/admin/waivers': '同意書', '/admin/audit': '異動紀錄', '/admin/reports': '報表',
 }
-const REPORTS = { overview: '總覽', sales: '銷售', checkins: '入場', courses: '課程', trend: '月／年比較', members: '會員名單', liability: '未使用餘額' }
+const REPORTS = { overview: '總覽', sales: '銷售', checkins: '入場', courses: '課程', trend: '月／年比較', members: '會員名單', liability: '未使用餘額', stock: '庫存' }
 
 // 網址 → 頁面名稱（例：/admin/reports?v=sales → 報表・銷售）
 export function pageName(target) {

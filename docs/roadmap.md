@@ -24,6 +24,8 @@
 | **員工使用足跡** | 所有員工帳號的登入／登出、瀏覽頁面、查看會員、匯出，記錄裝置與 IP；後台「異動紀錄 → 使用足跡」查看 | migration 0015、`web/src/lib/activity.js` |
 | **上線（Netlify）** | 正式版（`production` 分支）自動部署；網址 https://tupcount.netlify.app （`/counter` 櫃檯、`/admin` 總部後台、`/kiosk` 入場機、`/app` 會員 App），2026-10-01 部署完成 | Netlify 專案 tupcount |
 | **後台手機版** | 總部後台在手機上自動改成手機排版（報表、會員、訂單、異動紀錄等都能看） | `web/src/styles.css` |
+| **庫存** | 每間分館各算：進貨、賣出自動扣、盤點（差異由店長確認）、調撥、報廢；櫃檯「庫存」分頁、後台「報表 → 庫存」 | migration 0017、`web/src/counter/pages/Stock.jsx` |
+| **App 測試登入** | 簡訊服務商選定前，總部可幫會員設測試密碼登入 App | `supabase/functions/admin-users/`、`web/src/member/pages/Login.jsx` |
 | 硬體清單 | 每間分館要買的平板、掃碼器、支架等 | `docs/hardware.md` |
 | 說明文件 | Supabase 設定、試用櫃檯、後台與入場機設定 | `docs/setup-supabase.md`、`docs/setup-counter.md`、`docs/setup-admin.md` |
 
@@ -33,6 +35,7 @@
 |---|---|
 | 選簡訊服務商 | Twilio 或台灣廠商（三竹、every8d），見 `docs/setup-member-app.md`；先確認教練 app 的登入方式 |
 | App 圖示 | 目前是暫用圖示，請提供原岩 Logo |
+| 執行 0017、重新部署 admin-users | 見 `docs/pending-migrations.md` |
 | 在筆電試用櫃檯 | 照 `docs/setup-counter.md` |
 | 各店固定零用金、國定假日、員工帳號 | 後台已做好，可以自己在 `/admin` 設定 |
 | decisions.md「尚待提供」 | 套票次數；月票／年票分單店或全店通；是否需要年票；電子發票加值中心選擇；17FIT 資料匯出 |

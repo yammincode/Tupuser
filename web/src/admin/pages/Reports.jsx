@@ -10,6 +10,7 @@ import Courses from '../reports/Courses'
 import Trend from '../reports/Trend'
 import Members from '../reports/Members'
 import Liability from '../reports/Liability'
+import Stock from '../reports/Stock'
 
 // 報表：總部可看各分館與合計；店長只看自己分館（資料庫也會擋）
 const VIEWS = [
@@ -20,6 +21,7 @@ const VIEWS = [
   ['trend', '月／年比較', Trend, false],
   ['members', '會員', Members, true],
   ['liability', '未使用餘額', Liability, false],
+  ['stock', '庫存', Stock, true],
 ]
 
 export default function Reports() {

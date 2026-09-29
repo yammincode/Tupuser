@@ -9,7 +9,7 @@ import { PRESETS, range } from '../reports/common'
 import Activity from './Activity'
 
 const GROUPS = [['', '全部'], ['plan', '方案（票券、月票、課程）'], ['order', '訂單與退費'], ['checkin', '入場'], ['product', '品項'],
-  ['member', '會員資料'], ['staff', '員工與入場機'], ['closing', '關帳']]
+  ['member', '會員資料'], ['staff', '員工與入場機'], ['closing', '關帳'], ['stock', '庫存']]
 
 export const ACTION_TEXT = {
   'member_plan.adjusted': '調整次數', 'member_plan.extended': '延期', 'member_plan.frozen': '暫停方案', 'member_plan.unfrozen': '恢復方案',
@@ -17,10 +17,11 @@ export const ACTION_TEXT = {
   'order.voided': '作廢訂單', 'order.refunded': '退費', 'order.updated': '修改訂單', 'order.edited_after_closing': '修改已關帳訂單',
   'checkin.cancelled': '取消入場',
   'product.created': '新增品項', 'product.updated': '修改品項', 'product.price_changed': '修改價格',
-  'member.phone_changed': '修改手機號碼', 'member.status_changed': '會員狀態',
+  'member.phone_changed': '修改手機號碼', 'member.status_changed': '會員狀態', 'member.test_login_set': '設定 App 測試密碼',
   'staff.created': '新增員工', 'staff.updated': '修改員工', 'staff.password_reset': '重設員工密碼',
   'device.created': '新增入場機', 'device.password_reset': '重設入場機密碼',
   'closing.reopened': '重新開帳', 'closing.reclosed': '重新關帳',
+  'stock.transferred': '庫存調撥', 'stock.scrapped': '庫存報廢', 'stock.stocktake_approved': '確認盤點', 'stock.stocktake_rejected': '退回盤點',
 }
 
 const FIELD = {
@@ -71,6 +72,11 @@ export function describe(r, branchName) {
     case 'product.created': return [a.name || r.product_name, `價格 ${money(a.price)}`, '']
     case 'member.phone_changed': return [who, `${phoneText(b.phone)} → ${phoneText(a.phone)}`, '']
     case 'member.status_changed': return [who, `${STATUS[b.status] || b.status} → ${STATUS[a.status] || a.status}`, '']
+    case 'stock.stocktake_approved':
+    case 'stock.stocktake_rejected':
+      return ['盤點', (a.lines || []).map((l) => `${l.product} ${l.expected}→${l.counted}`).join('；'), a.note || (a.lines || []).map((l) => l.reason).filter(Boolean).join('；')]
+    case 'stock.scrapped': return ['報廢', (a.items || []).length + ' 項', a.reason]
+    case 'stock.transferred': return ['調撥', `調到 ${branchName(a.to_branch_id) || '其他分館'}，${(a.items || []).length} 項`, a.note]
     case 'closing.reopened': return [`${slashDate(b.business_date)} 關帳`, '重新開帳', a.reason]
     case 'closing.reclosed': return [`${slashDate(a.business_date)} 關帳`, `差額 ${money(a.difference)}`, a.difference_note]
     default: {

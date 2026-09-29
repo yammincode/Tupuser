@@ -13,7 +13,7 @@ const RULES = [['any', '不限'], ['weekday', '平日'], ['weekend', '假日'], 
 
 function contentText(p) {
   if (p.content_type === 'single') return '單次入場'
-  if (p.content_type === 'rental') return '租借'
+  if (p.content_type === 'rental') return p.track_stock ? '商品・管庫存' : '商品／租借'
   return `${p.quantity} ${{ punch: '次', days: '天', course: '堂' }[p.content_type]}${p.content_type === 'course' && p.valid_days ? `・${p.valid_days} 天內` : ''}`
 }
 function ruleText(p) {
@@ -30,7 +30,7 @@ const validUntil = (n) => {
 
 const EMPTY = {
   id: null, name: '', category_id: '', price: '', content_type: 'single', quantity: '1', usage_rule: 'any',
-  slot_start: '', slot_end: '', branch: 'all', sale_start: '', sale_end: '', status: 'on_sale', report_group: '', coach: '', valid_days: '',
+  slot_start: '', slot_end: '', branch: 'all', sale_start: '', sale_end: '', status: 'on_sale', report_group: '', coach: '', valid_days: '', track_stock: false,
 }
 
 // 品項管理：品項不能刪除，只能下架；舊訂單保留當時的品名和價格
@@ -87,7 +87,7 @@ export default function Products() {
       quantity: String(p.quantity), usage_rule: p.usage_rule, slot_start: p.slot_start?.slice(0, 5) || '', slot_end: p.slot_end?.slice(0, 5) || '',
       branch: p.all_branches ? 'all' : ids.length === 1 ? ids[0] : 'multi', multi: ids,
       sale_start: p.sale_start || '', sale_end: p.sale_end || '', status: p.status,
-      report_group: p.report_group || '', coach: p.coach || '', valid_days: p.valid_days ? String(p.valid_days) : '',
+      report_group: p.report_group || '', coach: p.coach || '', valid_days: p.valid_days ? String(p.valid_days) : '', track_stock: Boolean(p.track_stock),
     })
   }
 
@@ -113,6 +113,8 @@ export default function Products() {
       coach: form.content_type === 'course' ? form.coach.trim() || null : null,
       // 課程點數使用期限（天，購買當天起算）；空白＝不限期
       valid_days: form.content_type === 'course' && Number(form.valid_days) > 0 ? Number(form.valid_days) : null,
+      // 只有商品／租借類可以管理庫存
+      track_stock: form.content_type === 'rental' && form.track_stock,
     }
     setBusy(true)
     try {
@@ -196,6 +198,12 @@ export default function Products() {
               <input id="p5" className="ds-input" style={{ width: '100%' }} placeholder="次數、天數或堂數" inputMode="numeric" disabled={fixedQty}
                 value={fixedQty ? '1' : form.quantity} onChange={(e) => set('quantity', e.target.value.replace(/\D/g, ''))} /></div>
           </div>
+          {form.content_type === 'rental' && (
+            <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 15 }}>
+              <input type="checkbox" className="ds-checkbox" checked={form.track_stock} onChange={(e) => set('track_stock', e.target.checked)} />
+              <span>管理庫存<small style={{ display: 'block', color: 'var(--c-muted)' }}>實體商品（飲料、粉袋、販售的岩鞋等）請勾選：結帳自動扣庫存，櫃檯可進貨、盤點。租借用的不要勾。</small></span>
+            </label>
+          )}
           {form.content_type === 'course' && (
             <div className="co-grid2" style={{ gap: 12 }}>
               <div className="ds-field"><label className="ds-label" htmlFor="p7">統計分類（報表加總用）</label>

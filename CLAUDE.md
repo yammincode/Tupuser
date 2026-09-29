@@ -109,7 +109,7 @@
 
 ## 目前進度
 
-- Supabase 專案已建立（東京），migration 0001～0016 全部已執行（2026-10-01 老闆確認，用檢查 SQL 驗證過）；Edge Function admin-users 已部署（Verify JWT with legacy secret 已關閉）；Netlify 正式版（production 分支）已上線。
+- Supabase 專案已建立（東京），migration 0001～0016 全部已執行（2026-10-01 老闆確認，用檢查 SQL 驗證過）；**0017（庫存）待執行，admin-users 需重新部署**（新增 `member_test_password`）；Edge Function admin-users 已部署（Verify JWT with legacy secret 已關閉）；Netlify 正式版（production 分支）已上線。
 - 分館資料：`supabase/seed/01_branches.sql`，依 decisions.md 分館表（中壢店 ZL 籌備中，is_active = false，地址電話待定；A19 不建立）。
 - 總部帳號已建立（老闆本人，role = hq）；個人 Email 不寫進 repo。
 - 同意書 2026.1 為開發時擬定的**草稿**（`supabase/seed/02_waiver_v1.sql`），正式上線前需律師審閱，修改時建立新版本。
@@ -129,6 +129,8 @@
 - 會員 App（`web/src/member/`，獨立入口 `web/app.html`，Netlify 把 `/app/*` 導到 app.html；開發時 vite.config.js 的 middleware 處理）：手機簡訊登入（登入紀錄 storageKey 與櫃檯分開）→ `my_app_home()`、`get_my_qr_secret()`；入場碼在手機用純 JS 算 TOTP（`member/totp.js`，與 `app.totp` 相同，已驗證），用伺服器時間校正；入場碼頁 QR 不帶方案（入場機自動挑），方案頁 QR 帶方案 id；App 內簽同意書 method = app；PWA（`public/app.webmanifest`、`public/app-sw.js`）。本機測試手機 0955666777 等用驗證碼 123456（`supabase/config.toml` test_otp）。簡訊服務商待老闆選。說明見 `docs/setup-member-app.md`。
 - 部署：網址 https://tupcount.netlify.app（Netlify 專案 tupcount，2026-10-01 上線，免費方案點數有限，建議關閉自動部署、要更新時再手動部署；只改文件的 commit 訊息加 `[skip netlify]` 就不會觸發部署）；`netlify.toml`（base = web）；環境變數 `VITE_SUPABASE_URL`、`VITE_SUPABASE_ANON_KEY`；填成秘密金鑰時畫面會拒絕啟動。老闆步驟見 `docs/setup-netlify.md`。Netlify 的 Production branch 設為 `production`（正式版），開發分支不部署。
 - 員工使用足跡（`lib/activity.js` → `log_activity`）：櫃檯與後台記錄登入／登出、開啟系統、頁面、查看會員、匯出（`lib/csv.js`）；所有員工帳號都記（老闆 2026-09-30 決定）。
+- 庫存（migration 0017，老闆 2026-10-01 決定）：每間分館各自計算；`products.track_stock` 只給「商品／租借」；庫存＝`stock_movements` 加總（結帳與作廢退費由觸發器自動寫）；櫃檯 `pages/Stock.jsx`（庫存分頁：進貨、盤點；店長另可調撥、報廢、確認盤點差異）、後台 `reports/Stock.jsx`（報表 → 庫存）。櫃檯不做手機版（老闆決定維持平板／電腦）。
+- 會員 App 測試登入（簡訊服務商選定前）：總部在後台會員頁設「App 測試密碼」（Edge Function `member_test_password`，帳號 Email `test09XXXXXXXX@members.tupcount.app`）；App 登入頁「測試期間：用測試密碼登入」。
 - 硬體採購清單：`docs/hardware.md`。
 - 開發進度總表：`docs/roadmap.md`（完成一項就更新）。
 - 本機完整測試：`npx supabase start`（Docker）會套用 migrations 與 `supabase/seed/*.sql`；`web/.env.local` 指向 `http://127.0.0.1:54321`。老闆的試用步驟見 `docs/setup-counter.md`。
