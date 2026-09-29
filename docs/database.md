@@ -633,3 +633,14 @@ erDiagram
 | `products.coach` | 教練姓名（課程用） |
 | `report_checkins` 調整 | 入場分三類：單次入場（single）、票券入場（punch）、年月票入場（days）；上課（course）另計 `course_visits`／`course_people`，不算在入場人次；尖峰時段含上課 |
 | `report_courses(from, to, branch)` | 課程銷售（依銷售日）與上課人次（依上課日），依統計分類、教練、品名加總；列出還沒設定分類或教練的上架課程。分類與教練以品項目前設定為準 |
+
+## 18. 課程期限、調整次數、異動紀錄查詢（migration 0014）
+
+| 項目 | 內容 |
+|---|---|
+| 課程使用期限 | 沿用 `products.valid_days`（後台課程品項可設定；購買當天起算，例 60 天 = 9/1 買用到 10/30）；空白 = 不限期 |
+| `adjust_plan_count(plan, delta, reason)` | 店長以上加減次數型／課程方案的可用次數：`remaining_count` 與 `total_count` 一起加減（已使用次數不變）；不能減到負數；用完的方案加回後恢復使用中（已過期則仍為已到期）；年月票不適用（請用延期）；寫入 `member_plan.adjusted` |
+| 品項新增紀錄 | `products` 新增時寫入 `product.created` |
+| `audit_feed(from, to, branch, group, member, staff, limit)` | 異動紀錄查詢（總部後台「異動紀錄」頁）：附員工、會員、方案／品項名稱、轉讓對象；分館以紀錄分館或會員主要分館為準；店長只看自己分館 |
+
+入場扣錯要加回次數，請用「取消入場」（`cancel_checkin`，會自動加回並留紀錄）。

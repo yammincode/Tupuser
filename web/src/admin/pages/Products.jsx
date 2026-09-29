@@ -14,16 +14,23 @@ const RULES = [['any', '不限'], ['weekday', '平日'], ['weekend', '假日'], 
 function contentText(p) {
   if (p.content_type === 'single') return '單次入場'
   if (p.content_type === 'rental') return '租借'
-  return `${p.quantity} ${{ punch: '次', days: '天', course: '堂' }[p.content_type]}`
+  return `${p.quantity} ${{ punch: '次', days: '天', course: '堂' }[p.content_type]}${p.content_type === 'course' && p.valid_days ? `・${p.valid_days} 天內` : ''}`
 }
 function ruleText(p) {
   const r = { any: '不限', weekday: '平日', weekend: '假日', time_slot: '時段' }[p.usage_rule]
   return p.slot_start && p.usage_rule !== 'time_slot' ? r + '時段' : r
 }
 
+// 今天買、N 天期限的最後一天（含購買當天）
+const validUntil = (n) => {
+  const t = new Date(new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Taipei' }) + 'T00:00:00Z')
+  t.setUTCDate(t.getUTCDate() + Number(n) - 1)
+  return `${t.getUTCMonth() + 1}/${t.getUTCDate()}`
+}
+
 const EMPTY = {
   id: null, name: '', category_id: '', price: '', content_type: 'single', quantity: '1', usage_rule: 'any',
-  slot_start: '', slot_end: '', branch: 'all', sale_start: '', sale_end: '', status: 'on_sale', report_group: '', coach: '',
+  slot_start: '', slot_end: '', branch: 'all', sale_start: '', sale_end: '', status: 'on_sale', report_group: '', coach: '', valid_days: '',
 }
 
 // 品項管理：品項不能刪除，只能下架；舊訂單保留當時的品名和價格
@@ -80,7 +87,7 @@ export default function Products() {
       quantity: String(p.quantity), usage_rule: p.usage_rule, slot_start: p.slot_start?.slice(0, 5) || '', slot_end: p.slot_end?.slice(0, 5) || '',
       branch: p.all_branches ? 'all' : ids.length === 1 ? ids[0] : 'multi', multi: ids,
       sale_start: p.sale_start || '', sale_end: p.sale_end || '', status: p.status,
-      report_group: p.report_group || '', coach: p.coach || '',
+      report_group: p.report_group || '', coach: p.coach || '', valid_days: p.valid_days ? String(p.valid_days) : '',
     })
   }
 
@@ -104,6 +111,8 @@ export default function Products() {
       // 課程才有統計分類與教練
       report_group: form.content_type === 'course' ? form.report_group.trim() || null : null,
       coach: form.content_type === 'course' ? form.coach.trim() || null : null,
+      // 課程點數使用期限（天，購買當天起算）；空白＝不限期
+      valid_days: form.content_type === 'course' && Number(form.valid_days) > 0 ? Number(form.valid_days) : null,
     }
     setBusy(true)
     try {
@@ -195,6 +204,9 @@ export default function Products() {
               <div className="ds-field"><label className="ds-label" htmlFor="p8">教練</label>
                 <input id="p8" className="ds-input" style={{ width: '100%' }} list="coaches" placeholder="教練姓名" value={form.coach} onChange={(e) => set('coach', e.target.value)} />
                 <datalist id="coaches">{[...new Set(data.prods.map((p) => p.coach).filter(Boolean))].map((g) => <option key={g} value={g} />)}</datalist></div>
+              <div className="ds-field"><label className="ds-label" htmlFor="p9">使用期限（天）</label>
+                <input id="p9" className="ds-input" style={{ width: '100%' }} inputMode="numeric" placeholder="空白＝不限期" value={form.valid_days} onChange={(e) => set('valid_days', e.target.value.replace(/\D/g, ''))} /></div>
+              <div className="muted" style={{ fontSize: 13, alignSelf: 'end', paddingBottom: 10 }}>{Number(form.valid_days) > 0 ? `購買當天起算 ${form.valid_days} 天（例：今天買，用到 ${validUntil(form.valid_days)}）` : '課程點數不會過期'}</div>
             </div>
           )}
           <div className="ds-field"><span className="ds-label">適用條件</span>

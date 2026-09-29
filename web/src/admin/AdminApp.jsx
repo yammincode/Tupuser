@@ -11,14 +11,18 @@ import Branches from './pages/Branches'
 import Orders from './pages/Orders'
 import Reports from './pages/Reports'
 import Waivers from './pages/Waivers'
+import Members from './pages/Members'
+import Audit from './pages/Audit'
 
 const TABS = [
   { to: 'products', label: '品項管理' },
-  { to: 'staff', label: '員工與權限' },
-  { to: 'branches', label: '分館與入場機' },
+  { to: 'members', label: '會員' },
   { to: 'orders', label: '訂單' },
   { to: 'reports', label: '報表' },
+  { to: 'staff', label: '員工與權限' },
+  { to: 'branches', label: '分館與入場機' },
   { to: 'waivers', label: '同意書' },
+  { to: 'audit', label: '異動紀錄' },
 ]
 
 // 總部後台（design/AdminProducts、AdminStaff）：總部看全部；店長只能管自己分館
@@ -90,6 +94,8 @@ export default function AdminApp() {
           <Route path="orders" element={<Orders />} />
           <Route path="reports" element={<Reports />} />
           <Route path="waivers" element={<Waivers />} />
+          <Route path="members" element={<Members />} />
+          <Route path="audit" element={<Audit />} />
           <Route path="*" element={<Navigate to="/admin/products" replace />} />
         </Routes>
       </div>

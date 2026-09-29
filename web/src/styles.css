@@ -215,3 +215,7 @@ a:hover { color: var(--c-accent-hover); }
 .rpt-clickable { cursor: pointer; }
 .rpt-clickable:hover { background: var(--c-bg); }
 .rpt-grid.five .ds-stat-value { font-size: 26px; }   /* 五格時數字較小，避免換行 */
+
+/* 總部後台頂欄分頁多（8 個）：不換行 */
+.counter.admin .ds-tab { white-space: nowrap; flex-shrink: 0; }
+.counter.admin .ds-tabs { flex-shrink: 0; }

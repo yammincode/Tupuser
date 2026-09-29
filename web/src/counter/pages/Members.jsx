@@ -9,6 +9,7 @@ import MemberSearch from '../../components/MemberSearch'
 import Modal from '../../components/Modal'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import { useToast } from '../../components/Toast'
+import { AdjustDialog, ExtendDialog, ReasonDialog, RefundDialog, TransferDialog } from '../../components/PlanDialogs'
 
 const STATUS_PILL = { active: ['正常', 'ok'], suspended: ['暫停', 'warn'], inactive: ['停用', 'off'] }
 const PLAN_PILL = {
@@ -160,6 +161,7 @@ function MemberDetail({ memberId }) {
               ? <button type="button" className="ds-btn" disabled={!isManager} onClick={() => setDialog('unfreeze')}>恢復</button>
               : <button type="button" className="ds-btn" disabled={!isManager || plan?.status !== 'active'} onClick={() => setDialog('freeze')}>暫停</button>}
             <button type="button" className="ds-btn" disabled={!isManager || !plan?.end_date} onClick={() => setDialog('extend')}>延期</button>
+            <button type="button" className="ds-btn" disabled={!isManager || !plan || plan.content_type === 'days' || plan.status === 'cancelled'} onClick={() => setDialog('adjust')}>調整次數</button>
             <button type="button" className="ds-btn" disabled={!isManager || !['active', 'frozen'].includes(plan?.status)} onClick={() => setDialog('transfer')}>轉讓</button>
             <button type="button" className="ds-btn" disabled={!isManager || !planOrder || planOrder.status !== 'paid'} onClick={() => setDialog('refund')}>退費</button>
           </div>
@@ -205,6 +207,7 @@ function MemberDetail({ memberId }) {
         lines={[['暫停開始', slashDate(plan.frozen_at)], ['到期日', plan.end_date ? '會依暫停天數自動延長' : '不限期']]}
         onClose={() => setDialog(null)}
         onConfirm={async () => { await rpc('unfreeze_plan', { p_plan_id: plan.id }); toast('方案已恢復'); load() }} />}
+      {dialog === 'adjust' && <AdjustDialog plan={plan} onClose={() => setDialog(null)} onDone={() => { toast('已調整'); load() }} />}
       {dialog === 'extend' && <ExtendDialog plan={plan} onClose={() => setDialog(null)} onDone={() => { toast('已延期'); load() }} />}
       {dialog === 'transfer' && <TransferDialog plan={plan} from={m} onClose={() => setDialog(null)} onDone={() => { toast('已轉讓'); load() }} />}
       {dialog === 'refund' && <RefundDialog plan={plan} onClose={() => setDialog(null)} onDone={() => { toast('退費完成'); load() }} />}
@@ -228,112 +231,6 @@ export function CheckinResultDialog({ result, onClose, onWaiver }) {
       </div>
       {result.result === 'waiver_required' && <button type="button" className="ds-btn-primary" onClick={onWaiver}>交給客人簽署同意書</button>}
       <button type="button" className="ds-btn-dark" onClick={onClose}>知道了</button>
-    </Modal>
-  )
-}
-
-function ReasonDialog({ title, hint, confirmText, onConfirm, onClose }) {
-  const [reason, setReason] = useState('')
-  const [step, setStep] = useState(1)
-  if (step === 2) return <ConfirmDialog title={title + '？'} confirmText={confirmText} lines={[['原因', reason]]} onConfirm={() => onConfirm(reason)} onClose={onClose} />
-  return (
-    <Modal title={title} onClose={onClose}>
-      {hint && <div className="ds-note">{hint}</div>}
-      <div className="ds-field"><label className="ds-label" htmlFor="r">原因（必填）</label>
-        <input id="r" className="ds-input" value={reason} onChange={(e) => setReason(e.target.value)} autoFocus /></div>
-      <div className="dlg-actions">
-        <button className="ds-btn" style={{ height: 52 }} onClick={onClose}>取消</button>
-        <button className="ds-btn-primary" disabled={!reason.trim()} onClick={() => setStep(2)}>下一步</button>
-      </div>
-    </Modal>
-  )
-}
-
-function ExtendDialog({ plan, onClose, onDone }) {
-  const [days, setDays] = useState('7')
-  const [reason, setReason] = useState('')
-  const [step, setStep] = useState(1)
-  const n = Number(days) || 0
-  if (step === 2) {
-    const [y, mo, da] = plan.end_date.split('-').map(Number)
-    const next = new Date(Date.UTC(y, mo - 1, da + n)).toISOString().slice(0, 10)
-    return <ConfirmDialog title={`延期「${plan.name}」？`} confirmText="確認延期"
-      lines={[['延期', `${n} 天`], ['到期日', `${slashDate(plan.end_date)} → ${slashDate(next)}`], ['原因', reason]]}
-      onConfirm={async () => { await rpc('extend_plan', { p_plan_id: plan.id, p_days: n, p_reason: reason }); onDone() }} onClose={onClose} />
-  }
-  return (
-    <Modal title={`延期「${plan.name}」`} onClose={onClose}>
-      <div className="ds-field"><label className="ds-label" htmlFor="dd">延長幾天</label>
-        <input id="dd" className="ds-input" inputMode="numeric" value={days} onChange={(e) => setDays(e.target.value.replace(/\D/g, ''))} /></div>
-      <div className="ds-field"><label className="ds-label" htmlFor="rr">原因（必填）</label>
-        <input id="rr" className="ds-input" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="例：颱風停館" /></div>
-      <div className="dlg-actions">
-        <button className="ds-btn" style={{ height: 52 }} onClick={onClose}>取消</button>
-        <button className="ds-btn-primary" disabled={n < 1 || !reason.trim()} onClick={() => setStep(2)}>下一步</button>
-      </div>
-    </Modal>
-  )
-}
-
-function TransferDialog({ plan, from, onClose, onDone }) {
-  const [to, setTo] = useState(null)
-  const [reason, setReason] = useState('')
-  const [step, setStep] = useState(1)
-  if (step === 2) {
-    return <ConfirmDialog title="確認轉讓方案？" confirmText="確認轉讓"
-      lines={[['方案', `${plan.name}（${planSummary(plan)}）`], ['轉出', from.name], ['轉入', `${to.name}（${phoneText(to.phone)}）`], ['原因', reason]]}
-      onConfirm={async () => { await rpc('transfer_plan', { p_plan_id: plan.id, p_to_member_id: to.id, p_reason: reason }); onDone() }} onClose={onClose} />
-  }
-  return (
-    <Modal title={`轉讓「${plan.name}」`} onClose={onClose} width={480}>
-      <div className="ds-field" style={{ position: 'relative' }}>
-        <span className="ds-label">轉給哪位會員</span>
-        {to
-          ? <div className="ds-note" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--c-ink)' }}>
-              {to.name}（{phoneText(to.phone)}）<button className="ds-btn" onClick={() => setTo(null)}>換人</button></div>
-          : <div className="mem-search" style={{ width: 'auto', padding: 0 }}><MemberSearch inline onPick={(x) => x.id !== from.id && setTo(x)} /></div>}
-      </div>
-      <div className="ds-field"><label className="ds-label" htmlFor="tr">原因（必填）</label>
-        <input id="tr" className="ds-input" value={reason} onChange={(e) => setReason(e.target.value)} /></div>
-      <div className="dlg-actions">
-        <button className="ds-btn" style={{ height: 52 }} onClick={onClose}>取消</button>
-        <button className="ds-btn-primary" disabled={!to || !reason.trim()} onClick={() => setStep(2)}>下一步</button>
-      </div>
-    </Modal>
-  )
-}
-
-// 退費：退掉這個方案所屬的整張訂單，退款記在今天的帳上
-function RefundDialog({ plan, onClose, onDone }) {
-  const order = plan.order_items.orders
-  const [method, setMethod] = useState('cash')
-  const [amount, setAmount] = useState(String(plan.order_items.line_total))
-  const [reason, setReason] = useState('')
-  const [step, setStep] = useState(1)
-  const amt = Number(amount) || 0
-  const sel = (on, c) => (on ? { '--on': c } : {})
-  if (step === 2) {
-    return <ConfirmDialog title="確定要退費？" confirmText={`確認退費 ${money(amt)}`}
-      lines={[['訂單', order.order_no], ['方案', plan.name], ['退款方式', method === 'cash' ? '現金' : 'LINE Pay'], ['退款金額', money(amt)], ['原因', reason]]}
-      onConfirm={async () => { await rpc('refund_order', { p_order_id: order.id, p_method: method, p_amount: amt, p_reason: reason }); onDone() }}
-      onClose={onClose}>
-      <div className="ds-note">退款記在今天的帳上；這張訂單產生的方案會一併取消。</div>
-    </ConfirmDialog>
-  }
-  return (
-    <Modal title={`退費「${plan.name}」`} onClose={onClose}>
-      <div className="co-grid2">
-        <button type="button" className={'ds-toggle' + (method === 'cash' ? ' on' : '')} style={sel(method === 'cash', 'var(--c-ink)')} onClick={() => setMethod('cash')}>退現金</button>
-        <button type="button" className={'ds-toggle' + (method === 'line_pay' ? ' on' : '')} style={sel(method === 'line_pay', 'var(--c-linepay)')} onClick={() => setMethod('line_pay')}>退 LINE Pay</button>
-      </div>
-      <div className="ds-field"><label className="ds-label" htmlFor="ra">退款金額</label>
-        <input id="ra" className="ds-input" inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value.replace(/\D/g, ''))} /></div>
-      <div className="ds-field"><label className="ds-label" htmlFor="rs">原因（必填）</label>
-        <input id="rs" className="ds-input" value={reason} onChange={(e) => setReason(e.target.value)} /></div>
-      <div className="dlg-actions">
-        <button className="ds-btn" style={{ height: 52 }} onClick={onClose}>取消</button>
-        <button className="ds-btn-primary" disabled={amt < 1 || !reason.trim()} onClick={() => setStep(2)}>下一步</button>
-      </div>
     </Modal>
   )
 }
