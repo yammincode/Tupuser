@@ -104,7 +104,8 @@
 
 ## Git
 
-- 開發分支：`claude/yuanyan-climbing-database-kqjhqv`。
+- 開發分支（開發版）：`claude/yuanyan-climbing-database-kqjhqv`，平常所有修改都放這裡，不會部署。
+- 正式版分支：`production`，Netlify 只部署這個分支（老闆 2026-10-01 決定）。**只有老闆說「上線／更新正式版」時**，才把開發分支合併到 `production` 並推送；推送前先確認資料庫更新檔都已經由老闆執行完，並告知這次更新的內容。
 
 ## 目前進度
 
@@ -126,7 +127,7 @@
 - 畫面樣式只用 `web/src/design/tokens.css` 的 `ds-*` 元件與變數；頁面版面在 `web/src/styles.css`。
 - 路由連結一律用絕對路徑（`/counter/...`），相對路徑在 `/counter/*` 底下會無限疊加。
 - 會員 App（`web/src/member/`，獨立入口 `web/app.html`，Netlify 把 `/app/*` 導到 app.html；開發時 vite.config.js 的 middleware 處理）：手機簡訊登入（登入紀錄 storageKey 與櫃檯分開）→ `my_app_home()`、`get_my_qr_secret()`；入場碼在手機用純 JS 算 TOTP（`member/totp.js`，與 `app.totp` 相同，已驗證），用伺服器時間校正；入場碼頁 QR 不帶方案（入場機自動挑），方案頁 QR 帶方案 id；App 內簽同意書 method = app；PWA（`public/app.webmanifest`、`public/app-sw.js`）。本機測試手機 0955666777 等用驗證碼 123456（`supabase/config.toml` test_otp）。簡訊服務商待老闆選。說明見 `docs/setup-member-app.md`。
-- 部署：網址 https://tupcount.netlify.app（Netlify 專案 tupcount，2026-10-01 上線，免費方案點數有限，建議關閉自動部署、要更新時再手動部署；只改文件的 commit 訊息加 `[skip netlify]` 就不會觸發部署）；`netlify.toml`（base = web）；環境變數 `VITE_SUPABASE_URL`、`VITE_SUPABASE_ANON_KEY`；填成秘密金鑰時畫面會拒絕啟動。老闆步驟見 `docs/setup-netlify.md`。目前部署開發分支，試跑前改成正式版分支。
+- 部署：網址 https://tupcount.netlify.app（Netlify 專案 tupcount，2026-10-01 上線，免費方案點數有限，建議關閉自動部署、要更新時再手動部署；只改文件的 commit 訊息加 `[skip netlify]` 就不會觸發部署）；`netlify.toml`（base = web）；環境變數 `VITE_SUPABASE_URL`、`VITE_SUPABASE_ANON_KEY`；填成秘密金鑰時畫面會拒絕啟動。老闆步驟見 `docs/setup-netlify.md`。Netlify 的 Production branch 設為 `production`（正式版），開發分支不部署。
 - 員工使用足跡（`lib/activity.js` → `log_activity`）：櫃檯與後台記錄登入／登出、開啟系統、頁面、查看會員、匯出（`lib/csv.js`）；所有員工帳號都記（老闆 2026-09-30 決定）。
 - 硬體採購清單：`docs/hardware.md`。
 - 開發進度總表：`docs/roadmap.md`（完成一項就更新）。

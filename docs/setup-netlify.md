@@ -92,3 +92,23 @@ Netlify 預設網址是亂數（例如 `https://jolly-otter-12345.netlify.app`�
 
 **Q：要付費嗎？**
 目前不用。Netlify 免費方案每月有固定的用量額度，這個系統的網頁很小，一般用不完；快用完時 Netlify 會寄信通知。
+
+---
+
+## 正式版與開發版（2026-10-01 起）
+
+| 分支 | 用途 | 會不會部署 |
+|---|---|---|
+| `claude/yuanyan-climbing-database-kqjhqv`（開發版） | 平常所有新功能、修改都放這裡 | 不會 |
+| `production`（正式版） | 分館與會員實際使用的版本 | 會，每次更新自動部署一次 |
+
+**要更新網站時**：跟 Claude 說「更新正式版」，Claude 會把開發版的新功能放到正式版，Netlify 自動部署，約 2 分鐘後網站就是新版。
+
+### Netlify 設定（只需做一次）
+
+1. Netlify → 您的專案 → **Project configuration** → **Developer settings** → 左邊 **Branches and deploy contexts** → **Configure**。
+2. **Production branch**（正式版分支）：改成 `production`。
+3. **Branch deploys**（其他分支要不要部署）：選 **Deploy only the production branch**。
+4. **Deploy Previews**（預覽部署）：選 **Don't deploy pull requests**（避免多扣點數）。
+5. 按 **Save**。
+6. 到 **Deploys** 頁按 **Trigger deploy → Deploy site**，部署一次正式版。
