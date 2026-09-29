@@ -31,7 +31,7 @@ export default function Branches() {
         {visible.map((b) => <BranchCard key={b.id} b={b} editable={isHq} onSaved={() => { toast(`${b.name} 已儲存`); reloadBranches() }} />)}
       </div>
 
-      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+      <div className="rpt-row">
         <div className="adm-list" style={{ overflow: 'visible' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span className="ds-card-title">入場機</span>
@@ -119,9 +119,9 @@ function BranchCard({ b, editable, onSaved }) {
           <input type="color" className="ds-input" style={{ width: '100%', padding: 4 }} value={f.color} onChange={(e) => setF({ ...f, color: e.target.value.toUpperCase() })} /></div>
       </fieldset>
       {editable ? (
-        <button type="button" className="ds-btn-primary" style={{ height: 44 }} disabled={!dirty || busy} onClick={save}>{busy ? '儲存中…' : '儲存'}</button>
+        <button type="button" className="ds-btn-primary br-save" style={{ height: 44 }} disabled={!dirty || busy} onClick={save}>{busy ? '儲存中…' : '儲存'}</button>
       ) : <span />}
-      <div style={{ gridColumn: '2 / -1', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 12 }}>
+      <div className="br-extra" style={{ gridColumn: '2 / -1', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 12 }}>
         <fieldset disabled={!editable} style={{ display: 'contents' }}>
           <div className="ds-field"><span className="ds-label">地址</span><input className="ds-input" style={{ width: '100%' }} value={f.address} onChange={(e) => setF({ ...f, address: e.target.value })} /></div>
           <div className="ds-field"><span className="ds-label">電話</span><input className="ds-input" style={{ width: '100%' }} value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} /></div>

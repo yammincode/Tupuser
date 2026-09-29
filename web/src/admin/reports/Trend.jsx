@@ -90,7 +90,7 @@ export default function Trend({ branchId, branchName, fileTag, setExporter }) {
               </div>
             ))}
           </Card>
-          <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+          <div className="rpt-row">
             <Card title="各分館淨營收" style={{ flex: 1 }}>
               <Matrix years={years} pick={(y) => y.by_branch} valueKey="net" />
             </Card>
@@ -109,14 +109,14 @@ function MonthTable({ rows, months, byKey }) {
   const idx = Object.fromEntries(months.map((m, i) => [m.month, i]))
   return (
     <>
-      <div className="ds-thead" style={{ display: 'grid', gridTemplateColumns: cols, gap: 8, marginTop: 8 }}>
+      <div className="ds-thead rpt-wide" style={{ display: 'grid', gridTemplateColumns: cols, gap: 8, marginTop: 8 }}>
         <span>月份</span><span>淨營收</span><span>比上個月</span><span>比去年同月</span><span>訂單</span><span>入場人次</span><span>新會員</span>
       </div>
       {rows.map((m, i) => {
         const prev = months[idx[m.month] - 1]
         const ly = byKey[prevYearKey(m.month)]
         return (
-          <div key={m.month} className="rpt-table-row" style={{ gridTemplateColumns: cols }}>
+          <div key={m.month} className="rpt-table-row rpt-wide" style={{ gridTemplateColumns: cols }}>
             <span style={{ fontWeight: 500 }}>{monthText(m.month)}{i === 0 ? <small className="muted">（進行中）</small> : ''}</span>
             <span style={{ fontWeight: 500 }}>{money(m.net)}</span>
             <span><Change now={m.net} before={prev?.net} /></span>
@@ -139,11 +139,11 @@ function Matrix({ years, pick, valueKey, dot }) {
   const val = (y, n) => pick(y).find((r) => r.name === n)?.[valueKey] || 0
   return (
     <>
-      <div className="ds-thead" style={{ display: 'grid', gridTemplateColumns: cols, gap: 8, marginTop: 8 }}>
+      <div className="ds-thead rpt-wide" style={{ display: 'grid', gridTemplateColumns: cols, gap: 8, marginTop: 8 }}>
         <span />{years.map((y, i) => <span key={y.year}>{y.year}{i === years.length - 1 ? '（到今天）' : ''}</span>)}
       </div>
       {names.map((r) => (
-        <div key={r.name} className="rpt-table-row" style={{ gridTemplateColumns: cols }}>
+        <div key={r.name} className="rpt-table-row rpt-wide" style={{ gridTemplateColumns: cols }}>
           <span style={{ fontWeight: 500 }}>{dot && <i className="rpt-dot" style={{ background: r.dot }} />}{r.name}</span>
           {years.map((y) => <span key={y.year}>{money(val(y, r.name))}</span>)}
         </div>

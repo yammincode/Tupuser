@@ -3,7 +3,7 @@ import { rpc } from '../../lib/supabase'
 import { useAsync } from '../../lib/useAsync'
 import { downloadCsv } from '../../lib/csv'
 import { money, todayTPE } from '../../lib/format'
-import { Bar, Card, Stat, num } from './common'
+import { Bar, Card, Stat, num, C } from './common'
 
 const TYPE_TEXT = { single: '單次票', punch: '票券（十次券等）', days: '年月票', course: '課程' }
 const UNIT = { single: '次', punch: '次', course: '堂', days: '天' }
@@ -40,10 +40,10 @@ export default function Liability({ branchId, branchName, fileTag, setExporter }
       </div>
       {data.no_price_plans > 0 && <div className="ds-note">有 {data.no_price_plans} 個方案是店長手動新增（沒有售價），只算數量、不算金額。</div>}
 
-      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+      <div className="rpt-row">
         <Card title="依票種" style={{ flex: 1 }}>
           {data.by_type.map((t) => (
-            <div key={t.content_type} className="rpt-table-row" style={{ gridTemplateColumns: 'minmax(0, 1.4fr) 80px 90px 110px minmax(0, 1fr)' }}>
+            <div key={t.content_type} className="rpt-table-row" style={{ gridTemplateColumns: C('minmax(0, 1.4fr) 80px 90px 110px minmax(0, 1fr)') }}>
               <span style={{ fontWeight: 500 }}>{TYPE_TEXT[t.content_type]}</span>
               <span className="muted">{num(t.plans)} 個</span>
               <span className="muted">剩 {num(t.units)} {UNIT[t.content_type]}</span>
@@ -55,7 +55,7 @@ export default function Liability({ branchId, branchName, fileTag, setExporter }
         </Card>
         <Card title="依售出分館" style={{ flex: 1 }}>
           {data.by_branch.map((b) => (
-            <div key={b.name} className="rpt-table-row" style={{ gridTemplateColumns: 'minmax(0, 1fr) 80px 110px minmax(0, 1fr)' }}>
+            <div key={b.name} className="rpt-table-row" style={{ gridTemplateColumns: C('minmax(0, 1fr) 80px 110px minmax(0, 1fr)') }}>
               <span style={{ fontWeight: 500 }}>{b.name}</span>
               <span className="muted">{num(b.plans)} 個</span>
               <span style={{ fontWeight: 500 }}>{money(b.value)}</span>
@@ -68,7 +68,7 @@ export default function Liability({ branchId, branchName, fileTag, setExporter }
 
       <Card title="依品項">
         {data.by_product.map((p) => (
-          <div key={p.name + p.content_type} className="rpt-table-row" style={{ gridTemplateColumns: 'minmax(0, 1.6fr) 80px 110px 110px minmax(0, 1fr)' }}>
+          <div key={p.name + p.content_type} className="rpt-table-row" style={{ gridTemplateColumns: C('minmax(0, 1.6fr) 80px 110px 110px minmax(0, 1fr)') }}>
             <span>{p.name}</span>
             <span className="muted">{num(p.plans)} 個</span>
             <span className="muted">剩 {num(p.units)} {UNIT[p.content_type]}</span>

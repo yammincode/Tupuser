@@ -48,13 +48,13 @@ export default function Courses({ from, to, branchId, branchName, fileTag, setEx
       )}
 
       <Card title="依統計分類" right={<span className="muted" style={{ fontSize: 13 }}>點分類看底下的品名與教練</span>}>
-        <div className="ds-thead" style={{ display: 'grid', gridTemplateColumns: cols, gap: 8, marginTop: 8 }}>
+        <div className="ds-thead rpt-wide" style={{ display: 'grid', gridTemplateColumns: cols, gap: 8, marginTop: 8 }}>
           <span>統計分類</span><span>賣出</span><span>銷售額</span><span>佔比</span><span /><span>上課人次</span><span>學員</span>
         </div>
         {data.groups.length === 0 && <div className="co-empty">這段期間沒有課程銷售或上課</div>}
         {data.groups.map((g) => (
           <Fragment key={g.name}>
-            <div className="rpt-table-row rpt-clickable" style={{ gridTemplateColumns: cols, background: open === g.name ? 'var(--c-bg)' : undefined }}
+            <div className="rpt-table-row rpt-clickable rpt-wide" style={{ gridTemplateColumns: cols, background: open === g.name ? 'var(--c-bg)' : undefined }}
               onClick={() => setOpen(open === g.name ? '' : g.name)}>
               <span style={{ fontWeight: 500, color: g.name === '未分類' ? 'var(--c-muted)' : undefined }}>{open === g.name ? '▾' : '▸'} {g.name}</span>
               <span>{num(g.quantity)} 份</span>
@@ -65,7 +65,7 @@ export default function Courses({ from, to, branchId, branchName, fileTag, setEx
               <span className="muted">{num(g.people)}</span>
             </div>
             {open === g.name && data.items.filter((i) => i.grp === g.name).map((i) => (
-              <div key={i.name + i.coach} className="rpt-table-row" style={{ gridTemplateColumns: cols, fontSize: 13, background: 'var(--c-bg)' }}>
+              <div key={i.name + i.coach} className="rpt-table-row rpt-wide" style={{ gridTemplateColumns: cols, fontSize: 13, background: 'var(--c-bg)' }}>
                 <span style={{ paddingLeft: 20 }}>{i.name}<small className="muted">　{i.coach}</small></span>
                 <span>{num(i.quantity)} 份</span>
                 <span>{money(i.amount)}</span>
@@ -77,11 +77,11 @@ export default function Courses({ from, to, branchId, branchName, fileTag, setEx
       </Card>
 
       <Card title="依教練">
-        <div className="ds-thead" style={{ display: 'grid', gridTemplateColumns: cols, gap: 8, marginTop: 8 }}>
+        <div className="ds-thead rpt-wide" style={{ display: 'grid', gridTemplateColumns: cols, gap: 8, marginTop: 8 }}>
           <span>教練</span><span>賣出</span><span>銷售額</span><span>佔比</span><span /><span>上課人次</span><span>學員</span>
         </div>
         {data.coaches.map((c) => (
-          <div key={c.name} className="rpt-table-row" style={{ gridTemplateColumns: cols }}>
+          <div key={c.name} className="rpt-table-row rpt-wide" style={{ gridTemplateColumns: cols }}>
             <span style={{ fontWeight: 500, color: c.name === '未填教練' ? 'var(--c-muted)' : undefined }}>{c.name}</span>
             <span>{num(c.quantity)} 份</span>
             <span style={{ fontWeight: 500 }}>{money(c.amount)}</span>

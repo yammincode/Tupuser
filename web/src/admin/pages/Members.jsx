@@ -94,7 +94,7 @@ function MemberDetail({ memberId }) {
 
       <div className="ds-card">
         <span className="ds-card-title">方案（{plans.length}）</span>
-        <div className="ds-thead" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) 90px minmax(0, 1.6fr) 110px 150px', gap: 8, marginTop: 8 }}>
+        <div className="ds-thead rpt-wide" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) 90px minmax(0, 1.6fr) 110px 150px', gap: 8, marginTop: 8 }}>
           <span>方案</span><span>狀態</span><span>剩餘／期限</span><span>購買日</span><span>訂單</span>
         </div>
         <div style={{ maxHeight: 260, overflowY: 'auto' }}>
@@ -103,7 +103,7 @@ function MemberDetail({ memberId }) {
             const [ps, pt] = PLAN_PILL[p.status]
             const o = p.order_items?.orders
             return (
-              <div key={p.id} className="rpt-table-row rpt-clickable" onClick={() => setPlanId(p.id)}
+              <div key={p.id} className="rpt-table-row rpt-clickable rpt-wide" onClick={() => setPlanId(p.id)}
                 style={{ gridTemplateColumns: 'minmax(0, 1.4fr) 90px minmax(0, 1.6fr) 110px 150px', background: p.id === planId ? 'var(--c-bg)' : undefined,
                   boxShadow: p.id === planId ? 'inset 3px 0 0 var(--c-accent)' : undefined, paddingLeft: 8 }}>
                 <span style={{ fontWeight: 500 }}>{p.name}</span>
@@ -129,7 +129,7 @@ function MemberDetail({ memberId }) {
         )}
       </div>
 
-      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+      <div className="rpt-row">
         <div className="ds-card" style={{ flex: 1, minWidth: 0 }}>
           <span className="ds-card-title">入場紀錄（最近 30 筆）</span>
           <div style={{ maxHeight: 360, overflowY: 'auto' }}>

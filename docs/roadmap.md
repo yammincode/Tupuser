@@ -23,6 +23,7 @@
 | **會員管理與異動紀錄** | 總部後台「會員」頁（延期、調整次數、暫停、轉讓、退費、取消入場）、「異動紀錄」頁（篩選、匯出）；課程可設使用期限 | `web/src/admin/pages/Members.jsx`、`Audit.jsx`、migration 0014 |
 | **員工使用足跡** | 所有員工帳號的登入／登出、瀏覽頁面、查看會員、匯出，記錄裝置與 IP；後台「異動紀錄 → 使用足跡」查看 | migration 0015、`web/src/lib/activity.js` |
 | **上線（Netlify）** | 網址 https://tupcount.netlify.app （`/counter` 櫃檯、`/admin` 總部後台、`/kiosk` 入場機、`/app` 會員 App），2026-10-01 部署完成 | Netlify 專案 tupcount |
+| **後台手機版** | 總部後台在手機上自動改成手機排版（報表、會員、訂單、異動紀錄等都能看） | `web/src/styles.css` |
 | 硬體清單 | 每間分館要買的平板、掃碼器、支架等 | `docs/hardware.md` |
 | 說明文件 | Supabase 設定、試用櫃檯、後台與入場機設定 | `docs/setup-supabase.md`、`docs/setup-counter.md`、`docs/setup-admin.md` |
 

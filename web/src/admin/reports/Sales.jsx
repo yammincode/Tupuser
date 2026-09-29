@@ -3,7 +3,7 @@ import { rpc } from '../../lib/supabase'
 import { useAsync } from '../../lib/useAsync'
 import { downloadCsv } from '../../lib/csv'
 import { money } from '../../lib/format'
-import { Bar, Card, Stat, num, pct } from './common'
+import { Bar, Card, Stat, num, pct, C } from './common'
 
 const PAY = { cash: '現金', line_pay: 'LINE Pay' }
 
@@ -46,14 +46,14 @@ export default function Sales({ from, to, branchId, branchName, fileTag, setExpo
         <Stat label="退費" value={money(s.refunds)} sub="依退費日計算" />
       </div>
 
-      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+      <div className="rpt-row">
         <Card title="依分類" style={{ flex: 1 }} right={<span className="muted" style={{ fontSize: 13 }}>點分類可篩選右邊的品項</span>}>
-          <div className="ds-thead" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) 60px 110px 60px minmax(0, 1fr)', gap: 8, marginTop: 8 }}>
+          <div className="ds-thead" style={{ display: 'grid', gridTemplateColumns: C('minmax(0, 1.2fr) 60px 110px 60px minmax(0, 1fr)'), gap: 8, marginTop: 8 }}>
             <span>分類</span><span>數量</span><span>金額</span><span>佔比</span><span />
           </div>
           {data.by_category.map((c) => (
             <div key={c.id} className={'rpt-table-row rpt-clickable'} onClick={() => setCat(cat === c.name ? '' : c.name)}
-              style={{ gridTemplateColumns: 'minmax(0, 1.2fr) 60px 110px 60px minmax(0, 1fr)', background: cat === c.name ? 'var(--c-bg)' : undefined }}>
+              style={{ gridTemplateColumns: C('minmax(0, 1.2fr) 60px 110px 60px minmax(0, 1fr)'), background: cat === c.name ? 'var(--c-bg)' : undefined }}>
               <span style={{ fontWeight: 500 }}><i className="rpt-dot" style={{ background: c.dot }} />{c.name}</span>
               <span>{num(c.quantity)}</span>
               <span style={{ fontWeight: 500 }}>{money(c.amount)}</span>
@@ -67,7 +67,7 @@ export default function Sales({ from, to, branchId, branchName, fileTag, setExpo
           right={cat && <button type="button" className="ds-btn" style={{ height: 34 }} onClick={() => setCat('')}>顯示全部</button>}>
           <div style={{ maxHeight: 420, overflowY: 'auto', marginTop: 8 }}>
             {items.map((it, i) => (
-              <div key={it.name + it.category} className="rpt-table-row" style={{ gridTemplateColumns: '28px minmax(0, 1.6fr) 56px 100px minmax(0, 1fr)' }}>
+              <div key={it.name + it.category} className="rpt-table-row" style={{ gridTemplateColumns: C('28px minmax(0, 1.6fr) 56px 100px minmax(0, 1fr)') }}>
                 <span className="muted">{i + 1}</span>
                 <span>{it.name}</span>
                 <span className="muted">× {num(it.quantity)}</span>
@@ -80,7 +80,7 @@ export default function Sales({ from, to, branchId, branchName, fileTag, setExpo
         </Card>
       </div>
 
-      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+      <div className="rpt-row">
         <Card title="付款方式" style={{ flex: 1 }}>
           {data.payments.map((p) => (
             <div key={p.method} className="rpt-table-row" style={{ gridTemplateColumns: '90px 70px minmax(0, 1fr) 60px' }}>
@@ -100,7 +100,7 @@ export default function Sales({ from, to, branchId, branchName, fileTag, setExpo
         </Card>
         <Card title="業務代表業績" style={{ flex: 1 }}>
           {data.by_staff.map((x) => (
-            <div key={x.name} className="rpt-table-row" style={{ gridTemplateColumns: 'minmax(0, 1fr) 64px 104px minmax(0, 0.8fr)' }}>
+            <div key={x.name} className="rpt-table-row" style={{ gridTemplateColumns: C('minmax(0, 1fr) 64px 104px minmax(0, 0.8fr)') }}>
               <span style={{ fontWeight: 500, color: x.name === '未指定' ? 'var(--c-muted)' : undefined }}>{x.name}</span>
               <span className="muted">{num(x.orders)} 筆</span>
               <span style={{ fontWeight: 500 }}>{money(x.amount)}</span>

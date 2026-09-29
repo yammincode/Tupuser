@@ -50,7 +50,7 @@ export default function Members({ from, to, branchId, branchName, fileTag, setEx
         </label>
       </div>
 
-      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+      <div className="rpt-row">
         <Card title={`即將到期（${num(expiring.length)} 人）`} style={{ flex: 1 }}
           right={<span className="muted" style={{ fontSize: 13 }}>月票 {expire} 天內到期、十次券剩 2 次以下；已買新方案的不列</span>}>
           <MemberList rows={expiring} render={(r) => (

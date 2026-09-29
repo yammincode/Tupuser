@@ -3,7 +3,7 @@ import { rpc } from '../../lib/supabase'
 import { useAsync } from '../../lib/useAsync'
 import { downloadCsv } from '../../lib/csv'
 import { money, shortDay } from '../../lib/format'
-import { Bar, Card, Columns, Stat, num } from './common'
+import { Bar, Card, Columns, Stat, num, C } from './common'
 
 // 總覽：淨營收、每日營收、各分館、品項排行、關帳差額
 export default function Overview({ from, to, branchId, branchName, fileTag, setExporter }) {
@@ -40,7 +40,7 @@ export default function Overview({ from, to, branchId, branchName, fileTag, setE
           tip={(d) => <><b>{shortDay(d.date)}</b><span>淨營收 {money(d.net)}</span>{d.refunds > 0 && <span className="muted">（營收 {money(d.sales)}，退費 {money(d.refunds)}）</span>}</>} />
       </Card>
       <Card title="各分館"><BranchTable rows={data.by_branch} /></Card>
-      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+      <div className="rpt-row">
         <Card title="品項排行（前 20 名）" style={{ flex: 3 }}><TopItems items={data.top_items} /></Card>
         <Card title="關帳差額" style={{ flex: 2 }}><Closings rows={data.closings} /></Card>
       </div>
@@ -54,11 +54,11 @@ function BranchTable({ rows }) {
   const cols = '120px 70px 110px 110px 100px minmax(0, 1.4fr) 80px 70px'
   return (
     <>
-      <div className="ds-thead" style={{ display: 'grid', gridTemplateColumns: cols, gap: 8 }}>
+      <div className="ds-thead rpt-wide" style={{ display: 'grid', gridTemplateColumns: cols, gap: 8 }}>
         <span>分館</span><span>訂單</span><span>現金</span><span>LINE Pay</span><span>退費</span><span>淨營收</span><span>入場</span><span>新會員</span>
       </div>
       {rows.map((b, i) => (
-        <div key={b.branch_id} className="rpt-table-row" style={{ gridTemplateColumns: cols }}>
+        <div key={b.branch_id} className="rpt-table-row rpt-wide" style={{ gridTemplateColumns: cols }}>
           <span style={{ fontWeight: 500 }}>{b.name}</span>
           <span>{num(b.orders)}</span>
           <span>{money(b.cash)}</span>
@@ -77,7 +77,7 @@ function TopItems({ items }) {
   if (items.length === 0) return <div className="co-empty">這段期間沒有銷售</div>
   const max = items[0].amount
   return items.map((it, i) => (
-    <div key={it.name} className="rpt-table-row" style={{ gridTemplateColumns: '28px minmax(0, 1.4fr) 60px 110px minmax(0, 1fr)' }}>
+    <div key={it.name} className="rpt-table-row" style={{ gridTemplateColumns: C('28px minmax(0, 1.4fr) 60px 110px minmax(0, 1fr)') }}>
       <span className="muted">{i + 1}</span>
       <span>{it.name}</span>
       <span className="muted">× {it.quantity}</span>

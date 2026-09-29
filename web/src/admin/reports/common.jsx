@@ -33,7 +33,15 @@ export function Change({ now, before, suffix = '' }) {
   )
 }
 
+// 手機（螢幕窄）上不畫長條圖，並拿掉表格最後一欄（長條圖那欄），把空間留給名稱與數字
+const isPhone = () => typeof window !== 'undefined' && window.matchMedia('(max-width: 820px)').matches
+export function C(cols) {
+  if (!isPhone()) return cols
+  return cols.match(/minmax\([^)]*\)|\S+/g).slice(0, -1).join(' ')
+}
+
 export function Bar({ value, max, color }) {
+  if (isPhone()) return null
   return <div className="rpt-hbar"><span style={{ width: `${max ? (Math.max(value, 0) / max) * 100 : 0}%`, background: color }} /></div>
 }
 

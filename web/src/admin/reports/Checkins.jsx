@@ -3,7 +3,7 @@ import { rpc } from '../../lib/supabase'
 import { useAsync } from '../../lib/useAsync'
 import { downloadCsv } from '../../lib/csv'
 import { CHECKIN_RESULT } from '../../lib/format'
-import { Bar, Card, Stat, num, pct } from './common'
+import { Bar, Card, Stat, num, pct, C } from './common'
 
 // 入場分三類（老闆 2026-09-30）；上課另外列
 export const TYPE_TEXT = { single: '單次入場', punch: '票券入場（十次券等）', days: '年月票入場', course: '上課（課程）' }
@@ -50,13 +50,13 @@ export default function Checkins({ from, to, branchId, branchName, fileTag, setE
         <Stat label="被擋下" value={num(s.blocked)} sub="方案到期、沒簽同意書等" />
       </div>
 
-      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+      <div className="rpt-row">
         <Card title="入場分類" style={{ flex: 1 }}>
-          <div className="ds-thead" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) 70px 70px 70px minmax(0, 1fr)', gap: 8, marginTop: 8 }}>
+          <div className="ds-thead" style={{ display: 'grid', gridTemplateColumns: C('minmax(0, 1.4fr) 70px 70px 70px minmax(0, 1fr)'), gap: 8, marginTop: 8 }}>
             <span>類別</span><span>人次</span><span>人數</span><span>平均每人</span><span />
           </div>
           {data.by_type.map((t) => (
-            <div key={t.content_type} className="rpt-table-row" style={{ gridTemplateColumns: 'minmax(0, 1.4fr) 70px 70px 70px minmax(0, 1fr)',
+            <div key={t.content_type} className="rpt-table-row" style={{ gridTemplateColumns: C('minmax(0, 1.4fr) 70px 70px 70px minmax(0, 1fr)'),
               ...(t.content_type === 'course' ? { borderTop: '2px solid var(--c-line-strong)', color: 'var(--c-muted)' } : {}) }}>
               <span style={{ fontWeight: 500 }}>{TYPE_TEXT[t.content_type] || t.content_type}</span>
               <span style={{ fontWeight: 500 }}>{num(t.visits)}</span>
@@ -71,7 +71,7 @@ export default function Checkins({ from, to, branchId, branchName, fileTag, setE
         <Card title="依方案（前 30 名）" style={{ flex: 1 }}>
           <div style={{ maxHeight: 300, overflowY: 'auto', marginTop: 8 }}>
             {data.by_plan.map((p) => (
-              <div key={p.name + p.content_type} className="rpt-table-row" style={{ gridTemplateColumns: 'minmax(0, 1.6fr) 80px 70px minmax(0, 1fr)' }}>
+              <div key={p.name + p.content_type} className="rpt-table-row" style={{ gridTemplateColumns: C('minmax(0, 1.6fr) 80px 70px minmax(0, 1fr)') }}>
                 <span>{p.name}</span>
                 <span style={{ fontWeight: 500 }}>{num(p.visits)} 人次</span>
                 <span className="muted">{num(p.people)} 人</span>
@@ -86,7 +86,7 @@ export default function Checkins({ from, to, branchId, branchName, fileTag, setE
         <Heatmap cells={data.heatmap} />
       </Card>
 
-      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+      <div className="rpt-row">
         <Card title="平日與假日" style={{ flex: 1 }}>
           <div className="mem-line"><span>平日（{dk.weekday_days} 天）</span><b style={{ fontWeight: 500 }}>平均每天 {num(Math.round(avgWeekday))} 人次</b></div>
           <div className="mem-line"><span>假日含國定假日（{dk.holiday_days} 天）</span><b style={{ fontWeight: 500 }}>平均每天 {num(Math.round(avgHoliday))} 人次</b></div>
@@ -94,7 +94,7 @@ export default function Checkins({ from, to, branchId, branchName, fileTag, setE
         </Card>
         <Card title="入場方式" style={{ flex: 1 }}>
           {data.by_method.map((m) => (
-            <div key={m.method} className="rpt-table-row" style={{ gridTemplateColumns: '80px 90px 60px minmax(0, 1fr)' }}>
+            <div key={m.method} className="rpt-table-row" style={{ gridTemplateColumns: C('80px 90px 60px minmax(0, 1fr)') }}>
               <span style={{ fontWeight: 500 }}>{METHOD[m.method]}</span>
               <span>{num(m.visits)} 人次</span>
               <span className="muted">{pct(m.visits, methodTotal)}</span>
@@ -105,7 +105,7 @@ export default function Checkins({ from, to, branchId, branchName, fileTag, setE
         <Card title="被擋下原因" style={{ flex: 1 }}>
           {data.blocked.length === 0 && <div className="co-empty">沒有被擋下 👍</div>}
           {data.blocked.map((b) => (
-            <div key={b.result} className="rpt-table-row" style={{ gridTemplateColumns: 'minmax(0, 1fr) 60px minmax(0, 0.8fr)' }}>
+            <div key={b.result} className="rpt-table-row" style={{ gridTemplateColumns: C('minmax(0, 1fr) 60px minmax(0, 0.8fr)') }}>
               <span>{CHECKIN_RESULT[b.result]?.text || b.result}</span>
               <span style={{ fontWeight: 500 }}>{num(b.count)} 次</span>
               <Bar value={b.count} max={blockedMax} color="var(--c-bad)" />

@@ -219,3 +219,69 @@ a:hover { color: var(--c-accent-hover); }
 /* 總部後台頂欄分頁多（8 個）：不換行 */
 .counter.admin .ds-tab { white-space: nowrap; flex-shrink: 0; }
 .counter.admin .ds-tabs { flex-shrink: 0; }
+
+/* 並排的卡片（手機上改成上下排） */
+.rpt-row { display: flex; gap: 16px; align-items: flex-start; }
+
+/* =====================================================================
+   總部後台：手機版（螢幕寬度 820px 以下）
+   櫃檯與入場機固定用平板，不受影響；平板與電腦的後台版面也不變
+   ===================================================================== */
+@media (max-width: 820px) {
+  .counter.admin { height: auto; min-height: 100vh; }
+  /* 頂欄：店名與帳號一排，分頁在下一排可左右滑 */
+  .counter.admin .ds-topbar { position: sticky; top: 0; height: auto; flex-wrap: wrap; padding: 8px 12px; gap: 6px; }
+  .counter.admin .ds-topbar-side { width: auto; gap: 8px; }
+  .counter.admin .ds-topbar-side.right { min-width: 0; margin-left: auto; font-size: 13px; }
+  .counter.admin .ds-topbar-brand { white-space: nowrap; font-size: 16px; }
+  .counter.admin .ds-topbar-branch { font-size: 13px; white-space: nowrap; }
+  .counter.admin .ds-tabs { order: 3; width: 100%; flex-shrink: 1; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .counter.admin .ds-tabs::-webkit-scrollbar { display: none; }
+  .counter.admin .ds-tab { height: 36px; padding: 0 12px; font-size: 14px; }
+
+  /* 頁面：改成上下排，整頁往下捲 */
+  .counter.admin .page { flex-direction: column !important; padding: 12px; gap: 12px; overflow: visible !important; min-height: auto; }
+  .counter.admin .col { overflow: visible !important; }
+  .counter.admin .adm-side, .counter.admin .mem-search { width: auto !important; overflow: visible; }
+  .counter.admin .adm-list, .counter.admin .today-list { overflow: visible; min-height: auto; }
+  .counter.admin .adm-rows, .counter.admin .today-rows { overflow: visible; }
+  .counter.admin .rpt-row { flex-direction: column; align-items: stretch; gap: 12px; }
+  .counter.admin .rpt-row > * { flex: none !important; width: auto; }
+  .counter.admin .ds-card { padding: 14px 16px; }
+
+  /* 數字方塊：兩個一排 */
+  .counter.admin .rpt-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px; }
+  .counter.admin .ds-stat { padding: 14px 16px; }
+  .counter.admin .ds-stat-value, .counter.admin .rpt-grid.five .ds-stat-value { font-size: 22px; }
+
+  /* 篩選列 */
+  .counter.admin .rpt-toolbar { padding: 12px; }
+  .counter.admin .rpt-view { height: 36px; padding: 0 12px; font-size: 14px; }
+  .counter.admin .rpt-filters .ds-btn, .counter.admin .rpt-filters .ds-select { height: 38px; font-size: 14px; }
+  .counter.admin .rpt-filters .ds-input { height: 38px; font-size: 14px; max-width: 150px; }
+  .counter.admin .rpt-filters .grow { display: none; }
+
+  /* 表格：比螢幕寬的表格可以左右滑 */
+  .counter.admin .ds-card, .counter.admin .today-list, .counter.admin .adm-list { overflow-x: auto !important; }
+  /* 多欄的清單（訂單、品項、員工、異動紀錄）可以左右滑 */
+  .counter.admin .today-list .rpt-table-row, .counter.admin .today-list .ds-thead, .counter.admin .t-row,
+  .counter.admin .adm-list .ds-thead, .counter.admin .adm-row { min-width: 620px; }
+  /* 欄位多的表格（加了 rpt-wide）可以左右滑 */
+  .counter.admin .rpt-wide { min-width: 600px; }
+  /* 報表：隱藏長條圖，把空間留給數字 */
+  .counter.admin .rpt-hbar { display: none; }
+  .counter.admin .adm-side { overflow-x: auto; }
+
+  .counter.admin .ds-btn { white-space: nowrap; }
+
+  /* 分館設定卡片：兩欄 */
+  .counter.admin .br-card { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 14px 16px; }
+  .counter.admin .br-name, .counter.admin .br-save { grid-column: 1 / -1; }
+  .counter.admin .br-save { order: 10; }
+  .counter.admin .br-extra { grid-column: 1 / -1 !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .counter.admin .br-extra .ds-field:first-child { grid-column: 1 / -1; }
+
+  /* 彈出視窗 */
+  .ds-dialog { max-width: calc(100vw - 24px); padding: 20px; }
+  .ds-dialog-title { font-size: 20px; }
+}
