@@ -50,6 +50,11 @@ a:hover { color: var(--c-accent-hover); }
 .co-row-unit { font-size: 12px; color: var(--c-muted); }
 .co-row-qty { min-width: 22px; text-align: center; font-size: 15px; }
 .co-row-sub { min-width: 72px; text-align: right; font-size: 15px; font-weight: var(--w-medium); }
+.co-guests { margin-top: 10px; padding: 12px; border-radius: var(--r-md); background: var(--c-bg); display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.co-guest { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 10px; background: var(--c-surface); border-radius: var(--r-sm); }
+.co-guest small { margin-left: 8px; color: var(--c-muted); font-size: 12px; }
+.co-guest button { border: 0; background: none; font-size: 18px; line-height: 1; color: var(--c-muted); cursor: pointer; padding: 2px 6px; }
+.co-guest-hint { font-size: 12px; color: var(--c-muted); }
 .co-foot { padding: 12px 20px 16px; border-top: 1px solid var(--c-line); display: flex; flex-direction: column; gap: 10px; }
 .co-grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .co-grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
@@ -103,7 +108,7 @@ a:hover { color: var(--c-accent-hover); }
 .wv-body { flex-grow: 1; min-height: 0; display: flex; gap: 20px; padding: 20px 32px; }
 .wv-text { flex-grow: 1; background: var(--c-surface); border-radius: var(--r-card); padding: 24px 28px; overflow: auto; font-size: 17px; line-height: 1.8; white-space: pre-wrap; }
 .wv-text h2 { font-size: 22px; font-weight: var(--w-bold); padding-bottom: 8px; margin: 0; }
-.wv-side { width: 440px; flex-shrink: 0; display: flex; flex-direction: column; gap: 14px; }
+.wv-side { width: 440px; flex-shrink: 0; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
 .wv-checks { background: var(--c-surface); border-radius: var(--r-card); padding: 20px; display: flex; flex-direction: column; gap: 14px; font-size: 17px; }
 .wv-checks label { display: flex; gap: 12px; align-items: flex-start; }
 .wv-sign { background: var(--c-surface); border-radius: var(--r-card); padding: 20px; flex-grow: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; }

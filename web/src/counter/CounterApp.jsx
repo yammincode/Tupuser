@@ -82,11 +82,13 @@ export default function CounterApp() {
   // 頂欄「今日入場 N 人」
   const refreshCount = useCallback(async () => {
     if (!branch) return
-    const { data } = await supabase.from('checkins').select('member_id')
+    const { data } = await supabase.from('checkins').select('member_id, deducted, member_plans(content_type)')
       .eq('branch_id', branch.id).eq('business_date', todayTPE()).eq('result', 'success').is('cancelled_at', null)
-    // 會員算不重複人數；非會員單次票每張算一人
+    // 非會員每筆一人；次數票每扣一次算一人（可以分給同行的人）；其他方案同一位會員算一人
     const rows = data || []
-    setTodayCount(new Set(rows.filter((r) => r.member_id).map((r) => r.member_id)).size + rows.filter((r) => !r.member_id).length)
+    const punch = (r) => r.member_plans?.content_type === 'punch'
+    setTodayCount(rows.filter((r) => !r.member_id).length + rows.filter((r) => punch(r) && r.deducted).length
+      + new Set(rows.filter((r) => r.member_id && !punch(r)).map((r) => r.member_id)).size)
   }, [branch])
   useEffect(() => {
     refreshCount()

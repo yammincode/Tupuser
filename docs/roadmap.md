@@ -26,6 +26,7 @@
 | **後台手機版** | 總部後台在手機上自動改成手機排版（報表、會員、訂單、異動紀錄等都能看） | `web/src/styles.css` |
 | **庫存** | 每間分館各算：進貨、賣出自動扣、盤點（差異由店長確認）、調撥、報廢；櫃檯「庫存」分頁、後台「報表 → 庫存」 | migration 0017、`web/src/counter/pages/Stock.jsx` |
 | **會計報表** | 後台「報表 → 會計」：銷售總額（含稅、未稅、稅額）、現金／LINE Pay、退款、每日彙總、每筆發票明細、退款明細，匯出 Excel 給會計 | migration 0018、`web/src/admin/reports/Accounting.jsx` |
+| **訪客安全守則、十次券共用** | 非會員簽安全守則（姓名、手機、簽名）後直接買單次票；十次券每掃一次扣一次；年月票入場顯示大頭照、同日第 2 次標示 | migration 0020、`web/src/counter/GuestWaiver.jsx` |
 | **顧客標籤與行為紀錄** | 總部建立有顏色的標籤，幫會員貼標籤、依標籤找會員；員工可記錄顧客行為（會員看不到） | migration 0019、`web/src/components/MemberTags.jsx` |
 | **會計帳號** | 會計自己登入後台，只能看會計報表並匯出 | migration 0018、`admin-users` |
 | **App 測試登入** | 簡訊服務商選定前，總部可幫會員設測試密碼登入 App | `supabase/functions/admin-users/`、`web/src/member/pages/Login.jsx` |
@@ -38,7 +39,7 @@
 |---|---|
 | 選簡訊服務商 | Twilio 或台灣廠商（三竹、every8d），見 `docs/setup-member-app.md`；先確認教練 app 的登入方式 |
 | App 圖示 | 目前是暫用圖示，請提供原岩 Logo |
-| 執行 0017、0018、0019，重新部署 admin-users | 見 `docs/pending-migrations.md` |
+| 執行 0017～0020，重新部署 admin-users | 見 `docs/pending-migrations.md` |
 | 在筆電試用櫃檯 | 照 `docs/setup-counter.md` |
 | 各店固定零用金、國定假日、員工帳號 | 後台已做好，可以自己在 `/admin` 設定 |
 | decisions.md「尚待提供」 | 套票次數；月票／年票分單店或全店通；是否需要年票；電子發票加值中心選擇；17FIT 資料匯出 |

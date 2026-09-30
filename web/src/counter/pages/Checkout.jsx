@@ -10,6 +10,7 @@ import Modal from '../../components/Modal'
 import { useToast } from '../../components/Toast'
 import { CheckinResultDialog } from './Members'
 import { useCarrierScanner } from '../../lib/useScanner'
+import { AddGuestDialog } from '../GuestWaiver'
 
 // 折扣：比例（設計稿）＋輸入金額（老闆 2026-09-29 決定）
 const DISCOUNTS = [
@@ -48,6 +49,8 @@ export default function Checkout() {
   const [received, setReceived] = useState(0)
   const [cashPart, setCashPart] = useState('')
   const [carrier, setCarrier] = useState(false)
+  const [guests, setGuests] = useState([])      // 非會員單次票的入場客人（已簽安全守則）
+  const [addingGuest, setAddingGuest] = useState(false)
   const [code, setCode] = useState('')
   const [taxId, setTaxId] = useState('')
   const [error, setError] = useState('')
@@ -71,7 +74,7 @@ export default function Checkout() {
   useCarrierScanner((c) => { setCarrier(true); setCode(c); setError('') })
 
   function pickMember(m) {
-    setMember(m)
+    setMember(m); setGuests([])
     if (m.carrier_code) { setCarrier(true); setCode(m.carrier_code) } else { setCarrier(false); setCode('') }
     setError('')
   }
@@ -114,6 +117,8 @@ export default function Checkout() {
   const quick = total <= 0 ? [] : [...new Set([total, Math.ceil(total / 500) * 500, Math.ceil(total / 1000) * 1000, Math.ceil(total / 1000) * 1000 + 1000])]
     .filter((n) => n >= total).slice(0, 4)
   const primaryPlan = member?.activePlans?.[0]
+  // 非會員買單次票：每張票要對應一位簽過安全守則的客人
+  const walkins = member ? 0 : rows.filter((r) => r.p.content_type === 'single').reduce((n, r) => n + r.qty, 0)
 
   function change1(id, d) {
     setCart((c) => {
@@ -127,7 +132,7 @@ export default function Checkout() {
 
   function reset() {
     setMember(null); setCart({}); setDiscount('1'); setDiscountAmt(''); setRep(''); setNote('')
-    setPay('cash'); setReceived(0); setCashPart(''); setCarrier(false); setCode(''); setTaxId('')
+    setPay('cash'); setReceived(0); setCashPart(''); setCarrier(false); setCode(''); setTaxId(''); setGuests([])
     setError(''); setDone(null)
     navigate('/counter/checkout', { replace: true, state: null })
   }
@@ -145,6 +150,8 @@ export default function Checkout() {
     if (rows.length === 0) { setError('請先選擇項目'); return }
     // 單次入場票與租借不需要會員；次數票、年月票、課程要先選會員
     if (!member && rows.some((r) => !['rental', 'single'].includes(r.p.content_type))) { setError('十次券、年月票和課程需要先選擇會員'); return }
+    if (walkins > guests.length) { setError(`還有 ${walkins - guests.length} 位入場客人沒有簽安全守則`); return }
+    if (walkins < guests.length) { setError(`入場客人（${guests.length} 位）比單次票（${walkins} 張）多，請移除或加票`); return }
     if (pay === 'cash' && total > 0 && received > 0 && received < total) { setError('實收金額不夠'); return }
     if (pay === 'mixed' && (cashAmt <= 0 || cashAmt >= total)) { setError('請輸入現金收多少（其餘用 LINE Pay）'); return }
     if (carrier && !/^\/[0-9A-Z.+-]{7}$/.test(code)) { setError('載具格式應為 / 加 7 碼'); return }
@@ -171,6 +178,7 @@ export default function Checkout() {
         invoice_tax_id: !carrier && taxId ? taxId : null,
         note: note || null,
         payments,
+        guests: member ? [] : guests.map((g) => g.id),
       } })
       const payLine = pay === 'cash' ? `現金 ${money(total)}${change > 0 ? `，找零 ${money(change)}` : ''}`
         : pay === 'line' ? `LINE Pay ${money(total)}`
@@ -179,7 +187,7 @@ export default function Checkout() {
       const repName = data.colleagues.find((s) => s.id === rep)?.name
       setDone({
         orderNo: res.order_no,
-        lines: [member ? `會員：${member.name}` : rows.some((r) => r.p.content_type === 'single') ? '非會員（已記入今日入場）' : '未指定會員', payLine, inv, repName ? `業務代表：${repName}` : null].filter(Boolean),
+        lines: [member ? `會員：${member.name}` : walkins ? `非會員：${guests.map((g) => g.name).join('、')}（已記入今日入場）` : '未指定會員', payLine, inv, repName ? `業務代表：${repName}` : null].filter(Boolean),
         canEnter: member && rows.some((r) => ENTRY_TYPES.includes(r.p.content_type)),
       })
       if (member) setMember(await loadMember(member.id))
@@ -255,6 +263,22 @@ export default function Checkout() {
               <span className="co-row-sub">{money(r.p.price * r.qty)}</span>
             </div>
           ))}
+          {walkins > 0 && (
+            <div className="co-guests">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontWeight: 500 }}>入場客人安全守則 <span style={{ color: guests.length === walkins ? 'var(--c-ok)' : 'var(--c-bad)' }}>{guests.length}／{walkins}</span></span>
+                <button type="button" className="ds-btn" style={{ height: 34, padding: '0 12px', fontSize: 14 }} disabled={guests.length >= walkins}
+                  onClick={() => setAddingGuest(true)}>＋ 加入客人</button>
+              </div>
+              {guests.map((g) => (
+                <div key={g.id} className="co-guest">
+                  <span>{g.name}<small>{maskPhone(g.phone)}・已簽</small></span>
+                  <button type="button" aria-label={`移除 ${g.name}`} onClick={() => { setGuests((x) => x.filter((y) => y.id !== g.id)); setError('') }}>×</button>
+                </div>
+              ))}
+              {guests.length < walkins && <div className="co-guest-hint">每一張單次票要對應一位簽過安全守則的客人；會員請先搜尋會員</div>}
+            </div>
+          )}
         </div>
 
         <div className="co-foot">
@@ -342,6 +366,7 @@ export default function Checkout() {
           <button type="button" className="ds-btn-dark" onClick={() => { setCheckin(null); reset() }}>下一位</button>
         </Modal>
       )}
+      {addingGuest && <AddGuestDialog taken={guests.map((g) => g.id)} onClose={() => setAddingGuest(false)} onAdd={(g) => { setGuests((x) => (x.some((y) => y.id === g.id) ? x : [...x, g])); setError('') }} />}
       {checkin && (
         <CheckinResultDialog result={checkin} onClose={() => setCheckin(null)}
           onWaiver={() => navigate(`/counter/waiver/${member.id}`, { state: { back: '/counter/checkout' } })} />

@@ -27,7 +27,7 @@ export default function Today() {
   const { data, error, reload } = useAsync(async () => {
     const [checkins, orders, newMembers] = await Promise.all([
       supabase.from('checkins')
-        .select('id, member_id, checked_in_at, method, result, deducted, cancelled_at, members(name), member_plans(name), order_items(product_name)')
+        .select('id, member_id, checked_in_at, method, result, deducted, cancelled_at, members(name), member_plans(name, content_type), order_items(product_name), guest_waivers(name)')
         .eq('branch_id', branch.id).eq('business_date', today).order('checked_in_at', { ascending: false }).then(unwrap),
       supabase.from('orders')
         .select('id, order_no, created_at, total, status, void_reason, members(name), order_items(product_name, quantity), payments(method, amount)')
@@ -50,8 +50,20 @@ export default function Today() {
   const ok = valid.filter((c) => c.result === 'success')
   const blocked = valid.filter((c) => c.result !== 'success')
   const kiosk = ok.filter((c) => c.method === 'kiosk').length
+  // 人數：非會員每筆一人；次數票每扣一次算一人（可以分給同行的人）；其他方案同一位會員算一人
+  const isPunch = (c) => c.member_plans?.content_type === 'punch'
+  const people = ok.filter((c) => !c.member_id).length + ok.filter((c) => isPunch(c) && c.deducted).length
+    + new Set(ok.filter((c) => c.member_id && !isPunch(c)).map((c) => c.member_id)).size
+  // 年月票同一天第 2 次以上入場（提醒櫃檯核對是不是本人）
+  const nth = {}
+  const seen = {}
+  for (const c of [...ok].sort((a, b) => a.checked_in_at.localeCompare(b.checked_in_at))) {
+    if (c.member_plans?.content_type !== 'days') continue
+    seen[c.member_id] = (seen[c.member_id] || 0) + 1
+    if (seen[c.member_id] > 1) nth[c.id] = seen[c.member_id]
+  }
   const stats = [
-    { k: '今日入場', v: new Set(ok.filter((c) => c.member_id).map((c) => c.member_id)).size + ok.filter((c) => !c.member_id).length },
+    { k: '今日入場', v: people },
     { k: '入場機 / 櫃檯', v: `${kiosk} / ${ok.length - kiosk}` },
     { k: '新會員', v: data.newCount },
     { k: '被擋下', v: blocked.length, c: 'var(--c-bad)' },
@@ -94,11 +106,12 @@ export default function Today() {
               {rows.map((c) => (
                 <div key={c.id} className={'t-row t-grid' + (c.cancelled_at ? ' struck' : '')}>
                   <span>{time(c.checked_in_at)}</span>
-                  <span style={{ fontWeight: 500 }}>{c.members?.name || (c.order_items ? '非會員' : '無法辨識')}</span>
+                  <span style={{ fontWeight: 500 }}>{c.members?.name || (c.guest_waivers ? `${c.guest_waivers.name}（非會員）` : c.order_items ? '非會員' : '無法辨識')}</span>
                   <span>{c.member_plans?.name || c.order_items?.product_name || '—'}</span>
                   <span style={{ color: 'var(--c-muted)' }}>{c.method === 'kiosk' ? '入場機' : '櫃檯'}</span>
                   <span style={{ color: c.result === 'success' ? 'var(--c-ok)' : 'var(--c-bad)', fontWeight: 500, display: 'flex', gap: 8, alignItems: 'center' }}>
                     {c.cancelled_at ? '已取消' : RESULT[c.result]}
+                    {nth[c.id] && !c.cancelled_at && <span className="ds-pill warn">今日第 {nth[c.id]} 次</span>}
                     {isManager && c.result === 'success' && !c.cancelled_at && (
                       <button type="button" className="ds-btn" style={{ height: 32, padding: '0 10px', fontSize: 13 }}
                         onClick={() => setDialog({ type: 'cancel', c })}>取消</button>

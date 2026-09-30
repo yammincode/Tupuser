@@ -22,3 +22,6 @@
 .kiosk-start { position: fixed; inset: 0; border: 0; background: var(--c-overlay); color: #FFFFFF; font-family: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; cursor: pointer; }
 .kiosk-start span { font-size: 40px; font-weight: 700; }
 .kiosk-start small { font-size: 20px; opacity: .8; }
+.kiosk-who { display: flex; align-items: center; gap: 20px; }
+.kiosk-photo { width: 150px; height: 150px; border-radius: var(--r-xl); object-fit: cover; background: var(--c-bg); }
+.kiosk-nth { padding: 8px 16px; border-radius: var(--r-pill); background: var(--pill-warn-bg); color: var(--pill-warn-fg); font-size: 22px; font-weight: 700; }

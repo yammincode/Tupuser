@@ -45,7 +45,7 @@
 
 ---
 
-# 0017～0019（⏳ 待執行，2026-10-01～02）
+# 0017～0020（⏳ 待執行，2026-10-01～02）
 
 | ✓ | 順序 | 檔名 | 行數 | 做什麼 |
 |---|---|---|---|---|
@@ -54,6 +54,7 @@
 | ⬜ | 0018 | `20261002000018_accounting_report.sql` | 123 | 後台「報表 → 會計」：每月給會計的消費總額、每日彙總、發票明細、退款明細；新增「會計」帳號角色 |
 
 | ⬜ | 0019 | `20261002000019_member_tags.sql` | 166 | 顧客標籤（有顏色）與行為紀錄 |
+| ⬜ | 0020 | `20261002000020_guests_and_shared_passes.sql` | 543 | 非會員簽安全守則（姓名、手機、簽名）；十次券每掃一次扣一次；年月票入場顯示大頭照 |
 
 執行完之後還要：
 
@@ -76,5 +77,6 @@ union all select '0015', to_regclass('public.staff_activity') is not null
 union all select '0016', exists (select 1 from information_schema.columns where table_name = 'checkins' and column_name = 'order_item_id')
 union all select '0017', to_regclass('public.stock_movements') is not null
 union all select '0018', to_regprocedure('public.report_accounting(date,date,uuid)') is not null
-union all select '0019', to_regclass('public.member_tags') is not null;
+union all select '0019', to_regclass('public.member_tags') is not null
+union all select '0020', to_regclass('public.guest_waivers') is not null;
 ```
