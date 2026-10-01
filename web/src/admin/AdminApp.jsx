@@ -58,7 +58,8 @@ export default function AdminApp() {
     logActivity('admin', 'page_view', { target: location.pathname + (keep ? '?' + keep : '') })
   }, [staff, location.pathname, location.search])
 
-  const ctx = useMemo(() => ({ staff, branches, isHq: staff?.role === 'hq', reloadBranches: loadBranches }), [staff, branches])
+  const isAccountant = staff?.role === 'accountant'
+  const ctx = useMemo(() => ({ staff, branches, isHq: staff?.role === 'hq', isAccountant, reloadBranches: loadBranches }), [staff, branches, isAccountant])
 
   if (session === undefined) return <div className="center muted">載入中…</div>
   if (!session) return <Login title="總部後台登入" app="admin" />
@@ -73,16 +74,19 @@ export default function AdminApp() {
   }
 
   const myBranch = branches.find((b) => b.id === staff.branch_id)
+  // 會計帳號只有「報表 → 會計」
+  const tabs = isAccountant ? [{ to: 'reports?v=accounting', label: '會計報表' }] : TABS
+  const home = isAccountant ? '/admin/reports?v=accounting' : '/admin/products'
   return (
     <AdminCtx.Provider value={ctx}>
       <div className="counter admin">
         <header className="ds-topbar">
           <div className="ds-topbar-side">
             <span className="ds-topbar-brand">原岩攀岩館</span>
-            <span className="ds-topbar-branch">{staff.role === 'hq' ? '總部後台' : `總部後台・${myBranch?.name || ''}`}</span>
+            <span className="ds-topbar-branch">{staff.role === 'hq' || isAccountant ? '總部後台' : `總部後台・${myBranch?.name || ''}`}</span>
           </div>
           <nav className="ds-tabs" aria-label="主選單">
-            {TABS.map((t) => (
+            {tabs.map((t) => (
               <NavLink key={t.to} to={'/admin/' + t.to} className={({ isActive }) => 'ds-tab' + (isActive ? ' active' : '')}>{t.label}</NavLink>
             ))}
           </nav>
@@ -91,13 +95,19 @@ export default function AdminApp() {
               <button onClick={() => setMenu(!menu)}>{staff.role === 'hq' ? '管理者' : ROLE_TEXT[staff.role]}：{staff.name} ▾</button>
               {menu && (
                 <div className="staff-menu-pop" onClick={() => setMenu(false)}>
-                  <button onClick={() => { window.location.href = '/counter' }}>前往櫃檯</button>
+                  {!isAccountant && <button onClick={() => { window.location.href = '/counter' }}>前往櫃檯</button>}
                   <button onClick={() => signOutWithLog('admin')}>登出</button>
                 </div>
               )}
             </div>
           </div>
         </header>
+        {isAccountant ? (
+          <Routes>
+            <Route path="reports" element={<Reports />} />
+            <Route path="*" element={<Navigate to={home} replace />} />
+          </Routes>
+        ) : (
         <Routes>
           <Route index element={<Navigate to="/admin/products" replace />} />
           <Route path="products" element={<Products />} />
@@ -110,6 +120,7 @@ export default function AdminApp() {
           <Route path="audit" element={<Audit />} />
           <Route path="*" element={<Navigate to="/admin/products" replace />} />
         </Routes>
+        )}
       </div>
     </AdminCtx.Provider>
   )

@@ -5,6 +5,7 @@ import { unwrap } from '../../lib/useAsync'
 import { age, phoneText, slashDate } from '../../lib/format'
 import { useCounter } from '../CounterContext'
 import { useToast } from '../../components/Toast'
+import { useCarrierScanner } from '../../lib/useScanner'
 
 // 生日可輸入 1994/05/12、1994-5-12 或 19940512
 function parseBirthday(s) {
@@ -34,6 +35,8 @@ export default function Register() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const fileRef = useRef(null)
+  // 掃碼器掃客人手機上的載具條碼，直接填入
+  useCarrierScanner((c) => setF((p) => ({ ...p, carrier_code: c })))
   const set = (k) => (e) => setF({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value })
   const phoneLocked = editing && staff.role !== 'hq'
 
@@ -124,7 +127,7 @@ export default function Register() {
           {field('f2', '姓名（必填）', 'name')}
           {field('f3', '生日（必填）', 'birthday', { placeholder: '1994/05/12', inputMode: 'numeric' })}
           {field('f4', 'Email', 'email', { type: 'email', placeholder: '選填' })}
-          {field('f5', '手機條碼載具', 'carrier_code', { placeholder: '/ABC1234（選填）' })}
+          {field('f5', '手機條碼載具', 'carrier_code', { placeholder: '掃描或輸入 /ABC1234（選填）' })}
           <div className="ds-field">
             <label className="ds-label" htmlFor="f6">主要分館</label>
             <select id="f6" className="ds-select" value={f.home_branch_id} onChange={set('home_branch_id')}>

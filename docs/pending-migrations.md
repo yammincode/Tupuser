@@ -37,8 +37,44 @@
 
 ---
 
-# 待執行：0016
+# 0016（✅ 2026-10-01 已執行）
 
 | ✓ | 順序 | 檔名 | 行數 | 做什麼 |
 |---|---|---|---|---|
-| ☐ | 0016 | `20261001000016_walkin_single_tickets.sql` | 252 | 非會員可以直接買單次票，並自動記入今日入場 |
+| ✅ | 0016 | `20261001000016_walkin_single_tickets.sql` | 252 | 非會員可以直接買單次票，並自動記入今日入場 |
+
+---
+
+# 0017～0020（⏳ 待執行，2026-10-01～02）
+
+| ✓ | 順序 | 檔名 | 行數 | 做什麼 |
+|---|---|---|---|---|
+| ⬜ | 0017 | `20261001000017_inventory.sql` | 417 | 庫存：進貨、賣出自動扣、盤點（差異由店長確認）、調撥、報廢 |
+| ⬜ | 0018 | `20261002000018_accounting_report.sql` | 123 | 後台「報表 → 會計」：每月給會計的消費總額、每日彙總、發票明細、退款明細；新增「會計」帳號角色 |
+| ⬜ | 0019 | `20261002000019_member_tags.sql` | 166 | 顧客標籤（有顏色）與行為紀錄 |
+| ⬜ | 0020 | `20261002000020_guests_and_shared_passes.sql` | 543 | 非會員簽安全守則（姓名、手機、簽名）；十次券每掃一次扣一次；年月票入場顯示大頭照 |
+
+執行完之後還要：
+
+- [ ] **重新部署** `admin-users`（新增「會員 App 測試密碼」與「會計帳號」功能）：照 `docs/setup-admin.md` 步驟 2，把新的程式碼整個貼上取代舊的，按 Deploy；「Verify JWT with legacy secret」維持**關閉**
+- [ ] 後台品項管理：要管庫存的商品（類型選「商品／租借」）勾「管理庫存」
+
+---
+
+## 檢查資料庫更新有沒有都執行（隨時可用，只查看、不會改資料）
+
+```sql
+select '0008' as 更新, exists (select 1 from information_schema.columns where table_name = 'product_categories' and column_name = 'dot_color') as 已執行
+union all select '0009', to_regprocedure('public.kiosk_info()') is not null
+union all select '0010', to_regprocedure('public.sales_report(date,date,uuid)') is not null
+union all select '0011', to_regprocedure('public.my_app_home()') is not null
+union all select '0012', to_regprocedure('public.report_sales(date,date,uuid)') is not null
+union all select '0013', exists (select 1 from information_schema.columns where table_name = 'products' and column_name = 'report_group')
+union all select '0014', to_regprocedure('public.adjust_plan_count(uuid,integer,text)') is not null
+union all select '0015', to_regclass('public.staff_activity') is not null
+union all select '0016', exists (select 1 from information_schema.columns where table_name = 'checkins' and column_name = 'order_item_id')
+union all select '0017', to_regclass('public.stock_movements') is not null
+union all select '0018', to_regprocedure('public.report_accounting(date,date,uuid)') is not null
+union all select '0019', to_regclass('public.member_tags') is not null
+union all select '0020', to_regclass('public.guest_waivers') is not null;
+```

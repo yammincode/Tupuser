@@ -50,6 +50,7 @@
   - 店長另外可以：退款、方案暫停／延期／轉讓、修改已關帳訂單、新增修改**只在自己分館販售**的品項。
   - 會員：只能看自己的資料，看不到櫃檯備註。
   - 入場機：只能呼叫入場函式。
+  - 會計（accountant，2026-10-02 新增）：只能看總部後台「報表 → 會計」（全部分館）；`app.staff_id()` 等身分函式排除會計，其他員工權限一律沒有。
 - 訂單、入場、簽署等紀錄不做實體刪除，用狀態欄位（作廢、取消）處理。
 - **不收集身分證字號和病史**（任何健康資料都不收）。
 
@@ -60,7 +61,8 @@
 - 十次券（次數型）**目前沒有使用期限**。
 - **只有總部能修改會員手機號碼**（它是登入帳號）；櫃檯、店長、會員本人都不能改。
 - 各館最晚營業到 23:00；營業日就是日曆日期，**凌晨的交易算當天（新的一天）**。
-- 次數型方案**一天只扣一次**，同一天再入場（含到其他適用分館）不再扣。
+- ~~次數型方案一天只扣一次~~ → **2026-10-02 改：十次券每掃一次扣一次**（可以分給同行的人用）；單次票當天可出去再回來；年月票綁本人（入場機顯示大頭照、同日第 2 次入場標示）。
+- **新客人簽安全守則（姓名、手機、簽名，存 `guest_waivers`）就能買單次票入場**；十次券、月票年票、課程要加入會員（2026-10-02）。
 - **退款限店長以上**（2026-09-29 改）；**櫃檯只能作廢當日訂單**，其他日期從總部後台作廢。退款與作廢在畫面上都要有**重複確認視窗**，再按一次才執行。
 - 退款金額記在「退款當天」的帳上，不改動已關帳的日期。
 
@@ -109,7 +111,7 @@
 
 ## 目前進度
 
-- Supabase 專案已建立（東京），migration 0001～0015 全部已執行（2026-09-30 老闆確認）；0016（非會員單次票）待執行；Edge Function admin-users 已部署（Verify JWT with legacy secret 要關閉）。
+- Supabase 專案已建立（東京），migration 0001～0016 全部已執行（2026-10-01 老闆確認，用檢查 SQL 驗證過）；**0017（庫存）、0018（會計報表＋會計帳號）、0019（顧客標籤與行為紀錄）、0020（訪客安全守則、十次券共用）待執行，admin-users 需重新部署**（新增 `member_test_password`、建立會計帳號）；Edge Function admin-users 已部署（Verify JWT with legacy secret 已關閉）；Netlify 正式版（production 分支）已上線。
 - 分館資料：`supabase/seed/01_branches.sql`，依 decisions.md 分館表（中壢店 ZL 籌備中，is_active = false，地址電話待定；A19 不建立）。
 - 總部帳號已建立（老闆本人，role = hq）；個人 Email 不寫進 repo。
 - 同意書 2026.1 為開發時擬定的**草稿**（`supabase/seed/02_waiver_v1.sql`），正式上線前需律師審閱，修改時建立新版本。
@@ -120,15 +122,18 @@
 
 - 單一 Vite + React 專案，用網址區分各系統：`/counter` 櫃檯、`/kiosk` 入場機、`/admin` 總部後台、`/app` 會員 App（都已完成）。
 - 入場機（`web/src/kiosk/`）：入場機專用帳號登入 → `kiosk_info()` 取分館與音量；掃碼器鍵盤輸入 → `kiosk_checkin`；畫面依回傳 `screen` 切換；提示音用 Web Audio（`kiosk/sound.js`），需點一下開始才能發聲。
-- 總部後台（`web/src/admin/`）：品項管理（總部另有分類管理；課程可設使用期限 valid_days、統計分類、教練）、會員（`pages/Members.jsx`：方案延期／調整次數 `adjust_plan_count`／暫停／轉讓／退費、取消入場；對話框與櫃檯共用 `components/PlanDialogs.jsx`）、異動紀錄（`pages/Audit.jsx`：修改紀錄 `audit_feed`；使用足跡 `pages/Activity.jsx` → `activity_feed`）、員工與權限、分館與入場機（含國定假日）、訂單（任何日期作廢、退費、修改已關帳訂單）、報表（`admin/reports/`：總覽 `sales_report`、銷售 `report_sales`、入場 `report_checkins`（分單次入場／票券入場／年月票入場三類，上課另列）、課程 `report_courses`（依 `products.report_group` 統計分類與 `products.coach` 教練加總）、月／年比較 `report_trend`、會員 `report_members`、未使用餘額 `report_liability`；各頁可匯出 CSV，`lib/csv.js`，檔名用英文避免瀏覽器改成 download）、同意書版本；建立登入帳號與重設密碼走 Edge Function `supabase/functions/admin-users`（不用外部套件，直接呼叫 Supabase API），部署步驟見 `docs/setup-admin.md`。頂欄照設計稿用深色。手機版（老闆 2026-10-01 決定）：`styles.css` 最後的 `@media (max-width: 820px)` 只套用在 `.counter.admin`，改成上下排、分頁可左右滑、多欄表格加 `rpt-wide` 可左右滑；報表表格的長條圖欄用 `reports/common.jsx` 的 `C()` 在手機上拿掉。櫃檯與入場機維持平板版面。
-- 櫃檯已依設計稿重做（2026-09-29）：頂端分頁 結帳｜會員｜今日｜關帳；另有新增／編輯會員（`/counter/members/new`、`/counter/members/:id/edit`）與全螢幕客人簽同意書（`/counter/waiver/:memberId`）。頂欄底色用 `branches.color`（老闆決定保留分店色），店名後接 `brand_label`；首次登入播放導覽；掃碼器在任何分頁有效（`lib/useScanner.js` → `resolve_member_qr`）。
-- 結帳：單次票與租借不需要會員（非會員單次票每張自動記一筆入場，member_id 為空）；現金沒選實收金額＝收剛好，直接按結帳。總部與店長在櫃檯選單有「前往總部後台」，櫃檯沒有。
+- 總部後台（`web/src/admin/`）：品項管理（列表可依分類／內容／適用／分館／狀態篩選；適用分館可複選＝`product_branches` 多筆；總部另有分類管理，可拖拉或 ↑↓ 排序；課程可設使用期限 valid_days、統計分類、教練）、會員（`pages/Members.jsx`：方案延期／調整次數 `adjust_plan_count`／暫停／轉讓／退費、取消入場；對話框與櫃檯共用 `components/PlanDialogs.jsx`）、異動紀錄（`pages/Audit.jsx`：修改紀錄 `audit_feed`；使用足跡 `pages/Activity.jsx` → `activity_feed`）、員工與權限、分館與入場機（含國定假日）、訂單（任何日期作廢、退費、修改已關帳訂單）、報表（`admin/reports/`：總覽 `sales_report`、銷售 `report_sales`、入場 `report_checkins`（分單次入場／票券入場／年月票入場三類，上課另列）、課程 `report_courses`（依 `products.report_group` 統計分類與 `products.coach` 教練加總）、月／年比較 `report_trend`、會員 `report_members`、未使用餘額 `report_liability`、會計 `report_accounting`（每月給會計：總額、每日彙總、發票明細、退款明細，明細最多 62 天）；各頁可匯出 CSV，`lib/csv.js`，檔名用英文避免瀏覽器改成 download）、同意書版本；建立登入帳號與重設密碼走 Edge Function `supabase/functions/admin-users`（不用外部套件，直接呼叫 Supabase API），部署步驟見 `docs/setup-admin.md`。頂欄照設計稿用深色。手機版（老闆 2026-10-01 決定）：`styles.css` 最後的 `@media (max-width: 820px)` 只套用在 `.counter.admin`，改成上下排、分頁可左右滑、多欄表格加 `rpt-wide` 可左右滑；報表表格的長條圖欄用 `reports/common.jsx` 的 `C()` 在手機上拿掉。櫃檯與入場機維持平板版面。
+- 櫃檯已依設計稿重做（2026-09-29）：頂端分頁 結帳｜會員｜今日｜關帳；另有新增／編輯會員（`/counter/members/new`、`/counter/members/:id/edit`）與全螢幕客人簽同意書（`/counter/waiver/:memberId`）。頂欄底色用 `branches.color`（老闆決定保留分店色），店名後接 `brand_label`；首次登入播放導覽；掃碼器在任何分頁有效（`lib/useScanner.js` → `resolve_member_qr`）；結帳與新增會員頁另用 `useCarrierScanner` 接收手機載具條碼（/ 加 7 碼）自動填入。
+- 結帳：單次票與租借不需要會員（非會員單次票每張自動記一筆入場，member_id 為空，並對應一位簽過安全守則的訪客：結帳右側「入場客人安全守則」→ `counter/GuestWaiver.jsx`，簽署版面與會員共用 `components/WaiverForm.jsx`）；現金沒選實收金額＝收剛好，直接按結帳。總部與店長在櫃檯選單有「前往總部後台」，櫃檯沒有。
 - 今日訂單與作廢放在「今日」分頁的「今日訂單」切換裡（設計稿沒有，老闆決定櫃檯可作廢當日訂單）。退費在會員頁方案區與今日訂單（限店長以上）。
 - 畫面樣式只用 `web/src/design/tokens.css` 的 `ds-*` 元件與變數；頁面版面在 `web/src/styles.css`。
 - 路由連結一律用絕對路徑（`/counter/...`），相對路徑在 `/counter/*` 底下會無限疊加。
 - 會員 App（`web/src/member/`，獨立入口 `web/app.html`，Netlify 把 `/app/*` 導到 app.html；開發時 vite.config.js 的 middleware 處理）：手機簡訊登入（登入紀錄 storageKey 與櫃檯分開）→ `my_app_home()`、`get_my_qr_secret()`；入場碼在手機用純 JS 算 TOTP（`member/totp.js`，與 `app.totp` 相同，已驗證），用伺服器時間校正；入場碼頁 QR 不帶方案（入場機自動挑），方案頁 QR 帶方案 id；App 內簽同意書 method = app；PWA（`public/app.webmanifest`、`public/app-sw.js`）。本機測試手機 0955666777 等用驗證碼 123456（`supabase/config.toml` test_otp）。簡訊服務商待老闆選。說明見 `docs/setup-member-app.md`。
 - 部署：網址 https://tupcount.netlify.app（Netlify 專案 tupcount，2026-10-01 上線，免費方案點數有限，建議關閉自動部署、要更新時再手動部署；只改文件的 commit 訊息加 `[skip netlify]` 就不會觸發部署）；`netlify.toml`（base = web）；環境變數 `VITE_SUPABASE_URL`、`VITE_SUPABASE_ANON_KEY`；填成秘密金鑰時畫面會拒絕啟動。老闆步驟見 `docs/setup-netlify.md`。Netlify 的 Production branch 設為 `production`（正式版），開發分支不部署。
 - 員工使用足跡（`lib/activity.js` → `log_activity`）：櫃檯與後台記錄登入／登出、開啟系統、頁面、查看會員、匯出（`lib/csv.js`）；所有員工帳號都記（老闆 2026-09-30 決定）。
+- 庫存（migration 0017，老闆 2026-10-01 決定）：每間分館各自計算；`products.track_stock` 只給「商品／租借」；庫存＝`stock_movements` 加總（結帳與作廢退費由觸發器自動寫）；櫃檯 `pages/Stock.jsx`（庫存分頁：進貨、盤點；店長另可調撥、報廢、確認盤點差異）、後台 `reports/Stock.jsx`（報表 → 庫存）。櫃檯不做手機版（老闆決定維持平板／電腦）。
+- 會員 App 測試登入（簡訊服務商選定前）：總部在後台會員頁設「App 測試密碼」（Edge Function `member_test_password`，帳號 Email `test09XXXXXXXX@members.tupcount.app`）；App 登入頁「測試期間：用測試密碼登入」。
+- 顧客標籤與行為紀錄（migration 0019，`components/MemberTags.jsx`）：後台會員頁左下「依標籤查看」與「管理標籤」（總部），會員詳情可貼標籤（總部、店長）與新增／隱藏行為紀錄；櫃檯會員頁顯示標籤、在櫃檯備註卡片下方新增行為紀錄（隱藏限店長以上）。不做會員線上買票（老闆 2026-10-02）。
 - 硬體採購清單：`docs/hardware.md`。
 - 開發進度總表：`docs/roadmap.md`（完成一項就更新）。
 - 本機完整測試：`npx supabase start`（Docker）會套用 migrations 與 `supabase/seed/*.sql`；`web/.env.local` 指向 `http://127.0.0.1:54321`。老闆的試用步驟見 `docs/setup-counter.md`。

@@ -1,5 +1,5 @@
 // =====================================================================
-// 總部後台：建立員工帳號、建立入場機帳號、重設密碼
+// 總部後台：建立員工帳號、建立入場機帳號、重設密碼、會員 App 測試登入密碼
 // 建立登入帳號需要最高權限金鑰，只能在伺服器端執行，所以放在 Supabase Edge Function。
 // 呼叫者必須是在職的總部或店長；店長只能處理自己分館的櫃檯與入場機。
 // 不使用任何外部套件，直接呼叫 Supabase 的 API。
@@ -68,11 +68,13 @@ Deno.serve(async (req) => {
     // 2. 建立員工
     if (body.action === 'create_staff') {
       const role = body.role
-      const branchId = role === 'hq' ? null : body.branch_id
+      // 總部與會計不屬於任何分館
+      const branchId = role === 'hq' || role === 'accountant' ? null : body.branch_id
       const name = String(body.name ?? '').trim()
       if (!name) throw new Fail('請填寫姓名')
-      if (!['hq', 'manager', 'cashier'].includes(role)) throw new Fail('角色不正確')
-      if (role !== 'hq' && !branchId) throw new Fail('請選擇分館')
+      if (!['hq', 'manager', 'cashier', 'accountant'].includes(role)) throw new Fail('角色不正確')
+      if (role === 'accountant' && !isHq) throw new Fail('只有總部可以新增會計帳號', 403)
+      if (role !== 'hq' && role !== 'accountant' && !branchId) throw new Fail('請選擇分館')
       if (!isHq && !(role === 'cashier' && branchId === me.branch_id)) throw new Fail('店長只能新增自己分館的櫃檯人員', 403)
       const u = await createAuthUser()
       let staff
@@ -111,6 +113,32 @@ Deno.serve(async (req) => {
       await api(`/auth/v1/admin/users/${target.auth_user_id}`, { method: 'PUT', body: JSON.stringify({ password }) })
       await audit({ staff_id: me.id, branch_id: target.branch_id, action: `${table === 'devices' ? 'device' : 'staff'}.password_reset`,
         table_name: table, record_id: target.id })
+      return json({ ok: true })
+    }
+
+    // 5. 會員 App 測試登入（還沒接簡訊前使用）：總部幫會員設一組密碼，會員用「手機號碼＋密碼」登入
+    if (body.action === 'member_test_password') {
+      if (!isHq) throw new Fail('只有總部可以設定會員的測試登入', 403)
+      if (password.length < 8) throw new Fail('密碼至少 8 個字')
+      const m = await one(`/rest/v1/members?id=eq.${encodeURIComponent(body.member_id)}&select=id,phone,auth_user_id,home_branch_id`)
+      if (!m) throw new Fail('找不到會員', 404)
+      const testEmail = `test${String(m.phone).replace(/^\+886/, '0')}@members.tupcount.app`
+      let userId = m.auth_user_id
+      if (userId) {
+        await api(`/auth/v1/admin/users/${userId}`, { method: 'PUT', body: JSON.stringify({ email: testEmail, password, email_confirm: true }) })
+      } else {
+        let u
+        try {
+          u = await api('/auth/v1/admin/users', { method: 'POST',
+            body: JSON.stringify({ email: testEmail, password, email_confirm: true, phone: String(m.phone).replace(/^\+/, ''), phone_confirm: true }) })
+        } catch (e) {
+          throw new Fail(/already|exists|registered/i.test((e as Error).message) ? '這支手機已經有登入帳號但沒有連到會員，請聯絡工程協助' : (e as Error).message)
+        }
+        userId = u.id
+        await api(`/rest/v1/members?id=eq.${m.id}&auth_user_id=is.null`, { method: 'PATCH',
+          body: JSON.stringify({ auth_user_id: userId }), headers: { Prefer: 'return=minimal' } })
+      }
+      await audit({ staff_id: me.id, branch_id: m.home_branch_id, action: 'member.test_login_set', table_name: 'members', record_id: m.id })
       return json({ ok: true })
     }
 

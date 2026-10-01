@@ -13,7 +13,7 @@ const RULES = [['any', '不限'], ['weekday', '平日'], ['weekend', '假日'], 
 
 function contentText(p) {
   if (p.content_type === 'single') return '單次入場'
-  if (p.content_type === 'rental') return '租借'
+  if (p.content_type === 'rental') return p.track_stock ? '商品・管庫存' : '商品／租借'
   return `${p.quantity} ${{ punch: '次', days: '天', course: '堂' }[p.content_type]}${p.content_type === 'course' && p.valid_days ? `・${p.valid_days} 天內` : ''}`
 }
 function ruleText(p) {
@@ -30,15 +30,18 @@ const validUntil = (n) => {
 
 const EMPTY = {
   id: null, name: '', category_id: '', price: '', content_type: 'single', quantity: '1', usage_rule: 'any',
-  slot_start: '', slot_end: '', branch: 'all', sale_start: '', sale_end: '', status: 'on_sale', report_group: '', coach: '', valid_days: '',
+  slot_start: '', slot_end: '', allShop: true, branchIds: [], sale_start: '', sale_end: '', status: 'on_sale', report_group: '', coach: '', valid_days: '', track_stock: false,
 }
 
 // 品項管理：品項不能刪除，只能下架；舊訂單保留當時的品名和價格
 export default function Products() {
   const { staff, branches, isHq } = useAdmin()
   const toast = useToast()
-  const [showOff, setShowOff] = useState(false)
   const [q, setQ] = useState('')
+  // 篩選：分類、內容、適用、分館、狀態（方便檢查有沒有建錯或漏建）
+  const NO_FILTER = { cat: '', content: '', rule: '', branch: '', status: 'on_sale' }
+  const [flt, setFlt] = useState(NO_FILTER)
+  const setFilter = (k, v) => setFlt((x) => ({ ...x, [k]: v }))
   const [f, setF] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -63,16 +66,22 @@ export default function Products() {
   const branchText = (p) => {
     if (p.all_branches) return '全店'
     const ids = branchesOf(p)
-    return ids.length === 1 ? branchName(ids[0]) : `${ids.length} 館`
+    if (ids.length === 1) return branchName(ids[0])
+    return ids.length === 2 ? ids.map((i) => branchName(i).replace('店', '')).join('、') : `${ids.length} 館`
   }
   // 店長只能改「只在自己分館販售」的品項
   const canEdit = (p) => isHq || (!p.all_branches && branchesOf(p).length > 0 && branchesOf(p).every((b) => b === staff.branch_id))
 
   const rows = data.prods
-    .filter((p) => (showOff || p.status === 'on_sale') && (!q.trim() || p.name.includes(q.trim())))
+    .filter((p) => (!flt.status || p.status === flt.status) && (!q.trim() || p.name.includes(q.trim()))
+      && (!flt.cat || p.category_id === flt.cat)
+      && (!flt.content || p.content_type === flt.content)
+      && (!flt.rule || p.usage_rule === flt.rule)
+      && (!flt.branch || (flt.branch === 'ALL' ? p.all_branches : p.all_branches || branchesOf(p).includes(flt.branch))))
     .sort((a, b) => (catOrder[a.category_id] ?? 99) - (catOrder[b.category_id] ?? 99) || a.sort_order - b.sort_order)
 
-  const form = f || { ...EMPTY, category_id: activeCats[0]?.id || '', branch: isHq ? 'all' : staff.branch_id }
+  const filtered = JSON.stringify(flt) !== JSON.stringify(NO_FILTER) || q.trim()
+  const form = f || { ...EMPTY, category_id: activeCats[0]?.id || '', allShop: isHq, branchIds: isHq ? [] : [staff.branch_id] }
   const editing = Boolean(form.id)
   const editingProduct = editing ? data.prods.find((p) => p.id === form.id) : null
   const readOnly = editing && !canEdit(editingProduct)
@@ -85,9 +94,9 @@ export default function Products() {
     setF({
       id: p.id, name: p.name, category_id: p.category_id, price: String(p.price), content_type: p.content_type,
       quantity: String(p.quantity), usage_rule: p.usage_rule, slot_start: p.slot_start?.slice(0, 5) || '', slot_end: p.slot_end?.slice(0, 5) || '',
-      branch: p.all_branches ? 'all' : ids.length === 1 ? ids[0] : 'multi', multi: ids,
+      allShop: p.all_branches, branchIds: ids,
       sale_start: p.sale_start || '', sale_end: p.sale_end || '', status: p.status,
-      report_group: p.report_group || '', coach: p.coach || '', valid_days: p.valid_days ? String(p.valid_days) : '',
+      report_group: p.report_group || '', coach: p.coach || '', valid_days: p.valid_days ? String(p.valid_days) : '', track_stock: Boolean(p.track_stock),
     })
   }
 
@@ -103,16 +112,19 @@ export default function Products() {
       return setError('時段請填開始與結束時間（例：12:00 到 18:00）')
     }
     if (form.sale_start && form.sale_end && form.sale_start > form.sale_end) return setError('上架期間的開始日不能晚於結束日')
+    if (!form.allShop && form.branchIds.length === 0) return setError('請勾選適用分館，或選「全店通用」')
     const row = {
       name: form.name.trim(), category_id: form.category_id, price, content_type: form.content_type, quantity,
       usage_rule: form.usage_rule, slot_start: form.slot_start || null, slot_end: form.slot_end || null,
-      all_branches: form.branch === 'all', sale_start: form.sale_start || null, sale_end: form.sale_end || null,
+      all_branches: form.allShop, sale_start: form.sale_start || null, sale_end: form.sale_end || null,
       status: nextStatus || form.status,
       // 課程才有統計分類與教練
       report_group: form.content_type === 'course' ? form.report_group.trim() || null : null,
       coach: form.content_type === 'course' ? form.coach.trim() || null : null,
       // 課程點數使用期限（天，購買當天起算）；空白＝不限期
       valid_days: form.content_type === 'course' && Number(form.valid_days) > 0 ? Number(form.valid_days) : null,
+      // 只有商品／租借類可以管理庫存
+      track_stock: form.content_type === 'rental' && form.track_stock,
     }
     setBusy(true)
     try {
@@ -126,20 +138,18 @@ export default function Products() {
         if (error) throw error
         id = ins.id
       }
-      // 適用分館
-      if (form.branch !== 'multi') {
-        const want = form.branch === 'all' ? [] : [form.branch]
-        const have = editing ? branchesOf(editingProduct) : []
-        const del = have.filter((b) => !want.includes(b))
-        const add = want.filter((b) => !have.includes(b))
-        if (add.length) {
-          const { error } = await supabase.from('product_branches').insert(add.map((b) => ({ product_id: id, branch_id: b })))
-          if (error) throw error
-        }
-        if (del.length) {
-          const { error } = await supabase.from('product_branches').delete().eq('product_id', id).in('branch_id', del)
-          if (error) throw error
-        }
+      // 適用分館（可複選；全店通用時不需要分館清單）
+      const want = form.allShop ? [] : form.branchIds
+      const have = editing ? branchesOf(editingProduct) : []
+      const del = have.filter((b) => !want.includes(b))
+      const add = want.filter((b) => !have.includes(b))
+      if (add.length) {
+        const { error } = await supabase.from('product_branches').insert(add.map((b) => ({ product_id: id, branch_id: b })))
+        if (error) throw error
+      }
+      if (del.length) {
+        const { error } = await supabase.from('product_branches').delete().eq('product_id', id).in('branch_id', del)
+        if (error) throw error
       }
       toast(editing ? (nextStatus === 'off_sale' ? '已下架' : nextStatus === 'on_sale' ? '已重新上架' : '已儲存') : '已新增並上架')
       setF(null)
@@ -151,23 +161,46 @@ export default function Products() {
     <div className="page">
       <div className="adm-list">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-          <span className="ds-card-title">品項（{rows.length}）</span>
+          <span className="ds-card-title">品項（{filtered ? `${rows.length}／${data.prods.length}` : rows.length}）</span>
           <div style={{ display: 'flex', gap: 8 }}>
             <input className="ds-input" style={{ width: 180 }} type="search" placeholder="搜尋品名" value={q} onChange={(e) => setQ(e.target.value)} />
             {isHq && <button type="button" className="ds-btn" onClick={() => setCatsOpen(true)}>分類管理</button>}
-            <button type="button" className={'ds-btn' + (showOff ? ' selected' : '')} onClick={() => setShowOff(!showOff)}>顯示已下架</button>
             <button type="button" className="ds-btn accent" onClick={() => { setF(null); setError('') }}>＋ 新增品項</button>
           </div>
         </div>
+        <div className="p-filters">
+          <select className="ds-select" value={flt.cat} onChange={(e) => setFilter('cat', e.target.value)} aria-label="篩選分類">
+            <option value="">全部分類</option>
+            {data.cats.map((c) => <option key={c.id} value={c.id}>{c.name}{c.is_active ? '' : '（停用）'}</option>)}
+          </select>
+          <select className="ds-select" value={flt.content} onChange={(e) => setFilter('content', e.target.value)} aria-label="篩選內容">
+            <option value="">全部內容</option>
+            {CONTENT.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+          </select>
+          <select className="ds-select" value={flt.rule} onChange={(e) => setFilter('rule', e.target.value)} aria-label="篩選適用">
+            <option value="">全部適用</option>
+            {RULES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+          </select>
+          <select className="ds-select" value={flt.branch} onChange={(e) => setFilter('branch', e.target.value)} aria-label="篩選分館">
+            <option value="">全部分館</option>
+            <option value="ALL">只看全店通用</option>
+            {branches.map((b) => <option key={b.id} value={b.id}>{b.name}可賣的</option>)}
+          </select>
+          <select className="ds-select" value={flt.status} onChange={(e) => setFilter('status', e.target.value)} aria-label="篩選狀態">
+            <option value="on_sale">上架中</option><option value="off_sale">已下架</option><option value="">上架＋下架</option>
+          </select>
+          {filtered && <button type="button" className="ds-btn" onClick={() => { setFlt(NO_FILTER); setQ('') }}>清除篩選</button>}
+        </div>
         <div className="ds-thead p-grid"><span>名稱</span><span>價格</span><span>內容</span><span>適用</span><span>分館</span><span>狀態</span></div>
         <div className="adm-rows">
+          {rows.length === 0 && <div className="co-empty">沒有符合條件的品項</div>}
           {rows.map((p) => (
             <div key={p.id} className={'adm-row p-grid' + (p.status === 'off_sale' ? ' off' : '') + (form.id === p.id ? ' on' : '')} onClick={() => openProduct(p)}>
               <span className="adm-name"><span className="adm-dot" style={{ background: catById[p.category_id]?.dot_color || '#CFC8BC' }} />{p.name}</span>
               <span>{money(p.price)}</span>
               <span style={{ color: 'var(--c-muted)' }}>{contentText(p)}</span>
               <span>{ruleText(p)}</span>
-              <span>{branchText(p)}</span>
+              <span title={p.all_branches ? '全店通用' : branchesOf(p).map(branchName).join('、')}>{branchText(p)}</span>
               <span style={{ color: p.status === 'on_sale' ? 'var(--c-ok)' : 'var(--c-muted)' }}>{p.status === 'on_sale' ? '上架' : '下架'}</span>
             </div>
           ))}
@@ -196,6 +229,12 @@ export default function Products() {
               <input id="p5" className="ds-input" style={{ width: '100%' }} placeholder="次數、天數或堂數" inputMode="numeric" disabled={fixedQty}
                 value={fixedQty ? '1' : form.quantity} onChange={(e) => set('quantity', e.target.value.replace(/\D/g, ''))} /></div>
           </div>
+          {form.content_type === 'rental' && (
+            <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 15 }}>
+              <input type="checkbox" className="ds-checkbox" checked={form.track_stock} onChange={(e) => set('track_stock', e.target.checked)} />
+              <span>管理庫存<small style={{ display: 'block', color: 'var(--c-muted)' }}>實體商品（飲料、粉袋、販售的岩鞋等）請勾選：結帳自動扣庫存，櫃檯可進貨、盤點。租借用的不要勾。</small></span>
+            </label>
+          )}
           {form.content_type === 'course' && (
             <div className="co-grid2" style={{ gap: 12 }}>
               <div className="ds-field"><label className="ds-label" htmlFor="p7">統計分類（報表加總用）</label>
@@ -224,12 +263,18 @@ export default function Products() {
               </div></div>
           )}
           <div className="co-grid2" style={{ gap: 12 }}>
-            <div className="ds-field"><label className="ds-label" htmlFor="p6">適用分館</label>
-              <select id="p6" className="ds-select" value={form.branch} onChange={(e) => set('branch', e.target.value)}>
-                {(isHq || form.branch === 'all') && <option value="all">全店通用</option>}
-                {form.branch === 'multi' && <option value="multi">{form.multi.map(branchName).join('、')}</option>}
-                {branches.filter((b) => isHq || b.id === staff.branch_id).map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-              </select></div>
+            <div className="ds-field"><span className="ds-label">適用分館（可複選）</span>
+              <div className="p-branches">
+                {(isHq || form.allShop) && (
+                  <label><input type="checkbox" className="ds-checkbox" checked={form.allShop} disabled={!isHq}
+                    onChange={(e) => setF({ ...form, allShop: e.target.checked })} />全店通用</label>
+                )}
+                {!form.allShop && branches.filter((b) => isHq || b.id === staff.branch_id || form.branchIds.includes(b.id)).map((b) => (
+                  <label key={b.id}><input type="checkbox" className="ds-checkbox" checked={form.branchIds.includes(b.id)} disabled={!isHq}
+                    onChange={(e) => setF({ ...form, branchIds: e.target.checked ? [...form.branchIds, b.id] : form.branchIds.filter((x) => x !== b.id) })} />
+                    {b.name}{b.is_active ? '' : '（籌備中）'}</label>
+                ))}
+              </div></div>
             <div className="ds-field"><span className="ds-label">上架期間（選填）</span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <input className="ds-input" type="date" style={{ width: '100%', height: 36, fontSize: 14 }} value={form.sale_start} onChange={(e) => set('sale_start', e.target.value)} aria-label="上架開始日" />

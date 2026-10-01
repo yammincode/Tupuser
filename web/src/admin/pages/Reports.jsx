@@ -10,6 +10,8 @@ import Courses from '../reports/Courses'
 import Trend from '../reports/Trend'
 import Members from '../reports/Members'
 import Liability from '../reports/Liability'
+import Stock from '../reports/Stock'
+import Accounting from '../reports/Accounting'
 
 // 報表：總部可看各分館與合計；店長只看自己分館（資料庫也會擋）
 const VIEWS = [
@@ -20,12 +22,17 @@ const VIEWS = [
   ['trend', '月／年比較', Trend, false],
   ['members', '會員', Members, true],
   ['liability', '未使用餘額', Liability, false],
+  ['stock', '庫存', Stock, true],
+  ['accounting', '會計', Accounting, true],
 ]
 
 export default function Reports() {
-  const { branches, isHq, staff } = useAdmin()
+  const { branches, isHq: hq, isAccountant, staff } = useAdmin()
+  // 會計帳號只看「會計」，可以選全部分館或單一分館
+  const isHq = hq || isAccountant
+  const views = isAccountant ? VIEWS.filter((v) => v[0] === 'accounting') : VIEWS
   const [params, setParams] = useSearchParams()
-  const view = VIEWS.find((v) => v[0] === params.get('v')) || VIEWS[0]
+  const view = views.find((v) => v[0] === params.get('v')) || views[0]
   const [, , View, usesDates] = view
   const [preset, setPreset] = useState('month')
   const [[from, to], setRange] = useState(range('month'))
@@ -42,7 +49,7 @@ export default function Reports() {
     <div className="page" style={{ flexDirection: 'column', overflowY: 'auto' }}>
       <div className="ds-card rpt-toolbar">
         <div className="rpt-views" role="tablist" aria-label="報表種類">
-          {VIEWS.map(([k, label]) => (
+          {views.map(([k, label]) => (
             <button key={k} type="button" role="tab" aria-selected={k === view[0]} className={'rpt-view' + (k === view[0] ? ' on' : '')}
               onClick={() => { if (k !== view[0]) { setExporter(null); setParams({ v: k }) } }}>{label}</button>
           ))}

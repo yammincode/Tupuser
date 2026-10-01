@@ -40,8 +40,11 @@ function toView(r) {
     } else if (p.remaining_count != null) {
       left = { k: p.content_type === 'course' ? '剩餘堂數' : '剩餘次數', v: `${p.remaining_count} ${p.content_type === 'course' ? '堂' : '次'}` }
     }
+    // 年月票綁本人：顯示大頭照讓櫃檯核對；同一天第 2 次以上入場另外提示
+    const days = p.content_type === 'days'
     return { screen: 'ok', icon: 'ok', title: '入場成功', subtitle: `歡迎，${r.member?.name || ''}`,
-      rows: { plan: p.name || '—', left, end: p.end_date ? slashDate(p.end_date) : '不限期' } }
+      rows: { plan: p.name || '—', left, end: p.end_date ? slashDate(p.end_date) : '不限期' },
+      avatarPath: days ? r.member?.avatar_path : null, nth: days && r.entries_today > 1 ? r.entries_today : null }
   }
   if (r.screen === 'waiver') {
     return { screen: 'waiver', icon: 'stop', title: '同意書已更新', subtitle: `${r.member?.name || ''}，請先簽署新版免責同意書`,
@@ -125,7 +128,12 @@ export default function KioskApp() {
     const s = SCREEN[v.screen]
     beep(s.sound, (info?.branch?.kiosk_volume ?? 80) / 100)
     setLeft(s.seconds)
-    setView({ ...v, key: Date.now() })
+    const key = Date.now()
+    setView({ ...v, key })
+    if (v.avatarPath) {
+      supabase.storage.from('avatars').createSignedUrl(v.avatarPath, 60)
+        .then(({ data }) => { if (data?.signedUrl) setView((cur) => (cur?.key === key ? { ...cur, photo: data.signedUrl } : cur)) })
+    }
   }, [info])
 
   const scan = useCallback(async (code) => {
@@ -200,6 +208,12 @@ export default function KioskApp() {
             </div>
           </div>
           <div className="kiosk-card">
+            {(view.photo || view.nth) && (
+              <div className="kiosk-who">
+                {view.photo && <img src={view.photo} alt="" className="kiosk-photo" />}
+                {view.nth && <span className="kiosk-nth">今日第 {view.nth} 次入場</span>}
+              </div>
+            )}
             {view.rows && (
               <>
                 <div className="kiosk-row"><span>使用方案</span><span style={{ fontWeight: 500 }}>{view.rows.plan}</span></div>
