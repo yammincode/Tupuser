@@ -111,7 +111,7 @@
 
 ## 目前進度
 
-- Supabase 專案已建立（東京），migration 0001～0016 全部已執行（2026-10-01 老闆確認，用檢查 SQL 驗證過）；**0017（庫存）、0018（會計報表＋會計帳號）、0019（顧客標籤與行為紀錄）、0020（訪客安全守則、十次券共用）待執行，admin-users 需重新部署**（新增 `member_test_password`、建立會計帳號）；Edge Function admin-users 已部署（Verify JWT with legacy secret 已關閉）；Netlify 正式版（production 分支）已上線。
+- Supabase 專案已建立（東京），migration 0001～0020 全部已執行（0017～0020 於 2026-10-03 老闆確認）；Edge Function admin-users 已重新部署為最新版（含 `member_test_password`、會計帳號；Verify JWT with legacy secret 已關閉）；Netlify 正式版（production 分支）2026-10-03 更新到最新（庫存、會計、標籤、訪客安全守則、十次券共用、品項管理改善）。
 - 分館資料：`supabase/seed/01_branches.sql`，依 decisions.md 分館表（中壢店 ZL 籌備中，is_active = false，地址電話待定；A19 不建立）。
 - 總部帳號已建立（老闆本人，role = hq）；個人 Email 不寫進 repo。
 - 同意書 2026.1 為開發時擬定的**草稿**（`supabase/seed/02_waiver_v1.sql`），正式上線前需律師審閱，修改時建立新版本。

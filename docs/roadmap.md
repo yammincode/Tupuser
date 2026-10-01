@@ -40,7 +40,6 @@
 |---|---|
 | 選簡訊服務商 | Twilio 或台灣廠商（三竹、every8d），見 `docs/setup-member-app.md`；先確認教練 app 的登入方式 |
 | App 圖示 | 目前是暫用圖示，請提供原岩 Logo |
-| 執行 0017～0020，重新部署 admin-users | 見 `docs/pending-migrations.md` |
 | 在筆電試用櫃檯 | 照 `docs/setup-counter.md` |
 | 各店固定零用金、國定假日、員工帳號 | 後台已做好，可以自己在 `/admin` 設定 |
 | decisions.md「尚待提供」 | 套票次數；月票／年票分單店或全店通；是否需要年票；電子發票加值中心選擇；17FIT 資料匯出 |
