@@ -50,6 +50,15 @@ a:hover { color: var(--c-accent-hover); }
 .co-row-unit { font-size: 12px; color: var(--c-muted); }
 .co-row-qty { min-width: 22px; text-align: center; font-size: 15px; }
 .co-row-sub { min-width: 72px; text-align: right; font-size: 15px; font-weight: var(--w-medium); }
+.co-finder { position: sticky; top: -18px; z-index: 2; margin: -18px -22px 0; padding: 14px 22px 10px; background: var(--c-bg); display: flex; flex-direction: column; gap: 8px; }
+.co-finder .ds-input { height: 40px; font-size: 15px; }
+.co-cats { display: flex; flex-wrap: wrap; gap: 6px; }
+.co-cat { height: 32px; padding: 0 12px; border-radius: var(--r-pill); border: 1px solid var(--c-border); background: var(--c-surface); color: var(--c-ink); font-family: inherit; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.co-cat.on { background: var(--c-ink); color: var(--c-surface); border-color: var(--c-ink); }
+.co-actions { padding: 8px 20px; border-bottom: 1px solid var(--c-line); display: flex; gap: 8px; align-items: center; }
+.co-actions .ds-btn { height: 34px; padding: 0 12px; font-size: 14px; }
+.co-row-disc { margin-left: 8px; border: 0; background: none; padding: 0; color: var(--c-accent); font-family: inherit; font-size: 12px; cursor: pointer; text-decoration: underline; }
+.co-grid4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .co-guests { margin-top: 10px; padding: 12px; border-radius: var(--r-md); background: var(--c-bg); display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
 .co-guest { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 10px; background: var(--c-surface); border-radius: var(--r-sm); }
 .co-guest small { margin-left: 8px; color: var(--c-muted); font-size: 12px; }
@@ -300,3 +309,5 @@ a:hover { color: var(--c-accent-hover); }
   .ds-dialog { max-width: calc(100vw - 24px); padding: 20px; }
   .ds-dialog-title { font-size: 20px; }
 }
+/* 後台頂欄：店名不換行（店長帳號會多顯示分館名） */
+.counter.admin .ds-topbar-brand, .counter.admin .ds-topbar-branch { white-space: nowrap; }

@@ -1,11 +1,11 @@
-import { useState } from 'react'
-import { rpc } from '../lib/supabase'
+import { useEffect, useState } from 'react'
+import { supabase, rpc } from '../lib/supabase'
 import { money, phoneText, planSummary, slashDate } from '../lib/format'
 import MemberSearch from './MemberSearch'
 import Modal from './Modal'
 import ConfirmDialog from './ConfirmDialog'
 
-// 方案異動的對話框（櫃檯會員頁與總部後台會員頁共用）；全部限店長以上，資料庫也會檢查並留下異動紀錄
+// 方案異動的對話框（總部後台會員頁；2026-10-02 起櫃檯不再提供方案異動）；全部限店長以上，資料庫也會檢查並留下異動紀錄
 
 export function ReasonDialog({ title, hint, confirmText, onConfirm, onClose }) {
   const [reason, setReason] = useState('')
@@ -50,14 +50,31 @@ export function ExtendDialog({ plan, onClose, onDone }) {
   )
 }
 
-export function TransferDialog({ plan, from, onClose, onDone }) {
+export const PAY_METHODS = [['cash', '現金', 'var(--c-ink)'], ['line_pay', 'LINE Pay', 'var(--c-linepay)'], ['transfer', '轉帳', 'var(--c-ink)']]
+
+// 轉讓：有設定「方案轉讓費」就同時收費（記成一筆訂單）；總部要選收費分館
+export function TransferDialog({ plan, from, onClose, onDone, branches = [], isHq, branchId }) {
   const [to, setTo] = useState(null)
   const [reason, setReason] = useState('')
+  const [method, setMethod] = useState('cash')
+  const [feeBranch, setFeeBranch] = useState(branchId || '')
+  const [fee, setFee] = useState(null)
   const [step, setStep] = useState(1)
+  const sel = (on, c) => (on ? { '--on': c } : {})
+  useEffect(() => {
+    supabase.from('products').select('price').eq('system_key', 'transfer_fee').maybeSingle()
+      .then(({ data }) => setFee(data?.price || 0))
+  }, [])
+  const branchName = branches.find((b) => b.id === feeBranch)?.name
   if (step === 2) {
-    return <ConfirmDialog title="確認轉讓方案？" confirmText="確認轉讓"
-      lines={[['方案', `${plan.name}（${planSummary(plan)}）`], ['轉出', from.name], ['轉入', `${to.name}（${phoneText(to.phone)}）`], ['原因', reason]]}
-      onConfirm={async () => { await rpc('transfer_plan', { p_plan_id: plan.id, p_to_member_id: to.id, p_reason: reason }); onDone() }} onClose={onClose} />
+    return <ConfirmDialog title="確認轉讓方案？" confirmText={fee > 0 ? `收 ${money(fee)} 並轉讓` : '確認轉讓'}
+      lines={[['方案', `${plan.name}（${planSummary(plan)}）`], ['轉出', from.name], ['轉入', `${to.name}（${phoneText(to.phone)}）`],
+        ...(fee > 0 ? [['轉讓費', `${money(fee)}・${PAY_METHODS.find((m) => m[0] === method)[1]}${branchName ? `・${branchName}` : ''}`]] : []), ['原因', reason]]}
+      onConfirm={async () => {
+        const r = await rpc('transfer_plan', { p_plan_id: plan.id, p_to_member_id: to.id, p_reason: reason,
+          p_payment_method: fee > 0 ? method : null, p_branch_id: fee > 0 && isHq ? feeBranch : null })
+        onDone(r)
+      }} onClose={onClose} />
   }
   return (
     <Modal title={`轉讓「${plan.name}」`} onClose={onClose} width={480}>
@@ -68,11 +85,27 @@ export function TransferDialog({ plan, from, onClose, onDone }) {
               {to.name}（{phoneText(to.phone)}）<button className="ds-btn" onClick={() => setTo(null)}>換人</button></div>
           : <div className="mem-search" style={{ width: 'auto', padding: 0 }}><MemberSearch inline onPick={(x) => x.id !== from.id && setTo(x)} /></div>}
       </div>
+      {fee > 0 && (
+        <div className="ds-field"><span className="ds-label">轉讓費 {money(fee)}・付款方式</span>
+          <div className="co-grid3">
+            {PAY_METHODS.map(([v, l, c]) => (
+              <button key={v} type="button" className={'ds-toggle' + (method === v ? ' on' : '')} style={sel(method === v, c)} onClick={() => setMethod(v)}>{l}</button>
+            ))}
+          </div>
+          {isHq && (
+            <select className="ds-select" value={feeBranch} onChange={(e) => setFeeBranch(e.target.value)} aria-label="收費分館">
+              <option value="">選擇收費的分館</option>
+              {branches.filter((b) => b.is_active).map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+            </select>
+          )}
+        </div>
+      )}
+      {fee === 0 && <div className="ds-note">目前沒有設定轉讓費（品項管理「方案轉讓費」可以設定金額）。</div>}
       <div className="ds-field"><label className="ds-label" htmlFor="tr">原因（必填）</label>
         <input id="tr" className="ds-input" value={reason} onChange={(e) => setReason(e.target.value)} /></div>
       <div className="dlg-actions">
         <button className="ds-btn" style={{ height: 52 }} onClick={onClose}>取消</button>
-        <button className="ds-btn-primary" disabled={!to || !reason.trim()} onClick={() => setStep(2)}>下一步</button>
+        <button className="ds-btn-primary" disabled={!to || !reason.trim() || fee === null || (fee > 0 && isHq && !feeBranch)} onClick={() => setStep(2)}>下一步</button>
       </div>
     </Modal>
   )
@@ -89,7 +122,7 @@ export function RefundDialog({ plan, onClose, onDone }) {
   const sel = (on, c) => (on ? { '--on': c } : {})
   if (step === 2) {
     return <ConfirmDialog title="確定要退費？" confirmText={`確認退費 ${money(amt)}`}
-      lines={[['訂單', order.order_no], ['方案', plan.name], ['退款方式', method === 'cash' ? '現金' : 'LINE Pay'], ['退款金額', money(amt)], ['原因', reason]]}
+      lines={[['訂單', order.order_no], ['方案', plan.name], ['退款方式', PAY_METHODS.find((m) => m[0] === method)[1]], ['退款金額', money(amt)], ['原因', reason]]}
       onConfirm={async () => { await rpc('refund_order', { p_order_id: order.id, p_method: method, p_amount: amt, p_reason: reason }); onDone() }}
       onClose={onClose}>
       <div className="ds-note">退款記在今天的帳上；這張訂單產生的方案會一併取消。</div>
@@ -97,9 +130,10 @@ export function RefundDialog({ plan, onClose, onDone }) {
   }
   return (
     <Modal title={`退費「${plan.name}」`} onClose={onClose}>
-      <div className="co-grid2">
-        <button type="button" className={'ds-toggle' + (method === 'cash' ? ' on' : '')} style={sel(method === 'cash', 'var(--c-ink)')} onClick={() => setMethod('cash')}>退現金</button>
-        <button type="button" className={'ds-toggle' + (method === 'line_pay' ? ' on' : '')} style={sel(method === 'line_pay', 'var(--c-linepay)')} onClick={() => setMethod('line_pay')}>退 LINE Pay</button>
+      <div className="co-grid3">
+        {PAY_METHODS.map(([v, l, c]) => (
+          <button key={v} type="button" className={'ds-toggle' + (method === v ? ' on' : '')} style={sel(method === v, c)} onClick={() => setMethod(v)}>退{l}</button>
+        ))}
       </div>
       <div className="ds-field"><label className="ds-label" htmlFor="ra">退款金額</label>
         <input id="ra" className="ds-input" inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value.replace(/\D/g, ''))} /></div>

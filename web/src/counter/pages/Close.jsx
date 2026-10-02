@@ -6,6 +6,7 @@ import { useCounter } from '../CounterContext'
 import Modal from '../../components/Modal'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import { useToast } from '../../components/Toast'
+import { loadHeld } from '../held'
 
 // 關帳：左邊今日金額與品項銷售；右邊點現金（零用金為分館固定金額，由後台設定）
 export default function Close() {
@@ -40,10 +41,14 @@ export default function Close() {
   return (
     <div className="page">
       <div className="col grow">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 16 }}>
+        {!closed && loadHeld(branch.id).length > 0 && (
+          <div className="ds-note" style={{ color: 'var(--c-bad)' }}>這台平板還有 {loadHeld(branch.id).length} 筆「保留中」的訂單沒有結帳，請先到結帳頁處理（結帳或刪除）。</div>
+        )}
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${pv.transfer_sales ? 4 : 3}, minmax(0, 1fr))`, gap: 16 }}>
           <div className="ds-stat"><span className="ds-stat-label">現金（{pv.cash_count} 筆）</span><span className="ds-stat-value" style={{ fontSize: 30 }}>{money(pv.cash_sales)}</span></div>
           <div className="ds-stat"><span className="ds-stat-label">LINE Pay（{pv.line_pay_count} 筆）</span><span className="ds-stat-value" style={{ fontSize: 30 }}>{money(pv.line_pay_sales)}</span></div>
-          <div className="ds-stat"><span className="ds-stat-label">今日合計（{pv.order_count} 筆）</span><span className="ds-stat-value" style={{ fontSize: 30, color: 'var(--c-accent)' }}>{money(pv.cash_sales + pv.line_pay_sales)}</span></div>
+          {pv.transfer_sales > 0 && <div className="ds-stat"><span className="ds-stat-label">轉帳（{pv.transfer_count} 筆）</span><span className="ds-stat-value" style={{ fontSize: 30 }}>{money(pv.transfer_sales)}</span></div>}
+          <div className="ds-stat"><span className="ds-stat-label">今日合計（{pv.order_count} 筆）</span><span className="ds-stat-value" style={{ fontSize: 30, color: 'var(--c-accent)' }}>{money(pv.cash_sales + pv.line_pay_sales + (pv.transfer_sales || 0))}</span></div>
         </div>
         <div className="ds-card close-sales" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <span className="ds-card-title">品項銷售</span>

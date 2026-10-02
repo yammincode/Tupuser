@@ -7,9 +7,9 @@ import { Card, Stat, num } from './common'
 import { useAdmin } from '../AdminContext'
 
 const STATUS_TEXT = { paid: '已付款', voided: '作廢', refunded: '已退費' }
-const METHOD_TEXT = { cash: '現金', line_pay: 'LINE Pay' }
-const payText = (r) => [r.cash && `現金 ${r.cash}`, r.line_pay && `LINE Pay ${r.line_pay}`].filter(Boolean).join('＋') || '—'
-const invoiceKind = (r) => (r.tax_id ? `統編 ${r.tax_id}` : r.invoice_type === 'carrier' ? `載具 ${r.carrier || ''}` : '列印')
+const METHOD_TEXT = { cash: '現金', line_pay: 'LINE Pay', transfer: '轉帳' }
+const payText = (r) => [r.cash && `現金 ${r.cash}`, r.line_pay && `LINE Pay ${r.line_pay}`, r.transfer && `轉帳 ${r.transfer}`].filter(Boolean).join('＋') || '—'
+const invoiceKind = (r) => (r.tax_id ? `統編 ${r.tax_id}` : r.invoice_type === 'carrier' ? `載具 ${r.carrier || ''}` : r.invoice_type === 'donation' ? `捐贈 ${r.donate_code || ''}` : '列印')
 const FILTERS = [['all', '全部'], ['tax', '有統編'], ['voided', '作廢'], ['refunded', '已退費'], ['no_no', '沒有發票號碼']]
 const SHOW = 300
 
@@ -24,13 +24,13 @@ export default function Accounting({ from, to, branchId, branchName, fileTag, se
     const s = data.summary
     setExporter(() => () => downloadCsv(`origin_accounting_${fileTag}_${from}_${to}`, [
       { title: `會計報表 ${from} ～ ${to}　${branchName}（金額為含稅價，未稅與稅額依 5% 反推）`,
-        head: ['銷售總額（含稅）', '現金', 'LINE Pay', '退款', '淨額（含稅）', '淨額（未稅）', '營業稅', '訂單數', '作廢筆數', '作廢金額', '開統編張數', '沒有發票號碼'],
-        rows: [[s.sales, s.cash, s.line_pay, s.refunds, s.net, s.net_untaxed, s.tax, s.orders, s.voided, s.voided_amount, s.with_tax_id, s.no_invoice_no]] },
-      { title: '每日彙總', head: ['日期', '分館', '訂單數', '銷售', '現金', 'LINE Pay', '退款', '淨額'],
-        rows: data.by_day.map((d) => [d.date, d.branch, d.orders, d.sales, d.cash, d.line_pay, d.refunds, d.net]) },
-      { title: '發票明細（每筆訂單，含作廢）', head: ['營業日', '時間', '分館', '訂單編號', '發票號碼', '發票', '載具', '統一編號', '品項', '小計', '折扣', '金額', '現金', 'LINE Pay', '狀態', '作廢原因'],
-        rows: data.invoices.map((r) => [r.date, time(r.at), r.branch, r.order_no, r.invoice_no, r.invoice_type === 'carrier' ? '手機載具' : '列印',
-          r.carrier, r.tax_id, r.items, r.subtotal, r.discount, r.total, r.cash, r.line_pay, STATUS_TEXT[r.status], r.void_reason]) },
+        head: ['銷售總額（含稅）', '現金', 'LINE Pay', '轉帳', '退款', '淨額（含稅）', '淨額（未稅）', '營業稅', '訂單數', '作廢筆數', '作廢金額', '開統編張數', '沒有發票號碼'],
+        rows: [[s.sales, s.cash, s.line_pay, s.transfer || 0, s.refunds, s.net, s.net_untaxed, s.tax, s.orders, s.voided, s.voided_amount, s.with_tax_id, s.no_invoice_no]] },
+      { title: '每日彙總', head: ['日期', '分館', '訂單數', '銷售', '現金', 'LINE Pay', '轉帳', '退款', '淨額'],
+        rows: data.by_day.map((d) => [d.date, d.branch, d.orders, d.sales, d.cash, d.line_pay, d.transfer || 0, d.refunds, d.net]) },
+      { title: '發票明細（每筆訂單，含作廢）', head: ['營業日', '時間', '分館', '訂單編號', '發票號碼', '發票', '載具', '統一編號', '愛心碼', '品項', '小計', '折扣', '金額', '現金', 'LINE Pay', '轉帳', '狀態', '作廢原因'],
+        rows: data.invoices.map((r) => [r.date, time(r.at), r.branch, r.order_no, r.invoice_no, ({ carrier: '手機載具', donation: '捐贈' })[r.invoice_type] || '列印',
+          r.carrier, r.tax_id, r.donate_code, r.items, r.subtotal, r.discount, r.total, r.cash, r.line_pay, r.transfer || 0, STATUS_TEXT[r.status], r.void_reason]) },
       { title: '退款明細（依退款日）', head: ['退款日', '時間', '分館', '原訂單編號', '原發票號碼', '原訂單日期', '金額', '方式', '原因'],
         rows: data.refunds.map((r) => [r.date, time(r.at), r.branch, r.order_no, r.invoice_no, r.order_date, r.amount, METHOD_TEXT[r.method], r.reason]) },
     ]))
@@ -49,7 +49,7 @@ export default function Accounting({ from, to, branchId, branchName, fileTag, se
   if (loading && !data) return <div className="center muted">計算中…</div>
   if (!data) return null
   const s = data.summary
-  const dayCols = '110px minmax(0, 1fr) 70px 110px 110px 110px 100px 110px'
+  const dayCols = '110px minmax(0, 1fr) 70px 110px 100px 100px 100px 100px 110px'
   const invCols = '96px 90px 150px 110px 150px minmax(160px, 1.6fr) 90px 150px 70px'
   const rfCols = '96px 90px 150px 110px 96px 90px 80px minmax(120px, 1fr)'
 
@@ -60,8 +60,8 @@ export default function Accounting({ from, to, branchId, branchName, fileTag, se
         <Stat label="退款" value={money(s.refunds)} sub="依退款日計算" />
         <Stat label="淨額（含稅）" value={money(s.net)} sub="銷售 − 退款" />
         <Stat label="未稅／營業稅 5%" value={money(s.net_untaxed)} sub={`稅額 ${money(s.tax)}（由含稅價反推）`} />
-        <Stat label="付款方式" value={<span style={{ fontSize: 17, lineHeight: 1.6, display: 'block' }}>現金 {money(s.cash)}<br />LINE Pay {money(s.line_pay)}</span>}
-          sub={s.refunds ? `退款：現金 ${money(s.refund_cash)}、LINE Pay ${money(s.refund_line_pay)}` : ''} />
+        <Stat label="付款方式" value={<span style={{ fontSize: 17, lineHeight: 1.6, display: 'block' }}>現金 {money(s.cash)}<br />LINE Pay {money(s.line_pay)}{s.transfer ? <><br />轉帳 {money(s.transfer)}</> : null}</span>}
+          sub={s.refunds ? `退款：現金 ${money(s.refund_cash)}、LINE Pay ${money(s.refund_line_pay)}${s.refund_transfer ? `、轉帳 ${money(s.refund_transfer)}` : ''}` : ''} />
       </div>
       {s.no_invoice_no > 0 && (
         <div className="ds-note">有 {num(s.no_invoice_no)} 筆訂單還沒有發票號碼。電子發票串接加值中心之後，發票號碼會自動填入；{isAccountant ? '在那之前由總部在「訂單」頁手動補上。' : '在那之前可到「訂單」頁手動補上。'}</div>
@@ -73,12 +73,12 @@ export default function Accounting({ from, to, branchId, branchName, fileTag, se
       <Card title="每日彙總">
         <div style={{ overflowX: 'auto' }}>
           <div className="ds-thead rpt-wide" style={{ display: 'grid', gridTemplateColumns: dayCols, gap: 8, marginTop: 8 }}>
-            <span>日期</span><span>分館</span><span>訂單</span><span>銷售</span><span>現金</span><span>LINE Pay</span><span>退款</span><span>淨額</span>
+            <span>日期</span><span>分館</span><span>訂單</span><span>銷售</span><span>現金</span><span>LINE Pay</span><span>轉帳</span><span>退款</span><span>淨額</span>
           </div>
           {data.by_day.map((d) => (
             <div key={d.date + d.branch} className="rpt-table-row rpt-wide" style={{ gridTemplateColumns: dayCols }}>
               <span>{slashDate(d.date)}</span><span>{d.branch}</span><span>{num(d.orders)}</span>
-              <span>{money(d.sales)}</span><span className="muted">{money(d.cash)}</span><span className="muted">{money(d.line_pay)}</span>
+              <span>{money(d.sales)}</span><span className="muted">{money(d.cash)}</span><span className="muted">{money(d.line_pay)}</span><span className="muted">{money(d.transfer || 0)}</span>
               <span style={{ color: d.refunds ? 'var(--c-bad)' : 'var(--c-muted)' }}>{d.refunds ? '− ' + money(d.refunds) : '—'}</span>
               <span style={{ fontWeight: 500 }}>{money(d.net)}</span>
             </div>

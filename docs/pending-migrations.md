@@ -61,6 +61,19 @@
 
 ---
 
+# 0021～0022（⏳ 待執行，2026-10-02 同事回饋）
+
+**一定要分兩次執行**：先執行 0021，看到 Success 後，再開一個新的 query 執行 0022（0021 新增的選項要先存好）。
+
+| ✓ | 順序 | 檔名 | 行數 | 做什麼 |
+|---|---|---|---|---|
+| ⬜ | 0021 | `20261003000021_new_options.sql` | 12 | 新增選項：商品、轉帳、捐贈 |
+| ⬜ | 0022 | `20261003000022_counter_feedback.sql` | 573 | 商品與租借分開、轉帳、捐贈發票、可轉讓設定、方案轉讓費 |
+
+執行完之後：到品項管理把「方案轉讓費」設成要收的金額（0 元＝不收）。
+
+---
+
 ## 檢查資料庫更新有沒有都執行（隨時可用，只查看、不會改資料）
 
 ```sql
@@ -76,5 +89,7 @@ union all select '0016', exists (select 1 from information_schema.columns where 
 union all select '0017', to_regclass('public.stock_movements') is not null
 union all select '0018', to_regprocedure('public.report_accounting(date,date,uuid)') is not null
 union all select '0019', to_regclass('public.member_tags') is not null
-union all select '0020', to_regclass('public.guest_waivers') is not null;
+union all select '0020', to_regclass('public.guest_waivers') is not null
+union all select '0021', exists (select 1 from pg_enum where enumlabel = 'transfer')
+union all select '0022', exists (select 1 from information_schema.columns where table_name = 'products' and column_name = 'transferable');
 ```

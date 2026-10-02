@@ -9,15 +9,15 @@ import { Bar, Card, Columns, Stat, num, C } from './common'
 export default function Overview({ from, to, branchId, branchName, fileTag, setExporter }) {
   const { data, error, loading } = useAsync(() => rpc('sales_report', { p_from: from, p_to: to, p_branch_id: branchId }), [from, to, branchId])
   const total = (k) => (data?.by_branch || []).reduce((s, b) => s + b[k], 0)
-  const net = total('cash') + total('line_pay') - total('refunds')
+  const net = total('cash') + total('line_pay') + total('transfer') - total('refunds')
 
   useEffect(() => {
     if (!data) return
     setExporter(() => () => downloadCsv(`origin_overview_${fileTag}_${from}_${to}`, [
       { title: `總覽 ${from} ~ ${to} ${branchName}`, head: ['淨營收', '訂單數', '入場人次', '新會員'], rows: [[net, total('orders'), total('checkins'), total('new_members')]] },
       { title: '每日營收', head: ['日期', '營收', '退費', '淨營收'], rows: data.by_day.map((d) => [d.date, d.sales, d.refunds, d.net]) },
-      { title: '各分館', head: ['分館', '訂單', '現金', 'LINE Pay', '退費', '淨營收', '入場', '新會員'],
-        rows: data.by_branch.map((b) => [b.name, b.orders, b.cash, b.line_pay, b.refunds, b.cash + b.line_pay - b.refunds, b.checkins, b.new_members]) },
+      { title: '各分館', head: ['分館', '訂單', '現金', 'LINE Pay', '轉帳', '退費', '淨營收', '入場', '新會員'],
+        rows: data.by_branch.map((b) => [b.name, b.orders, b.cash, b.line_pay, b.transfer || 0, b.refunds, b.cash + b.line_pay + (b.transfer || 0) - b.refunds, b.checkins, b.new_members]) },
       { title: '品項排行', head: ['品項', '數量', '金額'], rows: data.top_items.map((i) => [i.name, i.quantity, i.amount]) },
       { title: '關帳差額', head: ['日期', '分館', '差額', '說明', '曾重新開帳'], rows: data.closings.map((c) => [c.date, c.branch, c.difference, c.note || '', c.reopened ? '是' : '']) },
     ]))
@@ -49,13 +49,13 @@ export default function Overview({ from, to, branchId, branchName, fileTag, setE
 }
 
 function BranchTable({ rows }) {
-  const nets = rows.map((b) => b.cash + b.line_pay - b.refunds)
+  const nets = rows.map((b) => b.cash + b.line_pay + (b.transfer || 0) - b.refunds)
   const max = Math.max(0, ...nets)
-  const cols = '120px 70px 110px 110px 100px minmax(0, 1.4fr) 80px 70px'
+  const cols = '110px 60px 100px 100px 90px 90px minmax(0, 1.4fr) 70px 70px'
   return (
     <>
       <div className="ds-thead rpt-wide" style={{ display: 'grid', gridTemplateColumns: cols, gap: 8 }}>
-        <span>分館</span><span>訂單</span><span>現金</span><span>LINE Pay</span><span>退費</span><span>淨營收</span><span>入場</span><span>新會員</span>
+        <span>分館</span><span>訂單</span><span>現金</span><span>LINE Pay</span><span>轉帳</span><span>退費</span><span>淨營收</span><span>入場</span><span>新會員</span>
       </div>
       {rows.map((b, i) => (
         <div key={b.branch_id} className="rpt-table-row rpt-wide" style={{ gridTemplateColumns: cols }}>
@@ -63,6 +63,7 @@ function BranchTable({ rows }) {
           <span>{num(b.orders)}</span>
           <span>{money(b.cash)}</span>
           <span>{money(b.line_pay)}</span>
+          <span>{money(b.transfer || 0)}</span>
           <span style={{ color: b.refunds ? 'var(--c-bad)' : 'var(--c-muted)' }}>{b.refunds ? '− ' + money(b.refunds) : '—'}</span>
           <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}><b style={{ minWidth: 104, fontWeight: 500 }}>{money(nets[i])}</b><Bar value={nets[i]} max={max} /></span>
           <span>{num(b.checkins)}</span>

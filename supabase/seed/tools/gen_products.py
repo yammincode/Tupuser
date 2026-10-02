@@ -126,7 +126,7 @@ out.append("""-- ===============================================================
 -- =====================================================================
 do $seed$
 begin
-  if exists (select 1 from public.products) then
+  if exists (select 1 from public.products where to_jsonb(products) ->> 'system_key' is null) then
     raise notice '已經有品項資料，跳過';
     return;
   end if;
