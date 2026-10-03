@@ -14,6 +14,7 @@ import Reports from './pages/Reports'
 import Waivers from './pages/Waivers'
 import Members from './pages/Members'
 import Audit from './pages/Audit'
+import { APP_VERSION } from '../version'
 
 const TABS = [
   { to: 'products', label: '品項管理' },
@@ -97,6 +98,7 @@ export default function AdminApp() {
                 <div className="staff-menu-pop" onClick={() => setMenu(false)}>
                   {!isAccountant && <button onClick={() => { window.location.href = '/counter' }}>前往櫃檯</button>}
                   <button onClick={() => signOutWithLog('admin')}>登出</button>
+                  <div className="staff-menu-ver">系統版本 {APP_VERSION}</div>
                 </div>
               )}
             </div>

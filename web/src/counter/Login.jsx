@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { logActivity } from '../lib/activity'
 import { supabase, errorText } from '../lib/supabase'
+import { APP_VERSION } from '../version'
 
 export default function Login({ title = '櫃檯登入', app = 'counter' }) {
   const [email, setEmail] = useState('')
@@ -35,6 +36,7 @@ export default function Login({ title = '櫃檯登入', app = 'counter' }) {
         </div>
         {error && <div className="ds-error">{error}</div>}
         <button className="ds-btn-primary" disabled={busy}>{busy ? '登入中…' : '登入'}</button>
+        <div className="muted" style={{ fontSize: 13, textAlign: 'center' }}>系統版本 {APP_VERSION}</div>
       </form>
     </div>
   )

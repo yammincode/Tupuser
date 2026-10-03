@@ -108,6 +108,7 @@
 
 - 開發分支（開發版）：`claude/yuanyan-climbing-database-kqjhqv`，平常所有修改都放這裡，不會部署。
 - 正式版分支：`production`，Netlify 只部署這個分支（老闆 2026-10-01 決定）。**只有老闆說「上線／更新正式版」時**，才把開發分支合併到 `production` 並推送；推送前先確認資料庫更新檔都已經由老闆執行完，並告知這次更新的內容。
+- **版本號（老闆 2026-10-03 決定）**：每次更新正式版，先把 `web/src/version.js` 的 `APP_VERSION` +0.1、在 `docs/changelog.md` 補上這版日期與內容，commit 到開發分支後再合併到 `production`；上線後告訴老闆新版本號，請老闆打開系統確認畫面上的數字一樣。
 
 ## 目前進度
 

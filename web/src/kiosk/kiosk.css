@@ -19,6 +19,7 @@
 .kiosk-action { font-size: 32px; font-weight: 700; }
 .kiosk-action-sub { font-size: 22px; line-height: 1.5; color: var(--c-muted); }
 .kiosk-footer { height: 76px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 22px; opacity: .85; }
+.kiosk-ver { position: fixed; right: 16px; bottom: 10px; font-size: 13px; opacity: .45; pointer-events: none; }
 .kiosk-start { position: fixed; inset: 0; border: 0; background: var(--c-overlay); color: #FFFFFF; font-family: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; cursor: pointer; }
 .kiosk-start span { font-size: 40px; font-weight: 700; }
 .kiosk-start small { font-size: 20px; opacity: .8; }

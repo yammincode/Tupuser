@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { member, memberErrorText, toE164 } from '../client'
+import { APP_VERSION } from '../../version'
 
 // 會員登入：手機號碼＋簡訊驗證碼（設計稿 Login）
 export default function Login({ notice, onClearNotice }) {
@@ -101,6 +102,7 @@ export default function Login({ notice, onClearNotice }) {
       <div className={'mb-hint' + (notice ? ' warn' : '')}>
         {notice || '第一次來？請先在任一分館櫃檯完成註冊與免責同意書，之後就能用手機號碼登入。'}
       </div>
+      <div className="mb-muted" style={{ fontSize: 12, textAlign: 'center' }}>版本 {APP_VERSION}</div>
     </form>
   )
 }

@@ -3,6 +3,7 @@ import { useMember, useNow, useWakeLock } from '../MemberApp'
 import { qrPayload } from '../totp'
 import { tiles } from '../plan'
 import QrCode from '../QrCode'
+import { APP_VERSION } from '../../version'
 
 // 入場碼（設計稿 Main）：QR 每 30 秒自動更新；入場時自動使用「目前方案」
 export default function Home() {
@@ -51,6 +52,7 @@ export default function Home() {
         {plan ? `目前方案：${plan.name}・${plan.branches ? plan.branches.join('、') : '全分館通用'}` : '目前沒有可用的方案，請至櫃檯購買'}
       </div>
       {offline && <div className="mb-muted" style={{ margin: '8px 24px 0', fontSize: 13 }}>目前沒有網路，顯示上次的資料；入場碼仍然有效。</div>}
+      <div className="mb-muted" style={{ margin: '16px 24px 8px', fontSize: 12, textAlign: 'center' }}>版本 {APP_VERSION}</div>
     </>
   )
 }

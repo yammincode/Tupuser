@@ -16,6 +16,7 @@ import WaiverSign from './pages/WaiverSign'
 import Today from './pages/Today'
 import Close from './pages/Close'
 import Stock from './pages/Stock'
+import { APP_VERSION } from '../version'
 
 const TABS = [
   { to: 'checkout', label: '結帳', tour: '點左邊彩色格子把品項加入右邊清單，選好付款方式和發票就能結帳。不適用今天的票會變淡、不能點。' },
@@ -176,6 +177,7 @@ export default function CounterApp() {
                       {/* 總部與店長可以切到總部後台；櫃檯人員看不到這個選項 */}
                       {staff.role !== 'cashier' && <button onClick={() => { window.location.href = '/admin' }}>前往總部後台</button>}
                       <button onClick={() => signOutWithLog('counter', branch?.id)}>登出</button>
+                      <div className="staff-menu-ver">系統版本 {APP_VERSION}</div>
                     </div>
                   )}
                 </div>

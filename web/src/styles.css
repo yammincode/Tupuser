@@ -311,3 +311,6 @@ a:hover { color: var(--c-accent-hover); }
 }
 /* 後台頂欄：店名不換行（店長帳號會多顯示分館名） */
 .counter.admin .ds-topbar-brand, .counter.admin .ds-topbar-branch { white-space: nowrap; }
+
+/* 系統版本號（右上選單最下方） */
+.staff-menu-ver { padding: 8px 12px 4px; margin-top: 4px; border-top: 1px solid var(--c-line); font-size: 13px; color: var(--c-muted); }

@@ -3,6 +3,7 @@ import { supabase, rpc, errorText } from '../lib/supabase'
 import { nowTimeTPE, slashDate, todayTPE } from '../lib/format'
 import { beep } from './sound'
 import './kiosk.css'
+import { APP_VERSION } from '../version'
 
 // 入場機（design/Checkin.dc.html）：待機／成功／方案到期／需簽同意書／QR 失效
 const SCREEN = {
@@ -237,6 +238,7 @@ export default function KioskApp() {
       )}
 
       <div className="kiosk-footer">{view ? `${left} 秒後回到待機畫面` : '第一次來？請至櫃檯註冊並簽署同意書'}</div>
+      <div className="kiosk-ver">{APP_VERSION}</div>
 
       {!started && (
         <button type="button" className="kiosk-start" onClick={() => {
