@@ -8,7 +8,7 @@ import { VoidDialog, OrderRefundDialog } from '../../counter/pages/Today'
 import { useToast } from '../../components/Toast'
 
 const STATUS = { paid: ['已付款', 'var(--c-ok)'], voided: ['已作廢', 'var(--c-muted)'], refunded: ['已退費', 'var(--c-bad)'] }
-const PAY = { cash: '現金', line_pay: 'LINE Pay' }
+const PAY = { cash: '現金', line_pay: 'LINE Pay', transfer: '轉帳' }
 
 // 訂單：查任何一天的訂單；作廢、退費、修改（含已關帳的日子，會留下紀錄）
 export default function Orders() {
@@ -23,7 +23,9 @@ export default function Orders() {
     let q = supabase.from('orders')
       .select('*, members(name, phone), cashier:staff!orders_cashier_staff_id_fkey(name), sales:staff!orders_sales_staff_id_fkey(id, name), order_items(product_name, quantity, line_total), payments(method, amount), refunds(amount, method)')
       .order('created_at', { ascending: false }).limit(300)
-    q = no.trim() ? q.ilike('order_no', `%${no.trim().toUpperCase()}%`) : q.eq('business_date', date)
+    // 搜尋訂單編號或發票號碼（不限日期）
+    const kw = no.trim().toUpperCase().replace(/[,()%]/g, '')
+    q = kw ? q.or(`order_no.ilike.%${kw}%,invoice_no.ilike.%${kw}%`) : q.eq('business_date', date)
     if (branchId) q = q.eq('branch_id', branchId)
     const [orders, closings] = await Promise.all([
       q.then(unwrap),
@@ -46,7 +48,7 @@ export default function Orders() {
           {isHq && <option value="">全部分館</option>}
           {branches.filter((b) => isHq || b.id === staff.branch_id).map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
         </select>
-        <input className="ds-input" type="search" style={{ width: 240 }} placeholder="搜尋訂單編號（不限日期）" value={no} onChange={(e) => setNo(e.target.value)} />
+        <input className="ds-input" type="search" style={{ width: 240 }} placeholder="搜尋訂單編號或發票號碼（不限日期）" value={no} onChange={(e) => setNo(e.target.value)} />
         <div className="grow" />
         {!no && <span className="muted" style={{ fontSize: 14 }}>{shortDay(date)} 共 {paid.length} 筆・{money(paid.reduce((s, o) => s + o.total, 0))}</span>}
       </div>
@@ -90,7 +92,8 @@ export default function Orders() {
 function EditOrder({ o, closed, onClose, onDone }) {
   const { branches } = useAdmin()
   const [f, setF] = useState({ note: o.note || '', sales_staff_id: o.sales?.id || '', invoice_type: o.invoice_type,
-    invoice_carrier: o.invoice_carrier || '', invoice_tax_id: o.invoice_tax_id || '', invoice_no: o.invoice_no || '' })
+    invoice_carrier: o.invoice_carrier || '', invoice_tax_id: o.invoice_tax_id || '', invoice_no: o.invoice_no || '',
+    invoice_donate_code: o.invoice_donate_code || '' })
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const { data: colleagues } = useAsync(async () =>
@@ -101,7 +104,8 @@ function EditOrder({ o, closed, onClose, onDone }) {
     const { error } = await supabase.from('orders').update({
       note: f.note.trim() || null, sales_staff_id: f.sales_staff_id || null, invoice_type: f.invoice_type,
       invoice_carrier: f.invoice_type === 'carrier' ? f.invoice_carrier.trim().toUpperCase() || null : null,
-      invoice_tax_id: f.invoice_tax_id.trim() || null, invoice_no: f.invoice_no.trim() || null,
+      invoice_tax_id: f.invoice_type === 'donation' ? null : f.invoice_tax_id.trim() || null, invoice_no: f.invoice_no.trim() || null,
+      invoice_donate_code: f.invoice_type === 'donation' ? f.invoice_donate_code.trim() || null : null,
     }).eq('id', o.id)
     setBusy(false)
     if (error) setError(errorText(error)); else { onDone(); onClose() }
@@ -120,9 +124,11 @@ function EditOrder({ o, closed, onClose, onDone }) {
       <div className="co-grid2" style={{ gap: 12 }}>
         <div className="ds-field"><span className="ds-label">發票</span>
           <select className="ds-select" value={f.invoice_type} onChange={(e) => setF({ ...f, invoice_type: e.target.value })}>
-            <option value="carrier">手機載具</option><option value="print">列印</option>
+            <option value="carrier">手機載具</option><option value="print">列印</option><option value="donation">捐贈</option>
           </select></div>
-        {f.invoice_type === 'carrier'
+        {f.invoice_type === 'donation'
+          ? <div className="ds-field"><span className="ds-label">愛心碼</span><input className="ds-input" style={{ width: '100%' }} inputMode="numeric" maxLength={7} value={f.invoice_donate_code} onChange={(e) => setF({ ...f, invoice_donate_code: e.target.value.replace(/\D/g, '') })} /></div>
+          : f.invoice_type === 'carrier'
           ? <div className="ds-field"><span className="ds-label">載具號碼</span><input className="ds-input" style={{ width: '100%' }} value={f.invoice_carrier} onChange={(e) => setF({ ...f, invoice_carrier: e.target.value })} /></div>
           : <div className="ds-field"><span className="ds-label">統一編號</span><input className="ds-input" style={{ width: '100%' }} value={f.invoice_tax_id} onChange={(e) => setF({ ...f, invoice_tax_id: e.target.value.replace(/\D/g, '') })} maxLength={8} /></div>}
       </div>

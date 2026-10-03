@@ -51,7 +51,9 @@ export function phoneText(p) {
 
 export const ROLE_TEXT = { hq: '總部', manager: '店長', cashier: '櫃檯', accountant: '會計' }
 
-export const CONTENT_TEXT = { single: '單次', punch: '次數', days: '天數', course: '課程', rental: '租借' }
+export const CONTENT_TEXT = { single: '單次', punch: '次數', days: '天數', course: '課程', rental: '租借', goods: '商品' }
+export const PAY_TEXT = { cash: '現金', line_pay: 'LINE Pay', transfer: '轉帳' }
+export const INVOICE_TEXT = { carrier: '手機載具', print: '列印', donation: '捐贈' }
 
 export const PLAN_STATUS = {
   active: { text: '使用中', tone: 'ok' },

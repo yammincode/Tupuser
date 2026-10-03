@@ -10,7 +10,6 @@ import Modal from '../../components/Modal'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import { useToast } from '../../components/Toast'
 import { logActivity } from '../../lib/activity'
-import { AdjustDialog, ExtendDialog, ReasonDialog, RefundDialog, TransferDialog } from '../../components/PlanDialogs'
 import { MemberNotes, TagEditDialog, TagPills, useMemberTags } from '../../components/MemberTags'
 
 const STATUS_PILL = { active: ['正常', 'ok'], suspended: ['暫停', 'warn'], inactive: ['停用', 'off'] }
@@ -98,7 +97,6 @@ function MemberDetail({ memberId }) {
   const plan = plans.find((p) => p.id === planId)
   const [st, tone] = STATUS_PILL[m.status]
   const shownPlans = plans.filter((p) => ['active', 'frozen'].includes(p.status) || p === plans.find((x) => x.status === 'expired'))
-  const planOrder = plan?.order_items?.orders
 
   async function saveNote() {
     if (noteDraft === (m.staff_note || '')) return
@@ -108,7 +106,8 @@ function MemberDetail({ memberId }) {
 
   async function enter() {
     try {
-      const r = await rpc('counter_checkin', { p_member_id: m.id, p_plan_id: plan?.content_type === 'course' ? plan.id : null })
+      // 用目前選的方案扣（使用中才指定，否則由系統挑）；分館＝這台櫃檯的分館
+      const r = await rpc('counter_checkin', { p_member_id: m.id, p_plan_id: plan?.status === 'active' ? plan.id : null, p_branch_id: branch.id })
       setCheckin(r); refreshCount(); load()
     } catch (e) { toast(e.message, 'bad') }
   }
@@ -147,7 +146,7 @@ function MemberDetail({ memberId }) {
         <div className="ds-card" style={{ gap: 8 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span className="ds-card-title">方案</span>
-            <span style={{ fontSize: 12, color: 'var(--c-muted)' }}>暫停・延期・轉讓・退費限店長</span>
+            <span style={{ fontSize: 12, color: 'var(--c-muted)' }}>暫停、延期、轉讓、退費請到總部後台</span>
           </div>
           <div style={{ flexGrow: 1, overflowY: 'auto' }}>
             {shownPlans.length === 0 && <div className="co-empty">沒有方案</div>}
@@ -162,14 +161,7 @@ function MemberDetail({ memberId }) {
             })}
           </div>
           <div style={{ display: 'flex', gap: 8, paddingTop: 6, flexWrap: 'wrap' }}>
-            <button type="button" className="ds-btn ok" onClick={enter}>扣次入場</button>
-            {plan?.status === 'frozen'
-              ? <button type="button" className="ds-btn" disabled={!isManager} onClick={() => setDialog('unfreeze')}>恢復</button>
-              : <button type="button" className="ds-btn" disabled={!isManager || plan?.status !== 'active'} onClick={() => setDialog('freeze')}>暫停</button>}
-            <button type="button" className="ds-btn" disabled={!isManager || !plan?.end_date} onClick={() => setDialog('extend')}>延期</button>
-            <button type="button" className="ds-btn" disabled={!isManager || !plan || plan.content_type === 'days' || plan.status === 'cancelled'} onClick={() => setDialog('adjust')}>調整次數</button>
-            <button type="button" className="ds-btn" disabled={!isManager || !['active', 'frozen'].includes(plan?.status)} onClick={() => setDialog('transfer')}>轉讓</button>
-            <button type="button" className="ds-btn" disabled={!isManager || !planOrder || planOrder.status !== 'paid'} onClick={() => setDialog('refund')}>退費</button>
+            <button type="button" className="ds-btn ok" onClick={enter}>扣次入場{plan?.status === 'active' ? `（${plan.name}）` : ''}</button>
           </div>
         </div>
 
@@ -210,17 +202,6 @@ function MemberDetail({ memberId }) {
       </div>
 
       {dialog === 'tags' && <TagEditDialog memberId={m.id} current={tagData.tags} onClose={() => setDialog(null)} onDone={() => { toast('標籤已更新'); tagData.reload() }} />}
-      {dialog === 'freeze' && <ReasonDialog title={`暫停「${plan.name}」`} hint="暫停期間不能入場；恢復時會依暫停天數自動延長到期日。"
-        confirmText="確認暫停" onClose={() => setDialog(null)}
-        onConfirm={async (reason) => { await rpc('freeze_plan', { p_plan_id: plan.id, p_reason: reason }); toast('方案已暫停'); load() }} />}
-      {dialog === 'unfreeze' && <ConfirmDialog title={`恢復「${plan.name}」？`} confirmText="確認恢復"
-        lines={[['暫停開始', slashDate(plan.frozen_at)], ['到期日', plan.end_date ? '會依暫停天數自動延長' : '不限期']]}
-        onClose={() => setDialog(null)}
-        onConfirm={async () => { await rpc('unfreeze_plan', { p_plan_id: plan.id }); toast('方案已恢復'); load() }} />}
-      {dialog === 'adjust' && <AdjustDialog plan={plan} onClose={() => setDialog(null)} onDone={() => { toast('已調整'); load() }} />}
-      {dialog === 'extend' && <ExtendDialog plan={plan} onClose={() => setDialog(null)} onDone={() => { toast('已延期'); load() }} />}
-      {dialog === 'transfer' && <TransferDialog plan={plan} from={m} onClose={() => setDialog(null)} onDone={() => { toast('已轉讓'); load() }} />}
-      {dialog === 'refund' && <RefundDialog plan={plan} onClose={() => setDialog(null)} onDone={() => { toast('退費完成'); load() }} />}
       {checkin && <CheckinResultDialog result={checkin} onClose={() => setCheckin(null)}
         onWaiver={() => navigate(`/counter/waiver/${m.id}`, { state: { back: '/counter/members', memberId: m.id } })} />}
     </>

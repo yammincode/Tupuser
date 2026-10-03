@@ -7,13 +7,14 @@ import { useToast } from '../../components/Toast'
 import Categories from './Categories'
 
 const CONTENT = [
-  ['single', '單次入場'], ['punch', '次數'], ['days', '天數'], ['course', '課程堂數'], ['rental', '商品／租借'],
+  ['single', '單次入場'], ['punch', '次數'], ['days', '天數'], ['course', '課程堂數'], ['goods', '商品'], ['rental', '租借'],
 ]
 const RULES = [['any', '不限'], ['weekday', '平日'], ['weekend', '假日'], ['time_slot', '時段']]
 
 function contentText(p) {
   if (p.content_type === 'single') return '單次入場'
-  if (p.content_type === 'rental') return p.track_stock ? '商品・管庫存' : '商品／租借'
+  if (p.content_type === 'goods') return p.track_stock ? '商品・管庫存' : '商品'
+  if (p.content_type === 'rental') return '租借'
   return `${p.quantity} ${{ punch: '次', days: '天', course: '堂' }[p.content_type]}${p.content_type === 'course' && p.valid_days ? `・${p.valid_days} 天內` : ''}`
 }
 function ruleText(p) {
@@ -30,7 +31,7 @@ const validUntil = (n) => {
 
 const EMPTY = {
   id: null, name: '', category_id: '', price: '', content_type: 'single', quantity: '1', usage_rule: 'any',
-  slot_start: '', slot_end: '', allShop: true, branchIds: [], sale_start: '', sale_end: '', status: 'on_sale', report_group: '', coach: '', valid_days: '', track_stock: false,
+  slot_start: '', slot_end: '', allShop: true, branchIds: [], transferable: true, sale_start: '', sale_end: '', status: 'on_sale', report_group: '', coach: '', valid_days: '', track_stock: false,
 }
 
 // 品項管理：品項不能刪除，只能下架；舊訂單保留當時的品名和價格
@@ -86,7 +87,9 @@ export default function Products() {
   const editingProduct = editing ? data.prods.find((p) => p.id === form.id) : null
   const readOnly = editing && !canEdit(editingProduct)
   const set = (k, v) => setF({ ...form, [k]: v })
-  const fixedQty = ['single', 'rental'].includes(form.content_type)
+  const fixedQty = ['single', 'rental', 'goods'].includes(form.content_type)
+  const isPlan = ['punch', 'days', 'course'].includes(form.content_type)
+  const system = editing && editingProduct?.system_key
 
   function openProduct(p) {
     const ids = branchesOf(p)
@@ -94,7 +97,7 @@ export default function Products() {
     setF({
       id: p.id, name: p.name, category_id: p.category_id, price: String(p.price), content_type: p.content_type,
       quantity: String(p.quantity), usage_rule: p.usage_rule, slot_start: p.slot_start?.slice(0, 5) || '', slot_end: p.slot_end?.slice(0, 5) || '',
-      allShop: p.all_branches, branchIds: ids,
+      allShop: p.all_branches, branchIds: ids, transferable: p.transferable !== false,
       sale_start: p.sale_start || '', sale_end: p.sale_end || '', status: p.status,
       report_group: p.report_group || '', coach: p.coach || '', valid_days: p.valid_days ? String(p.valid_days) : '', track_stock: Boolean(p.track_stock),
     })
@@ -123,8 +126,10 @@ export default function Products() {
       coach: form.content_type === 'course' ? form.coach.trim() || null : null,
       // 課程點數使用期限（天，購買當天起算）；空白＝不限期
       valid_days: form.content_type === 'course' && Number(form.valid_days) > 0 ? Number(form.valid_days) : null,
-      // 只有商品／租借類可以管理庫存
-      track_stock: form.content_type === 'rental' && form.track_stock,
+      // 只有商品可以管理庫存
+      track_stock: form.content_type === 'goods' && form.track_stock,
+      // 方案可不可以轉讓（課程預設不可）
+      transferable: isPlan ? form.transferable : true,
     }
     setBusy(true)
     try {
@@ -211,6 +216,7 @@ export default function Products() {
       <div className="adm-side" style={{ width: 400 }}>
         <span className="ds-card-title">{editing ? '編輯品項' : '新增品項'}</span>
         {readOnly && <div className="ds-note">這個品項在全店或多間分館販售，只有總部可以修改。</div>}
+        {system && <div className="ds-note">系統用品項：不會出現在櫃檯結帳畫面。{editingProduct.system_key === 'transfer_fee' ? '這裡的價格就是方案轉讓時收的轉讓費，0 元＝不收。' : ''}</div>}
         <fieldset disabled={readOnly || busy} style={{ border: 0, padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
           <div className="ds-field"><label className="ds-label" htmlFor="p1">名稱</label>
             <input id="p1" className="ds-input" placeholder="例：萬聖節活動票" value={form.name} onChange={(e) => set('name', e.target.value)} /></div>
@@ -222,17 +228,24 @@ export default function Products() {
             <div className="ds-field"><label className="ds-label" htmlFor="p3">價格</label>
               <input id="p3" className="ds-input" style={{ width: '100%' }} placeholder="NT$" inputMode="numeric" value={form.price} onChange={(e) => set('price', e.target.value.replace(/\D/g, ''))} /></div>
             <div className="ds-field"><label className="ds-label" htmlFor="p4">內容</label>
-              <select id="p4" className="ds-select" value={form.content_type} onChange={(e) => setF({ ...form, content_type: e.target.value, quantity: ['single', 'rental'].includes(e.target.value) ? '1' : form.quantity })}>
+              <select id="p4" className="ds-select" value={form.content_type} onChange={(e) => setF({ ...form, content_type: e.target.value, quantity: ['single', 'rental', 'goods'].includes(e.target.value) ? '1' : form.quantity,
+                transferable: e.target.value === 'course' ? false : form.transferable })}>
                 {CONTENT.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
               </select></div>
             <div className="ds-field"><label className="ds-label" htmlFor="p5">數量</label>
               <input id="p5" className="ds-input" style={{ width: '100%' }} placeholder="次數、天數或堂數" inputMode="numeric" disabled={fixedQty}
                 value={fixedQty ? '1' : form.quantity} onChange={(e) => set('quantity', e.target.value.replace(/\D/g, ''))} /></div>
           </div>
-          {form.content_type === 'rental' && (
+          {form.content_type === 'goods' && (
             <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 15 }}>
               <input type="checkbox" className="ds-checkbox" checked={form.track_stock} onChange={(e) => set('track_stock', e.target.checked)} />
-              <span>管理庫存<small style={{ display: 'block', color: 'var(--c-muted)' }}>實體商品（飲料、粉袋、販售的岩鞋等）請勾選：結帳自動扣庫存，櫃檯可進貨、盤點。租借用的不要勾。</small></span>
+              <span>管理庫存<small style={{ display: 'block', color: 'var(--c-muted)' }}>實體商品（飲料、粉袋、販售的岩鞋等）請勾選：結帳自動扣庫存，櫃檯可進貨、盤點。</small></span>
+            </label>
+          )}
+          {isPlan && (
+            <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 15 }}>
+              <input type="checkbox" className="ds-checkbox" checked={form.transferable} onChange={(e) => set('transferable', e.target.checked)} />
+              <span>可以轉讓<small style={{ display: 'block', color: 'var(--c-muted)' }}>會員買到的方案可以在後台轉讓給其他會員（轉讓時收「方案轉讓費」）。課程預設不可轉讓。</small></span>
             </label>
           )}
           {form.content_type === 'course' && (

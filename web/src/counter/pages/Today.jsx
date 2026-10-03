@@ -6,6 +6,7 @@ import { useCounter } from '../CounterContext'
 import Modal from '../../components/Modal'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import { useToast } from '../../components/Toast'
+import { PAY_METHODS } from '../../components/PlanDialogs'
 
 const RESULT = {
   success: '成功', waiver_required: '需簽同意書', plan_expired: '方案到期', no_remaining: '次數用完',
@@ -139,8 +140,6 @@ export default function Today() {
                     <span style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
                       {o.status === 'paid' && <button type="button" className="ds-btn" style={{ height: 36, padding: '0 12px', fontSize: 14 }}
                         onClick={() => setDialog({ type: 'void', o })}>作廢</button>}
-                      {o.status === 'paid' && isManager && <button type="button" className="ds-btn accent" style={{ height: 36, padding: '0 12px', fontSize: 14 }}
-                        onClick={() => setDialog({ type: 'refund', o })}>退費</button>}
                     </span>
                   </div>
                 )
@@ -157,7 +156,6 @@ export default function Today() {
           onClose={() => setDialog(null)} />
       )}
       {dialog?.type === 'void' && <VoidDialog order={dialog.o} onClose={() => setDialog(null)} onDone={() => { toast('訂單已作廢'); reload() }} />}
-      {dialog?.type === 'refund' && <OrderRefundDialog order={dialog.o} onClose={() => setDialog(null)} onDone={() => { toast('退費完成'); reload() }} />}
     </div>
   )
 }
@@ -188,7 +186,7 @@ export function VoidDialog({ order, onClose, onDone }) {
 
 export function OrderRefundDialog({ order, onClose, onDone }) {
   const paidCash = order.payments.filter((p) => p.method === 'cash').reduce((s, p) => s + p.amount, 0)
-  const [method, setMethod] = useState(paidCash > 0 ? 'cash' : 'line_pay')
+  const [method, setMethod] = useState(paidCash > 0 ? 'cash' : order.payments[0]?.method || 'cash')
   const [amount, setAmount] = useState(String(order.total))
   const [reason, setReason] = useState('')
   const [step, setStep] = useState(1)
@@ -197,7 +195,7 @@ export function OrderRefundDialog({ order, onClose, onDone }) {
   if (step === 2) {
     return (
       <ConfirmDialog title="確定要退費？" confirmText={`確認退費 ${money(amt)}`}
-        lines={[['訂單', order.order_no], ['會員', order.members?.name || '未指定'], ['退款方式', method === 'cash' ? '現金' : 'LINE Pay'], ['退款金額', money(amt)], ['原因', reason]]}
+        lines={[['訂單', order.order_no], ['會員', order.members?.name || '未指定'], ['退款方式', PAY_METHODS.find((m) => m[0] === method)[1]], ['退款金額', money(amt)], ['原因', reason]]}
         onConfirm={async () => { await rpc('refund_order', { p_order_id: order.id, p_method: method, p_amount: amt, p_reason: reason }); onDone() }}
         onClose={onClose}>
         <div className="ds-note">退款記在今天的帳上；這張訂單產生的方案會一併取消。</div>
@@ -206,9 +204,10 @@ export function OrderRefundDialog({ order, onClose, onDone }) {
   }
   return (
     <Modal title={`退費 ${order.order_no}`} onClose={onClose}>
-      <div className="co-grid2">
-        <button type="button" className={'ds-toggle' + (method === 'cash' ? ' on' : '')} style={sel(method === 'cash', 'var(--c-ink)')} onClick={() => setMethod('cash')}>退現金</button>
-        <button type="button" className={'ds-toggle' + (method === 'line_pay' ? ' on' : '')} style={sel(method === 'line_pay', 'var(--c-linepay)')} onClick={() => setMethod('line_pay')}>退 LINE Pay</button>
+      <div className="co-grid3">
+        {PAY_METHODS.map(([v, l, c]) => (
+          <button key={v} type="button" className={'ds-toggle' + (method === v ? ' on' : '')} style={sel(method === v, c)} onClick={() => setMethod(v)}>退{l}</button>
+        ))}
       </div>
       <div className="ds-field"><label className="ds-label" htmlFor="oa">退款金額（最多 {money(order.total)}）</label>
         <input id="oa" className="ds-input" inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value.replace(/\D/g, ''))} /></div>

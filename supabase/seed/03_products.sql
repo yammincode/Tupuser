@@ -2,11 +2,11 @@
 -- 品項初始資料（由 supabase/seed/tools/gen_products.py 依價目表產生，請勿手動修改）
 -- 價格來源：老闆提供的入場價目表與課程價目表（課程採 2024/01 現行價格）
 -- 分類依 design/ 設計稿 6 類；中壢店（原 A19）不建立品項
--- 只會在「還沒有任何品項」時執行；已經有品項就整段跳過，不會重複建立。
+-- 只會在「還沒有任何品項（系統用的方案轉讓費不算）」時執行；已經有品項就整段跳過，不會重複建立。
 -- =====================================================================
 do $seed$
 begin
-  if exists (select 1 from public.products) then
+  if exists (select 1 from public.products where to_jsonb(products) ->> 'system_key' is null) then
     raise notice '已經有品項資料，跳過';
     return;
   end if;

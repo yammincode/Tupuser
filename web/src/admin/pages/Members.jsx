@@ -92,7 +92,7 @@ function TagMembers({ tag, tagId, onPick }) {
 }
 
 function MemberDetail({ memberId }) {
-  const { branches, isHq } = useAdmin()
+  const { branches, isHq, staff } = useAdmin()
   const toast = useToast()
   const [d, setD] = useState(null)
   const [error, setError] = useState('')
@@ -104,7 +104,7 @@ function MemberDetail({ memberId }) {
     try {
       const [m, plans, visits, orders, waiver] = await Promise.all([
         supabase.from('members').select('*').eq('id', memberId).single().then(unwrap),
-        supabase.from('member_plans').select('*, order_items(order_id, line_total, quantity, orders(id, order_no, branch_id, business_date, status))')
+        supabase.from('member_plans').select('*, products(transferable), order_items(order_id, line_total, quantity, orders(id, order_no, branch_id, business_date, status))')
           .eq('member_id', memberId).order('created_at', { ascending: false }).then(unwrap),
         supabase.from('checkins').select('id, checked_in_at, method, result, branch_id, cancelled_at, deducted, member_plan_id')
           .eq('member_id', memberId).order('checked_in_at', { ascending: false }).limit(30).then(unwrap),
@@ -181,7 +181,8 @@ function MemberDetail({ memberId }) {
             {plan.status === 'frozen'
               ? <button type="button" className="ds-btn" onClick={() => setDialog('unfreeze')}>恢復</button>
               : <button type="button" className="ds-btn" disabled={plan.status !== 'active'} onClick={() => setDialog('freeze')}>暫停</button>}
-            <button type="button" className="ds-btn" disabled={!['active', 'frozen'].includes(plan.status)} onClick={() => setDialog('transfer')}>轉讓</button>
+            <button type="button" className="ds-btn" disabled={!['active', 'frozen'].includes(plan.status) || plan.products?.transferable === false}
+              title={plan.products?.transferable === false ? '這個方案設定為不能轉讓' : undefined} onClick={() => setDialog('transfer')}>{plan.products?.transferable === false ? '不可轉讓' : '轉讓'}</button>
             <button type="button" className="ds-btn" disabled={!planOrder || planOrder.status !== 'paid'} onClick={() => setDialog('refund')}>退費</button>
           </div>
         )}
@@ -234,7 +235,8 @@ function MemberDetail({ memberId }) {
       {dialog === 'unfreeze' && <ConfirmDialog title={`恢復「${plan.name}」？`} confirmText="確認恢復"
         lines={[['暫停開始', slashDate(plan.frozen_at)], ['到期日', plan.end_date ? '會依暫停天數自動延長' : '不限期']]}
         onClose={() => setDialog(null)} onConfirm={async () => { await rpc('unfreeze_plan', { p_plan_id: plan.id }); done('方案已恢復')() }} />}
-      {dialog === 'transfer' && <TransferDialog plan={plan} from={m} onClose={() => setDialog(null)} onDone={done('已轉讓')} />}
+      {dialog === 'transfer' && <TransferDialog plan={plan} from={m} branches={branches} isHq={isHq} branchId={isHq ? '' : staff.branch_id}
+        onClose={() => setDialog(null)} onDone={(r) => { toast(r?.order_no ? `已轉讓，轉讓費訂單 ${r.order_no}` : '已轉讓'); load() }} />}
       {dialog === 'refund' && <RefundDialog plan={plan} onClose={() => setDialog(null)} onDone={done('退費完成')} />}
       {dialog?.cancel && <ConfirmDialog title="取消這筆入場？" confirmText="確認取消"
         lines={[['時間', whenText(dialog.cancel.checked_in_at)], ['分館', branchName(dialog.cancel.branch_id)], ['方案', planName(dialog.cancel.member_plan_id)],

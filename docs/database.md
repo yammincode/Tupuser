@@ -728,3 +728,18 @@ erDiagram
 | `kiosk_checkin` | 同一個碼再掃：若上一筆是次數票且已超過 5 秒，視為同行的下一位再扣一次；5 秒內視為掃碼器連讀、不扣 |
 
 入場機：年月票成功畫面顯示會員大頭照；同一天第 2 次以上顯示「今日第 N 次入場」。櫃檯「今日」名單也會標示。今日入場人數：非會員每筆一人、次數票每扣一次一人、其他方案同一會員一人。
+
+## 25. 同事回饋修改（migration 0021、0022，2026-10-02）
+
+0021 只新增選項（要單獨執行完再執行 0022）：`content_type` 加 `goods`（商品）、`payment_method` 加 `transfer`（轉帳）、`invoice_type` 加 `donation`（捐贈）。
+
+| 項目 | 內容 |
+|---|---|
+| 商品／租借分開 | `goods`＝商品（可管庫存）、`rental`＝租借；已勾管理庫存的租借品項改成商品。兩者都不需要會員、不建立方案（`member_plans` 不可為 goods／rental） |
+| 轉帳 | 付款、退款可用轉帳；`daily_closings.transfer_sales`；`closing_preview` 回傳 transfer_count／transfer_sales／transfer_refunds；`sales_report` 各分館加 transfer；`report_accounting` 加 transfer、refund_transfer |
+| 混合付款 | `checkout` 最多兩種付款方式（現金、LINE Pay、轉帳任選） |
+| 捐贈發票 | `orders.invoice_donate_code`（3～7 碼數字，捐贈時必填） |
+| 單一品項折扣 | `checkout` 的 items[].discount_amount（原本就支援，櫃檯畫面補上） |
+| 可以轉讓 | `products.transferable`（課程預設 false） |
+| 系統用品項 | `products.system_key`；`transfer_fee`＝「方案轉讓費」，價格＝轉讓費（0＝不收），不出現在結帳畫面、`checkout` 不能賣 |
+| `transfer_plan(plan, to, reason, payment_method, branch)` | 總部、店長；不可轉讓的方案擋下；有轉讓費時同一交易建立一筆「方案轉讓費」訂單（付款人＝轉出會員，總部要指定分館，當天已關帳不能收） |

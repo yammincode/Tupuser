@@ -5,7 +5,7 @@ import { downloadCsv } from '../../lib/csv'
 import { money } from '../../lib/format'
 import { Bar, Card, Stat, num, pct, C } from './common'
 
-const PAY = { cash: '現金', line_pay: 'LINE Pay' }
+const PAY = { cash: '現金', line_pay: 'LINE Pay', transfer: '轉帳' }
 
 // 銷售：分類、品項、付款方式、折扣、業務代表、客單價
 export default function Sales({ from, to, branchId, branchName, fileTag, setExporter }) {
@@ -90,7 +90,7 @@ export default function Sales({ from, to, branchId, branchName, fileTag, setExpo
               <span className="muted">{pct(p.amount, payTotal)}</span>
             </div>
           ))}
-          <div className="muted" style={{ fontSize: 13, paddingTop: 8 }}>其中 {num(data.mixed_orders)} 筆是混合付款（現金＋LINE Pay），分別計入兩種方式。</div>
+          <div className="muted" style={{ fontSize: 13, paddingTop: 8 }}>其中 {num(data.mixed_orders)} 筆是混合付款（兩種付款方式），分別計入各自的方式。</div>
         </Card>
         <Card title="折扣原因" style={{ flex: 1 }}>
           {data.discounts.length === 0 && <div className="co-empty">這段期間沒有整筆折扣</div>}

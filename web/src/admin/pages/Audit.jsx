@@ -68,7 +68,7 @@ export function describe(r, branchName) {
     case 'member_plan.unfrozen': return [`${who}・${r.plan_name || ''}`, `恢復使用${a.extended_days ? `，到期日延後 ${a.extended_days} 天` : ''}`, '']
     case 'member_plan.transferred': return [`${who}・${r.plan_name || ''}`, `轉給 ${r.to_member ? `${r.to_member.name}（${r.to_member.no}）` : '其他會員'}`, a.reason]
     case 'order.voided': return [`訂單 ${b.order_no || ''}${who ? `・${who}` : ''}`, `作廢 ${money(b.total)}`, a.reason]
-    case 'order.refunded': return [`訂單 ${a.order_no || ''}${who ? `・${who}` : ''}`, `退 ${a.method === 'line_pay' ? 'LINE Pay' : '現金'} ${money(a.amount)}`, '']
+    case 'order.refunded': return [`訂單 ${a.order_no || ''}${who ? `・${who}` : ''}`, `退 ${a.method === 'transfer' ? '轉帳' : a.method === 'line_pay' ? 'LINE Pay' : '現金'} ${money(a.amount)}`, '']
     case 'checkin.cancelled': return [who, `${slashDate(b.business_date)} 的入場${b.deducted ? '，次數加回 1' : ''}`, '']
     case 'product.created': return [a.name || r.product_name, `價格 ${money(a.price)}`, '']
     case 'member.phone_changed': return [who, `${phoneText(b.phone)} → ${phoneText(a.phone)}`, '']
