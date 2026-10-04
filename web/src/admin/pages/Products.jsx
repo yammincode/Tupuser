@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { supabase, errorText } from '../../lib/supabase'
+import { supabase, rpc, errorText } from '../../lib/supabase'
 import { unwrap, useAsync } from '../../lib/useAsync'
 import { money } from '../../lib/format'
 import { useAdmin } from '../AdminContext'
@@ -11,7 +11,10 @@ const CONTENT = [
 ]
 const RULES = [['any', '不限'], ['weekday', '平日'], ['weekend', '假日'], ['time_slot', '時段']]
 
+const FEE_KINDS = [['', '一般商品'], ['transfer_fee', '方案轉讓費'], ['upgrade_fee', '升級全店通差價']]
+
 function contentText(p) {
+  if (p.fee_kind) return p.fee_kind === 'transfer_fee' ? '轉讓費' : '升級差價'
   if (p.content_type === 'single') return '單次入場'
   if (p.content_type === 'goods') return p.track_stock ? '商品・管庫存' : '商品'
   if (p.content_type === 'rental') return '租借'
@@ -31,7 +34,7 @@ const validUntil = (n) => {
 
 const EMPTY = {
   id: null, name: '', category_id: '', price: '', content_type: 'single', quantity: '1', usage_rule: 'any',
-  slot_start: '', slot_end: '', allShop: true, branchIds: [], transferable: true, sale_start: '', sale_end: '', status: 'on_sale', report_group: '', coach: '', valid_days: '', track_stock: false,
+  slot_start: '', slot_end: '', allShop: true, branchIds: [], transferable: true, sale_start: '', sale_end: '', status: 'on_sale', report_group: '', coach: '', valid_days: '', track_stock: false, fee_kind: '',
 }
 
 // 品項管理：品項不能刪除，只能下架；舊訂單保留當時的品名和價格
@@ -47,6 +50,8 @@ export default function Products() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [catsOpen, setCatsOpen] = useState(false)
+  const [drag, setDrag] = useState(null)     // 正在拖的列
+  const [armed, setArmed] = useState(null)   // 按住把手才能拖
 
   const { data, reload, error: loadError } = useAsync(async () => {
     const [cats, prods] = await Promise.all([
@@ -82,6 +87,20 @@ export default function Products() {
     .sort((a, b) => (catOrder[a.category_id] ?? 99) - (catOrder[b.category_id] ?? 99) || a.sort_order - b.sort_order)
 
   const filtered = JSON.stringify(flt) !== JSON.stringify(NO_FILTER) || q.trim()
+  // 手動排序（總部）：先選一個分類（不搜尋）才能拖拉，順序也會套用到櫃檯結帳畫面
+  const sorting = isHq && flt.cat && !q.trim()
+  async function moveRow(from, to) {
+    if (to < 0 || to >= rows.length || from === to) return
+    const next = [...rows]
+    const [it] = next.splice(from, 1)
+    next.splice(to, 0, it)
+    // 畫面上看不到的品項（被篩掉的）保持原位，只把看得到的依新順序填回去
+    const all = data.prods.filter((p) => p.category_id === flt.cat).sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name))
+    const shown = new Set(next.map((p) => p.id))
+    let k = 0
+    const ids = all.map((p) => (shown.has(p.id) ? next[k++].id : p.id))
+    try { await rpc('set_product_order', { p_ids: ids }); toast('順序已更新'); reload() } catch (e) { toast(errorText(e)) }
+  }
   const form = f || { ...EMPTY, category_id: activeCats[0]?.id || '', allShop: isHq, branchIds: isHq ? [] : [staff.branch_id] }
   const editing = Boolean(form.id)
   const editingProduct = editing ? data.prods.find((p) => p.id === form.id) : null
@@ -100,6 +119,7 @@ export default function Products() {
       allShop: p.all_branches, branchIds: ids, transferable: p.transferable !== false,
       sale_start: p.sale_start || '', sale_end: p.sale_end || '', status: p.status,
       report_group: p.report_group || '', coach: p.coach || '', valid_days: p.valid_days ? String(p.valid_days) : '', track_stock: Boolean(p.track_stock),
+      fee_kind: p.fee_kind || '',
     })
   }
 
@@ -127,7 +147,9 @@ export default function Products() {
       // 課程點數使用期限（天，購買當天起算）；空白＝不限期
       valid_days: form.content_type === 'course' && Number(form.valid_days) > 0 ? Number(form.valid_days) : null,
       // 只有商品可以管理庫存
-      track_stock: form.content_type === 'goods' && form.track_stock,
+      track_stock: form.content_type === 'goods' && !form.fee_kind && form.track_stock,
+      // 轉讓費、升級全店通差價（櫃檯結帳收，要選會員；後台轉讓／改全店通時選這筆訂單）
+      ...(isHq ? { fee_kind: form.content_type === 'goods' ? form.fee_kind || null : null } : {}),
       // 方案可不可以轉讓（課程預設不可）
       transferable: isPlan ? form.transferable : true,
     }
@@ -196,12 +218,24 @@ export default function Products() {
           </select>
           {filtered && <button type="button" className="ds-btn" onClick={() => { setFlt(NO_FILTER); setQ('') }}>清除篩選</button>}
         </div>
+        {isHq && <div className="muted" style={{ fontSize: 13 }}>{sorting ? '按住 ⋮⋮ 拖拉，或按 ↑↓ 調整順序；櫃檯結帳畫面會照這個順序排列。' : '要調整品項順序：先在上面選一個分類。'}</div>}
         <div className="ds-thead p-grid"><span>名稱</span><span>價格</span><span>內容</span><span>適用</span><span>分館</span><span>狀態</span></div>
         <div className="adm-rows">
           {rows.length === 0 && <div className="co-empty">沒有符合條件的品項</div>}
-          {rows.map((p) => (
-            <div key={p.id} className={'adm-row p-grid' + (p.status === 'off_sale' ? ' off' : '') + (form.id === p.id ? ' on' : '')} onClick={() => openProduct(p)}>
-              <span className="adm-name"><span className="adm-dot" style={{ background: catById[p.category_id]?.dot_color || '#CFC8BC' }} />{p.name}</span>
+          {rows.map((p, i) => (
+            <div key={p.id} className={'adm-row p-grid' + (p.status === 'off_sale' ? ' off' : '') + (form.id === p.id ? ' on' : '') + (drag === i ? ' dragging' : '')} onClick={() => openProduct(p)}
+              draggable={sorting && armed === i} onDragStart={(e) => { setDrag(i); e.dataTransfer.effectAllowed = 'move' }}
+              onDragOver={sorting ? (e) => e.preventDefault() : undefined} onDrop={sorting ? (e) => { e.preventDefault(); if (drag !== null) moveRow(drag, i); setDrag(null) } : undefined}
+              onDragEnd={() => { setDrag(null); setArmed(null) }}>
+              <span className="adm-name">
+                {sorting && (
+                  <span className="cat-handle p-handle" onMouseDown={() => setArmed(i)} onMouseUp={() => setArmed(null)} onClick={(e) => e.stopPropagation()}>
+                    <span aria-hidden="true" title="按住拖拉改順序">⋮⋮</span>
+                    <button type="button" aria-label={`把「${p.name}」往上移`} disabled={i === 0} onClick={() => moveRow(i, i - 1)}>↑</button>
+                    <button type="button" aria-label={`把「${p.name}」往下移`} disabled={i === rows.length - 1} onClick={() => moveRow(i, i + 1)}>↓</button>
+                  </span>
+                )}
+                <span className="adm-dot" style={{ background: catById[p.category_id]?.dot_color || '#CFC8BC' }} />{p.name}</span>
               <span>{money(p.price)}</span>
               <span style={{ color: 'var(--c-muted)' }}>{contentText(p)}</span>
               <span>{ruleText(p)}</span>
@@ -216,7 +250,7 @@ export default function Products() {
       <div className="adm-side" style={{ width: 400 }}>
         <span className="ds-card-title">{editing ? '編輯品項' : '新增品項'}</span>
         {readOnly && <div className="ds-note">這個品項在全店或多間分館販售，只有總部可以修改。</div>}
-        {system && <div className="ds-note">系統用品項：不會出現在櫃檯結帳畫面。{editingProduct.system_key === 'transfer_fee' ? '這裡的價格就是方案轉讓時收的轉讓費，0 元＝不收。' : ''}</div>}
+        {system && <div className="ds-note">系統用品項：不會出現在櫃檯結帳畫面。</div>}
         <fieldset disabled={readOnly || busy} style={{ border: 0, padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
           <div className="ds-field"><label className="ds-label" htmlFor="p1">名稱</label>
             <input id="p1" className="ds-input" placeholder="例：萬聖節活動票" value={form.name} onChange={(e) => set('name', e.target.value)} /></div>
@@ -236,7 +270,15 @@ export default function Products() {
               <input id="p5" className="ds-input" style={{ width: '100%' }} placeholder="次數、天數或堂數" inputMode="numeric" disabled={fixedQty}
                 value={fixedQty ? '1' : form.quantity} onChange={(e) => set('quantity', e.target.value.replace(/\D/g, ''))} /></div>
           </div>
-          {form.content_type === 'goods' && (
+          {form.content_type === 'goods' && isHq && (
+            <div className="ds-field"><label className="ds-label" htmlFor="p6">用途</label>
+              <select id="p6" className="ds-select" value={form.fee_kind} onChange={(e) => setF({ ...form, fee_kind: e.target.value, track_stock: e.target.value ? false : form.track_stock })}>
+                {FEE_KINDS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+              </select>
+              {form.fee_kind && <small className="muted">櫃檯結帳時要選會員；{form.fee_kind === 'transfer_fee' ? '後台「轉讓」' : '後台「改全店通」'}時選這筆訂單。不同金額可以建立多個（例：月票升級、十次券升級）。</small>}
+            </div>
+          )}
+          {form.content_type === 'goods' && !form.fee_kind && (
             <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 15 }}>
               <input type="checkbox" className="ds-checkbox" checked={form.track_stock} onChange={(e) => set('track_stock', e.target.checked)} />
               <span>管理庫存<small style={{ display: 'block', color: 'var(--c-muted)' }}>實體商品（飲料、粉袋、販售的岩鞋等）請勾選：結帳自動扣庫存，櫃檯可進貨、盤點。</small></span>

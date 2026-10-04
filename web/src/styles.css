@@ -194,6 +194,11 @@ a:hover { color: var(--c-accent-hover); }
 .cat-handle { display: flex; align-items: center; gap: 2px; color: var(--c-muted); cursor: grab; user-select: none; }
 .cat-handle button { width: 26px; height: 32px; border: 1px solid var(--c-border); border-radius: 6px; background: var(--c-surface); color: var(--c-ink); cursor: pointer; padding: 0; font-size: 13px; }
 .cat-handle button:disabled { opacity: .35; cursor: default; }
+.p-handle { margin-right: 6px; flex-shrink: 0; }
+.p-handle button { width: 24px; height: 26px; }
+.adm-row.dragging { opacity: .4; }
+.fee-order { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--c-line); border-radius: var(--r-sm); font-size: 14px; cursor: pointer; }
+.fee-order span { flex-grow: 1; min-width: 0; }
 .p-filters { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 0 4px; }
 .p-filters .ds-select { height: 38px; font-size: 14px; width: auto; min-width: 0; }
 .p-filters .ds-btn { height: 38px; font-size: 14px; }

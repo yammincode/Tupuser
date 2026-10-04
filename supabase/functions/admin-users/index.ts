@@ -68,13 +68,14 @@ Deno.serve(async (req) => {
     // 2. 建立員工
     if (body.action === 'create_staff') {
       const role = body.role
-      // 總部與會計不屬於任何分館
-      const branchId = role === 'hq' || role === 'accountant' ? null : body.branch_id
+      // 總部、會計、庫存管理不屬於任何分館
+      const noBranch = role === 'hq' || role === 'accountant' || role === 'inventory'
+      const branchId = noBranch ? null : body.branch_id
       const name = String(body.name ?? '').trim()
       if (!name) throw new Fail('請填寫姓名')
-      if (!['hq', 'manager', 'cashier', 'accountant'].includes(role)) throw new Fail('角色不正確')
-      if (role === 'accountant' && !isHq) throw new Fail('只有總部可以新增會計帳號', 403)
-      if (role !== 'hq' && role !== 'accountant' && !branchId) throw new Fail('請選擇分館')
+      if (!['hq', 'manager', 'cashier', 'accountant', 'inventory'].includes(role)) throw new Fail('角色不正確')
+      if ((role === 'accountant' || role === 'inventory') && !isHq) throw new Fail('只有總部可以新增會計與庫存管理帳號', 403)
+      if (!noBranch && !branchId) throw new Fail('請選擇分館')
       if (!isHq && !(role === 'cashier' && branchId === me.branch_id)) throw new Fail('店長只能新增自己分館的櫃檯人員', 403)
       const u = await createAuthUser()
       let staff

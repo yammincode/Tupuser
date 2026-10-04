@@ -49,7 +49,7 @@ export function phoneText(p) {
   return local.replace(/^(\d{4})(\d{3})(\d{3})$/, '$1-$2-$3')
 }
 
-export const ROLE_TEXT = { hq: '總部', manager: '店長', cashier: '櫃檯', accountant: '會計' }
+export const ROLE_TEXT = { hq: '總部', manager: '店長', cashier: '櫃檯', accountant: '會計', inventory: '庫存管理' }
 
 export const CONTENT_TEXT = { single: '單次', punch: '次數', days: '天數', course: '課程', rental: '租借', goods: '商品' }
 export const PAY_TEXT = { cash: '現金', line_pay: 'LINE Pay', transfer: '轉帳' }
@@ -80,6 +80,21 @@ export function planSummary(p) {
   const until = p.end_date ? `到期 ${slashDate(p.end_date)}` : '不限期'
   if (p.content_type === 'days') return p.start_date ? `${slashDate(p.start_date)} – ${slashDate(p.end_date)}` : until
   return `剩 ${p.remaining_count} ${p.content_type === 'course' ? '堂' : '次'}・${until}`
+}
+
+// 日期加減天數（YYYY-MM-DD）
+export function addDays(dateStr, n) {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10)
+}
+export const daysBetween = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / 86400000)
+
+// 暫停期間：暫停中 10/4～10/10、預定 10/11～10/13 暫停
+export function pauseText(p) {
+  if (!p.frozen_at) return ''
+  const range = `${slashDate(p.frozen_at)}～${p.frozen_until ? slashDate(p.frozen_until) : '未定'}`
+  const days = p.frozen_until ? `（${daysBetween(p.frozen_at, p.frozen_until) + 1} 天）` : ''
+  return p.status === 'frozen' ? `暫停 ${range}${days}` : `預定暫停 ${range}${days}`
 }
 
 const WD = ['日', '一', '二', '三', '四', '五', '六']

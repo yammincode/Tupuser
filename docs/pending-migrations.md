@@ -74,6 +74,23 @@
 
 ---
 
+## 同事回饋第三批（2026-10-04）：還沒執行
+
+**一定要分兩次執行**：先執行 0023，看到 Success 後，再開一個新的 query 執行 0024。
+
+| ✓ | 順序 | 檔名 | 行數 | 做什麼 |
+|---|---|---|---|---|
+| ⬜ | 0023 | `20261004000023_inventory_role.sql` | 7 | 新增角色：庫存管理 |
+| ⬜ | 0024 | `20261004000024_feedback_batch3.sql` | 555 | 庫存管理權限、庫存頁新增商品、調入、品項排序、轉讓費／升級差價在櫃檯收、暫停指定期間、每日自動切換暫停 |
+
+另外 **Edge Function `admin-users` 要重新部署**（才能建立庫存管理帳號），步驟和上次一樣。
+
+執行完之後：
+1. 品項管理把「方案轉讓費」設成要收的金額。
+2. 品項管理找到「升級全店通（補差價）」（目前下架、0 元），設定金額後上架；不同票種差價不同，可以新增多個品項，「用途」選「升級全店通差價」。
+
+---
+
 ## 檢查資料庫更新有沒有都執行（隨時可用，只查看、不會改資料）
 
 ```sql
@@ -91,5 +108,7 @@ union all select '0018', to_regprocedure('public.report_accounting(date,date,uui
 union all select '0019', to_regclass('public.member_tags') is not null
 union all select '0020', to_regclass('public.guest_waivers') is not null
 union all select '0021', exists (select 1 from pg_enum where enumlabel = 'transfer')
-union all select '0022', exists (select 1 from information_schema.columns where table_name = 'products' and column_name = 'transferable');
+union all select '0022', exists (select 1 from information_schema.columns where table_name = 'products' and column_name = 'transferable')
+union all select '0023', exists (select 1 from pg_enum where enumlabel = 'inventory')
+union all select '0024', exists (select 1 from information_schema.columns where table_name = 'products' and column_name = 'fee_kind');
 ```

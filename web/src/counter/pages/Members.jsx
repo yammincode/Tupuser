@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router'
 import { supabase, rpc, errorText } from '../../lib/supabase'
 import { unwrap } from '../../lib/useAsync'
 import { currentWaiver } from '../../lib/members'
-import { money, phoneText, planSummary, slashDate, todayTPE, whenText } from '../../lib/format'
+import { money, pauseText, phoneText, planSummary, slashDate, todayTPE, whenText } from '../../lib/format'
 import { useCounter } from '../CounterContext'
 import MemberSearch from '../../components/MemberSearch'
 import Modal from '../../components/Modal'
@@ -154,7 +154,7 @@ function MemberDetail({ memberId }) {
               const [ps, pt] = PLAN_PILL[p.status]
               return (
                 <div key={p.id} className={'mem-plan' + (p.id === planId ? ' on' : '')} onClick={() => setPlanId(p.id)}>
-                  <div><b>{p.name}</b><small>{planSummary(p)}</small></div>
+                  <div><b>{p.name}</b><small>{planSummary(p)}{p.frozen_at ? `・${pauseText(p)}` : ''}</small></div>
                   <span className={'ds-pill ' + pt}>{ps}</span>
                 </div>
               )

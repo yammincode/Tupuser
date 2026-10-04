@@ -14,6 +14,7 @@ import Reports from './pages/Reports'
 import Waivers from './pages/Waivers'
 import Members from './pages/Members'
 import Audit from './pages/Audit'
+import StockAdmin from './pages/StockAdmin'
 import { APP_VERSION } from '../version'
 
 const TABS = [
@@ -75,8 +76,9 @@ export default function AdminApp() {
   }
 
   const myBranch = branches.find((b) => b.id === staff.branch_id)
-  // 會計帳號只有「報表 → 會計」
-  const tabs = isAccountant ? [{ to: 'reports?v=accounting', label: '會計報表' }] : TABS
+  // 會計帳號只有「報表 → 會計」；庫存管理帳號只有「庫存」
+  const isInventory = staff.role === 'inventory'
+  const tabs = isAccountant ? [{ to: 'reports?v=accounting', label: '會計報表' }] : isInventory ? [{ to: 'stock', label: '庫存' }] : TABS
   const home = isAccountant ? '/admin/reports?v=accounting' : '/admin/products'
   return (
     <AdminCtx.Provider value={ctx}>
@@ -84,7 +86,7 @@ export default function AdminApp() {
         <header className="ds-topbar">
           <div className="ds-topbar-side">
             <span className="ds-topbar-brand">原岩攀岩館</span>
-            <span className="ds-topbar-branch">{staff.role === 'hq' || isAccountant ? '總部後台' : `總部後台・${myBranch?.name || ''}`}</span>
+            <span className="ds-topbar-branch">{staff.role === 'hq' || isAccountant || isInventory ? '總部後台' : `總部後台・${myBranch?.name || ''}`}</span>
           </div>
           <nav className="ds-tabs" aria-label="主選單">
             {tabs.map((t) => (
@@ -96,7 +98,7 @@ export default function AdminApp() {
               <button onClick={() => setMenu(!menu)}>{staff.role === 'hq' ? '管理者' : ROLE_TEXT[staff.role]}：{staff.name} ▾</button>
               {menu && (
                 <div className="staff-menu-pop" onClick={() => setMenu(false)}>
-                  {!isAccountant && <button onClick={() => { window.location.href = '/counter' }}>前往櫃檯</button>}
+                  {!isAccountant && !isInventory && <button onClick={() => { window.location.href = '/counter' }}>前往櫃檯</button>}
                   <button onClick={() => signOutWithLog('admin')}>登出</button>
                   <div className="staff-menu-ver">系統版本 {APP_VERSION}</div>
                 </div>
@@ -104,7 +106,12 @@ export default function AdminApp() {
             </div>
           </div>
         </header>
-        {isAccountant ? (
+        {isInventory ? (
+          <Routes>
+            <Route path="stock" element={<StockAdmin />} />
+            <Route path="*" element={<Navigate to="/admin/stock" replace />} />
+          </Routes>
+        ) : isAccountant ? (
           <Routes>
             <Route path="reports" element={<Reports />} />
             <Route path="*" element={<Navigate to={home} replace />} />

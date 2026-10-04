@@ -7,9 +7,9 @@ import Modal from '../../components/Modal'
 import { useToast } from '../../components/Toast'
 
 const ROLE = { hq: ['總部', 'var(--role-hq-bg)', 'var(--role-hq-fg)'], manager: ['店長', 'var(--role-manager-bg)', 'var(--role-manager-fg)'], cashier: ['櫃檯', 'var(--role-cashier-bg)', 'var(--role-cashier-fg)'],
-  accountant: ['會計', 'var(--role-cashier-bg)', 'var(--role-cashier-fg)'] }
-// 總部與會計不屬於任何分館
-const noBranch = (role) => role === 'hq' || role === 'accountant'
+  accountant: ['會計', 'var(--role-cashier-bg)', 'var(--role-cashier-fg)'], inventory: ['庫存管理', 'var(--role-cashier-bg)', 'var(--role-cashier-fg)'] }
+// 總部、會計、庫存管理不屬於任何分館
+const noBranch = (role) => role === 'hq' || role === 'accountant' || role === 'inventory'
 
 // 各角色權限（依 design/AdminStaff 與老闆 2026-09-29 決定）
 const PERMS = [
@@ -73,6 +73,7 @@ export default function Staff() {
         ))}
         <span style={{ fontSize: 13, paddingTop: 6, color: 'var(--c-muted)' }}>✓ 全部分館　◐ 只限自己的分館　— 沒有權限</span>
         <span style={{ fontSize: 13, color: 'var(--c-muted)' }}>會計：只能看「報表 → 會計」（全部分館）並匯出，不能查會員、不能修改任何資料；只有總部可以新增。</span>
+        <span style={{ fontSize: 13, color: 'var(--c-muted)' }}>庫存管理：只能用總部後台的「庫存」，處理全部分館的進貨、盤點、調撥、報廢與新增商品；看不到營收、會員與訂單；只有總部可以新增。</span>
       </div>
 
       {dialog?.type === 'new' && <NewStaff onClose={() => setDialog(null)} onDone={() => { toast('員工帳號已建立'); reload() }} />}
@@ -115,9 +116,10 @@ function NewStaff({ onClose, onDone }) {
             {isHq && <option value="manager">店長</option>}
             {isHq && <option value="hq">總部</option>}
             {isHq && <option value="accountant">會計（只看會計報表）</option>}
+            {isHq && <option value="inventory">庫存管理（只管各館庫存）</option>}
           </select></div>
         <div className="ds-field"><span className="ds-label">分館</span>
-          {noBranch(f.role) ? <div className="ds-note">{f.role === 'hq' ? '總部可管理全部分館' : '會計可看全部分館的會計報表'}</div>
+          {noBranch(f.role) ? <div className="ds-note">{f.role === 'hq' ? '總部可管理全部分館' : f.role === 'inventory' ? '庫存管理可處理全部分館的庫存，看不到營收' : '會計可看全部分館的會計報表'}</div>
             : <BranchSelect value={f.branch_id} onChange={(v) => setF({ ...f, branch_id: v })} disabled={!isHq} />}</div>
       </div>
       {error && <div className="ds-error">{error}</div>}
@@ -158,7 +160,7 @@ function EditStaff({ s, onClose, onDone }) {
       <div className="co-grid2" style={{ gap: 12 }}>
         <div className="ds-field"><span className="ds-label">角色</span>
           <select className="ds-select" value={f.role} onChange={(e) => setF({ ...f, role: e.target.value })} disabled={!isHq || self}>
-            <option value="cashier">櫃檯</option><option value="manager">店長</option><option value="hq">總部</option><option value="accountant">會計</option>
+            <option value="cashier">櫃檯</option><option value="manager">店長</option><option value="hq">總部</option><option value="accountant">會計</option><option value="inventory">庫存管理</option>
           </select></div>
         <div className="ds-field"><span className="ds-label">分館</span>
           {noBranch(f.role) ? <div className="ds-note">全部分館</div>

@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router'
 import { supabase, rpc } from '../../lib/supabase'
 import { unwrap } from '../../lib/useAsync'
 import { currentWaiver } from '../../lib/members'
-import { age, money, phoneText, planSummary, slashDate, whenText } from '../../lib/format'
+import { age, money, pauseText, phoneText, planSummary, slashDate, whenText } from '../../lib/format'
 import { useAdmin } from '../AdminContext'
 import MemberSearch from '../../components/MemberSearch'
 import ConfirmDialog from '../../components/ConfirmDialog'
@@ -11,7 +11,7 @@ import Modal from '../../components/Modal'
 import { adminUsers } from '../../lib/adminUsers'
 import { useToast } from '../../components/Toast'
 import { logActivity } from '../../lib/activity'
-import { AdjustDialog, ExtendDialog, ReasonDialog, RefundDialog, TransferDialog } from '../../components/PlanDialogs'
+import { AdjustDialog, ExtendDialog, FreezeDialog, RefundDialog, TransferDialog, UnfreezeDialog, UpgradeDialog } from '../../components/PlanDialogs'
 import { MemberNotes, TagEditDialog, TagManagerDialog, TagPill, TagPills, useMemberTags } from '../../components/MemberTags'
 
 const STATUS_PILL = { active: ['正常', 'ok'], suspended: ['暫停', 'warn'], inactive: ['停用', 'off'] }
@@ -166,7 +166,8 @@ function MemberDetail({ memberId }) {
                   boxShadow: p.id === planId ? 'inset 3px 0 0 var(--c-accent)' : undefined, paddingLeft: 8 }}>
                 <span style={{ fontWeight: 500 }}>{p.name}</span>
                 <span><span className={'ds-pill ' + pt}>{ps}</span></span>
-                <span>{planSummary(p)}{p.content_type !== 'days' && p.total_count ? <small className="muted">（共 {p.total_count}）</small> : null}</span>
+                <span>{planSummary(p)}{p.content_type !== 'days' && p.total_count ? <small className="muted">（共 {p.total_count}）</small> : null}
+                  {(p.frozen_at || p.branch_ids) && <small style={{ display: 'block', color: 'var(--c-muted)' }}>{[pauseText(p), p.branch_ids && `限 ${p.branch_ids.map(branchName).join('、')}`].filter(Boolean).join('・')}</small>}</span>
                 <span className="muted">{slashDate(p.start_date)}</span>
                 <span className="muted" style={{ fontSize: 13 }}>{o ? `${o.order_no}・${branchName(o.branch_id)}` : '手動新增'}</span>
               </div>
@@ -178,11 +179,12 @@ function MemberDetail({ memberId }) {
             <span className="muted" style={{ fontSize: 14, marginRight: 4 }}>「{plan.name}」：</span>
             <button type="button" className="ds-btn" disabled={!plan.end_date || plan.status === 'cancelled'} onClick={() => setDialog('extend')}>延期</button>
             <button type="button" className="ds-btn" disabled={plan.content_type === 'days' || plan.status === 'cancelled'} onClick={() => setDialog('adjust')}>調整次數</button>
-            {plan.status === 'frozen'
-              ? <button type="button" className="ds-btn" onClick={() => setDialog('unfreeze')}>恢復</button>
+            {plan.frozen_at
+              ? <button type="button" className="ds-btn" onClick={() => setDialog('unfreeze')}>{plan.status === 'frozen' ? '恢復／修改暫停' : '修改預定暫停'}</button>
               : <button type="button" className="ds-btn" disabled={plan.status !== 'active'} onClick={() => setDialog('freeze')}>暫停</button>}
             <button type="button" className="ds-btn" disabled={!['active', 'frozen'].includes(plan.status) || plan.products?.transferable === false}
               title={plan.products?.transferable === false ? '這個方案設定為不能轉讓' : undefined} onClick={() => setDialog('transfer')}>{plan.products?.transferable === false ? '不可轉讓' : '轉讓'}</button>
+            {plan.branch_ids && <button type="button" className="ds-btn" disabled={!['active', 'frozen'].includes(plan.status)} onClick={() => setDialog('upgrade')}>改全店通</button>}
             <button type="button" className="ds-btn" disabled={!planOrder || planOrder.status !== 'paid'} onClick={() => setDialog('refund')}>退費</button>
           </div>
         )}
@@ -229,14 +231,12 @@ function MemberDetail({ memberId }) {
       {dialog === 'testpw' && <TestPasswordDialog m={m} onClose={() => setDialog(null)} onDone={() => toast('已設定測試密碼')} />}
       {dialog === 'extend' && <ExtendDialog plan={plan} onClose={() => setDialog(null)} onDone={done('已延期')} />}
       {dialog === 'adjust' && <AdjustDialog plan={plan} onClose={() => setDialog(null)} onDone={done('已調整')} />}
-      {dialog === 'freeze' && <ReasonDialog title={`暫停「${plan.name}」`} hint="暫停期間不能入場；恢復時會依暫停天數自動延長到期日。"
-        confirmText="確認暫停" onClose={() => setDialog(null)}
-        onConfirm={async (reason) => { await rpc('freeze_plan', { p_plan_id: plan.id, p_reason: reason }); done('方案已暫停')() }} />}
-      {dialog === 'unfreeze' && <ConfirmDialog title={`恢復「${plan.name}」？`} confirmText="確認恢復"
-        lines={[['暫停開始', slashDate(plan.frozen_at)], ['到期日', plan.end_date ? '會依暫停天數自動延長' : '不限期']]}
-        onClose={() => setDialog(null)} onConfirm={async () => { await rpc('unfreeze_plan', { p_plan_id: plan.id }); done('方案已恢復')() }} />}
-      {dialog === 'transfer' && <TransferDialog plan={plan} from={m} branches={branches} isHq={isHq} branchId={isHq ? '' : staff.branch_id}
-        onClose={() => setDialog(null)} onDone={(r) => { toast(r?.order_no ? `已轉讓，轉讓費訂單 ${r.order_no}` : '已轉讓'); load() }} />}
+      {dialog === 'freeze' && <FreezeDialog plan={plan} onClose={() => setDialog(null)} onDone={done('已設定暫停')} />}
+      {dialog === 'unfreeze' && <UnfreezeDialog plan={plan} onClose={() => setDialog(null)} onDone={done('暫停已更新')} />}
+      {dialog === 'transfer' && <TransferDialog plan={plan} from={m}
+        onClose={() => setDialog(null)} onDone={(r) => { toast(r?.order_no ? `已轉讓（轉讓費訂單 ${r.order_no}）` : '已轉讓'); load() }} />}
+      {dialog === 'upgrade' && <UpgradeDialog plan={plan} member={m} branchNames={plan.branch_ids.map(branchName).join('、')}
+        onClose={() => setDialog(null)} onDone={(r) => { toast(r?.order_no ? `已改成全店通（差價訂單 ${r.order_no}）` : '已改成全店通'); load() }} />}
       {dialog === 'refund' && <RefundDialog plan={plan} onClose={() => setDialog(null)} onDone={done('退費完成')} />}
       {dialog?.cancel && <ConfirmDialog title="取消這筆入場？" confirmText="確認取消"
         lines={[['時間', whenText(dialog.cancel.checked_in_at)], ['分館', branchName(dialog.cancel.branch_id)], ['方案', planName(dialog.cancel.member_plan_id)],

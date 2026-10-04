@@ -110,7 +110,7 @@ export default function Checkout() {
       supabase.from('products').select('*, product_branches(branch_id)').eq('status', 'on_sale').order('sort_order').then(unwrap),
       supabase.from('staff').select('id, name').eq('status', 'active').eq('branch_id', branch.id).order('name').then(unwrap),
     ])
-    // 系統用品項（方案轉讓費）不在結帳畫面販售
+    // 系統用品項不在結帳畫面販售（方案轉讓費、升級全店通差價是一般品項，可以賣，但要選會員）
     const sellable = prods.filter((p) => !p.system_key
       && (p.all_branches || p.product_branches.some((pb) => pb.branch_id === branch.id))
       && (!p.sale_start || p.sale_start <= today) && (!p.sale_end || p.sale_end >= today))
@@ -218,6 +218,8 @@ export default function Checkout() {
     if (rows.length === 0) { setError('請先選擇項目'); return }
     // 單次入場票、商品、租借不需要會員；十次券、年月票、課程要先選會員
     if (!member && rows.some((r) => !NO_MEMBER_TYPES.includes(r.p.content_type))) { setError('十次券、年月票和課程需要先選擇會員'); return }
+    // 轉讓費、升級全店通差價：要記在會員名下，後台處理時才找得到這筆訂單
+    if (!member && rows.some((r) => r.p.fee_kind)) { setError(`「${rows.find((r) => r.p.fee_kind).p.name}」需要先選擇會員`); return }
     if (walkins > guests.length) { setError(`還有 ${walkins - guests.length} 位入場客人沒有簽安全守則`); return }
     if (walkins < guests.length) { setError(`入場客人（${guests.length} 位）比單次票（${walkins} 張）多，請移除或加票`); return }
     if (pay === 'cash' && total > 0 && received > 0 && received < total) { setError('實收金額不夠'); return }

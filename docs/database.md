@@ -743,3 +743,21 @@ erDiagram
 | 可以轉讓 | `products.transferable`（課程預設 false） |
 | 系統用品項 | `products.system_key`；`transfer_fee`＝「方案轉讓費」，價格＝轉讓費（0＝不收），不出現在結帳畫面、`checkout` 不能賣 |
 | `transfer_plan(plan, to, reason, payment_method, branch)` | 總部、店長；不可轉讓的方案擋下；有轉讓費時同一交易建立一筆「方案轉讓費」訂單（付款人＝轉出會員，總部要指定分館，當天已關帳不能收） |
+
+## 26. 同事回饋第三批（migration 0023、0024，2026-10-04）
+
+- **庫存管理角色**（`staff_role` 新增 `inventory`，不屬於分館）：和會計一樣被排除在 `app.staff_id()`／`staff_role()`／`staff_branch_id()` 之外，所以看不到會員、訂單、營收。庫存函式改用 `app.stock_staff()`、`app.can_manage_stock(分館)`、`app.stock_branches(分館, 只限營業中)`：總部與庫存管理＝所有分館；店長＝自己分館；櫃檯＝自己分館的進貨與盤點。`app.audit` 也會記下庫存管理是誰。
+- **庫存頁新增商品** `create_stock_product(分館, 名稱, 售價, 分類)`：商品（goods）、管理庫存、只在該分館販售；店長限自己分館，庫存管理與總部不限。
+- **調撥可調入**：`stock_transfer(from, to, …)` 改成店長「調出或調入自己分館」都可以。
+- **品項排序** `set_product_order(ids[])`（總部）：依順序把 `sort_order` 設成 10、20、30…，不逐筆記異動。
+- **費用品項** `products.fee_kind`：`transfer_fee` 方案轉讓費／`upgrade_fee` 升級全店通差價（可建立多個）。結帳時一定要有會員（`order_items` 觸發器 `fee_item_needs_member`）。原本的「方案轉讓費」`system_key` 改為空白、`fee_kind = transfer_fee`，可在櫃檯結帳販售。
+- **`plan_fee_links`**：費用訂單用在哪個方案（`order_id` 唯一，一筆只能用一次；不可刪除）。
+- `member_fee_orders(會員[], 種類)`：會員已付款、還沒用過的費用訂單。
+- `transfer_plan(方案, 轉入會員, 原因, 費用訂單, 免收原因)`：轉出或轉入會員付的轉讓費訂單都可以；沒有訂單要填免收原因。舊的「後台直接收費」版本已移除。
+- `upgrade_plan_all_branches(方案, 費用訂單, 免收原因)`：`branch_ids` 改成空白（全店通用），到期日與剩餘次數不變。
+- **暫停指定期間**：`member_plans.frozen_until`（結束暫停日，含當天；空白＝未定）。
+  - `freeze_plan(方案, 原因, 開始日, 結束日)`：開始日可以是過去或未來；知道結束日就馬上延長到期日（天數＝結束 − 開始 + 1）。
+  - `unfreeze_plan(方案, 結束日)`：恢復或修改；空白＝昨天（今天恢復）；結束日早於開始日＝取消這次暫停；到期日依新舊天數差重新計算。
+  - 狀態：今天在暫停期間＝`frozen`，否則 `active`（`frozen_at` 在未來＝預定暫停）。`app.settle_plans()` 每天 00:01（台灣時間）由 pg_cron 自動切換（工作名稱 `origin-settle-plans`），也會整理到期與用完。`app.plan_block_reason` 直接看暫停日期，自動切換還沒跑也擋得住。
+- 測試：`supabase/tests/30_batch3.sql`（接在 10_scenarios 之後，7 個應被擋）。
+
