@@ -23,7 +23,7 @@
 | **會員管理與異動紀錄** | 總部後台「會員」頁（延期、調整次數、暫停、轉讓、退費、取消入場）、「異動紀錄」頁（篩選、匯出）；課程可設使用期限 | `web/src/admin/pages/Members.jsx`、`Audit.jsx`、migration 0014 |
 | **員工使用足跡** | 所有員工帳號的登入／登出、瀏覽頁面、查看會員、匯出，記錄裝置與 IP；後台「異動紀錄 → 使用足跡」查看 | migration 0015、`web/src/lib/activity.js` |
 | **上線（Netlify）** | 正式版（`production` 分支）自動部署；網址 https://tupcount.netlify.app （`/counter` 櫃檯、`/admin` 總部後台、`/kiosk` 入場機、`/app` 會員 App），2026-10-01 部署完成 | Netlify 專案 tupcount |
-| **後台手機版** | 總部後台在手機上自動改成手機排版（報表、會員、訂單、異動紀錄等都能看） | `web/src/styles.css` |
+| **後台與櫃檯手機版** | 總部後台與櫃檯在手機上自動改成手機排版（櫃檯結帳品項在上、購物清單在下；客人簽同意書上下排）；平板版面不變 | `web/src/styles.css` |
 | **庫存** | 每間分館各算：進貨、賣出自動扣、盤點（差異由店長確認）、調撥、報廢；櫃檯「庫存」分頁、後台「報表 → 庫存」 | migration 0017、`web/src/counter/pages/Stock.jsx` |
 | **會計報表** | 後台「報表 → 會計」：銷售總額（含稅、未稅、稅額）、現金／LINE Pay、退款、每日彙總、每筆發票明細、退款明細，匯出 Excel 給會計 | migration 0018、`web/src/admin/reports/Accounting.jsx` |
 | **同事回饋第二批** | 商品／租借分開、訂單用發票號碼搜尋、結帳搜尋與分類、單品折扣、轉帳、捐贈發票、保留／取消訂單、櫃檯扣次自動帶分館、方案異動移到後台、轉讓收費與可轉讓設定 | migration 0021、0022 |

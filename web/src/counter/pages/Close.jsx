@@ -44,7 +44,7 @@ export default function Close() {
         {!closed && loadHeld(branch.id).length > 0 && (
           <div className="ds-note" style={{ color: 'var(--c-bad)' }}>這台平板還有 {loadHeld(branch.id).length} 筆「保留中」的訂單沒有結帳，請先到結帳頁處理（結帳或刪除）。</div>
         )}
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${pv.transfer_sales ? 4 : 3}, minmax(0, 1fr))`, gap: 16 }}>
+        <div className="ct-stats" style={{ display: 'grid', gridTemplateColumns: `repeat(${pv.transfer_sales ? 4 : 3}, minmax(0, 1fr))`, gap: 16 }}>
           <div className="ds-stat"><span className="ds-stat-label">現金（{pv.cash_count} 筆）</span><span className="ds-stat-value" style={{ fontSize: 30 }}>{money(pv.cash_sales)}</span></div>
           <div className="ds-stat"><span className="ds-stat-label">LINE Pay（{pv.line_pay_count} 筆）</span><span className="ds-stat-value" style={{ fontSize: 30 }}>{money(pv.line_pay_sales)}</span></div>
           {pv.transfer_sales > 0 && <div className="ds-stat"><span className="ds-stat-label">轉帳（{pv.transfer_count} 筆）</span><span className="ds-stat-value" style={{ fontSize: 30 }}>{money(pv.transfer_sales)}</span></div>}

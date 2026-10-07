@@ -276,7 +276,7 @@ export default function Checkout() {
   const editing = discEdit && rows.find((r) => r.p.id === discEdit)
 
   return (
-    <div style={{ flexGrow: 1, minHeight: 0, display: 'flex' }}>
+    <div className="co-page">
       {/* 左：彩色品項格子，依分類分組；上方搜尋與分類 */}
       <div className="co-left">
         <div className="co-finder">
@@ -314,8 +314,15 @@ export default function Checkout() {
         ))}
       </div>
 
+      {/* 手機：品項在上、購物清單在下；底部固定一條，點了跳到購物清單 */}
+      {rows.length > 0 && (
+        <button type="button" className="co-jump" onClick={() => document.getElementById('co-cart')?.scrollIntoView({ behavior: 'smooth' })}>
+          <span>購物清單 {rows.reduce((n, r) => n + r.qty, 0)} 項</span><b>{money(total)}　前往結帳 ↓</b>
+        </button>
+      )}
+
       {/* 右：購物清單 */}
-      <div className="co-cart">
+      <div className="co-cart" id="co-cart">
         {member ? (
           <div className="co-member">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>

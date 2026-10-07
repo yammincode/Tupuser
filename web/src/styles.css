@@ -37,6 +37,8 @@ a:hover { color: var(--c-accent-hover); }
 .col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 
 /* ---------- 結帳 ---------- */
+.co-page { flex-grow: 1; min-height: 0; display: flex; }
+.co-jump { display: none; }
 .co-left { flex-grow: 1; padding: 18px 22px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
 .co-group { display: flex; flex-direction: column; gap: 7px; }
 .co-cart { width: 440px; flex-shrink: 0; background: var(--c-surface); border-left: 1px solid var(--c-line-strong); display: flex; flex-direction: column; }
@@ -128,6 +130,7 @@ a:hover { color: var(--c-accent-hover); }
 
 /* ---------- 今日 ---------- */
 .today-list { flex-grow: 1; min-height: 0; background: var(--c-surface); border-radius: var(--r-card); padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
+.stk-grid { display: grid; grid-template-columns: minmax(0, 2fr) 100px 110px 130px; gap: 8px; align-items: center; }
 .today-rows { flex-grow: 1; min-height: 0; overflow-y: auto; }
 .t-grid { display: grid; grid-template-columns: 110px minmax(0, 1.3fr) minmax(0, 1.5fr) minmax(0, 1fr) 140px; align-items: center; }
 .o-grid { display: grid; grid-template-columns: 70px 170px minmax(0, 1fr) minmax(0, 1.6fr) 110px 90px 150px; align-items: center; gap: 8px; }
@@ -253,62 +256,115 @@ a:hover { color: var(--c-accent-hover); }
 .rpt-row { display: flex; gap: 16px; align-items: flex-start; }
 
 /* =====================================================================
-   總部後台：手機版（螢幕寬度 820px 以下）
-   櫃檯與入場機固定用平板，不受影響；平板與電腦的後台版面也不變
+   手機版（螢幕寬度 820px 以下）：總部後台與櫃檯（老闆 2026-10-07 決定櫃檯也要能用手機）
+   入場機固定用平板，不受影響；平板與電腦的版面也不變
    ===================================================================== */
 @media (max-width: 820px) {
-  .counter.admin { height: auto; min-height: 100vh; }
+  .counter { height: auto; min-height: 100vh; }
   /* 頂欄：店名與帳號一排，分頁在下一排可左右滑 */
-  .counter.admin .ds-topbar { position: sticky; top: 0; height: auto; flex-wrap: wrap; padding: 8px 12px; gap: 6px; }
-  .counter.admin .ds-topbar-side { width: auto; gap: 8px; }
-  .counter.admin .ds-topbar-side.right { min-width: 0; margin-left: auto; font-size: 13px; }
-  .counter.admin .ds-topbar-brand { white-space: nowrap; font-size: 16px; }
-  .counter.admin .ds-topbar-branch { font-size: 13px; white-space: nowrap; }
-  .counter.admin .ds-tabs { order: 3; width: 100%; flex-shrink: 1; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-  .counter.admin .ds-tabs::-webkit-scrollbar { display: none; }
-  .counter.admin .ds-tab { height: 36px; padding: 0 12px; font-size: 14px; }
+  .counter .ds-topbar { z-index: 30; position: sticky; top: 0; height: auto; flex-wrap: wrap; padding: 8px 12px; gap: 6px; }
+  .counter .ds-topbar-side { width: auto; gap: 8px; }
+  .counter .ds-topbar-side.right { min-width: 0; margin-left: auto; font-size: 13px; }
+  .counter .ds-topbar-brand { white-space: nowrap; font-size: 16px; }
+  .counter .ds-topbar-branch { font-size: 13px; white-space: nowrap; }
+  .counter .ds-tabs { order: 3; width: 100%; flex-shrink: 1; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .counter .ds-tabs::-webkit-scrollbar { display: none; }
+  .counter .ds-tab { height: 36px; padding: 0 12px; font-size: 14px; }
 
   /* 頁面：改成上下排，整頁往下捲 */
-  .counter.admin .page { flex-direction: column !important; padding: 12px; gap: 12px; overflow: visible !important; min-height: auto; }
-  .counter.admin .col { overflow: visible !important; }
-  .counter.admin .adm-side, .counter.admin .mem-search { width: auto !important; overflow: visible; }
-  .counter.admin .adm-list, .counter.admin .today-list { overflow: visible; min-height: auto; }
-  .counter.admin .adm-rows, .counter.admin .today-rows { overflow: visible; }
-  .counter.admin .rpt-row { flex-direction: column; align-items: stretch; gap: 12px; }
-  .counter.admin .rpt-row > * { flex: none !important; width: auto; }
-  .counter.admin .ds-card { padding: 14px 16px; }
+  .counter .page { flex-direction: column !important; padding: 12px; gap: 12px; overflow: visible !important; min-height: auto; }
+  .counter .col { overflow: visible !important; }
+  .counter .adm-side, .counter .mem-search { width: auto !important; overflow: visible; }
+  .counter .adm-list, .counter .today-list { overflow: visible; min-height: auto; }
+  .counter .adm-rows, .counter .today-rows { overflow: visible; }
+  .counter .rpt-row { flex-direction: column; align-items: stretch; gap: 12px; }
+  .counter .rpt-row > * { flex: none !important; width: auto; }
+  .counter .ds-card { padding: 14px 16px; }
 
   /* 數字方塊：兩個一排 */
-  .counter.admin .rpt-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px; }
-  .counter.admin .ds-stat { padding: 14px 16px; }
-  .counter.admin .ds-stat-value, .counter.admin .rpt-grid.five .ds-stat-value { font-size: 22px; }
+  .counter .rpt-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px; }
+  .counter .ds-stat { padding: 14px 16px; }
+  .counter .ds-stat-value, .counter .rpt-grid.five .ds-stat-value { font-size: 22px; }
 
   /* 篩選列 */
-  .counter.admin .rpt-toolbar { padding: 12px; }
-  .counter.admin .rpt-view { height: 36px; padding: 0 12px; font-size: 14px; }
-  .counter.admin .rpt-filters .ds-btn, .counter.admin .rpt-filters .ds-select { height: 38px; font-size: 14px; }
-  .counter.admin .rpt-filters .ds-input { height: 38px; font-size: 14px; max-width: 150px; }
-  .counter.admin .rpt-filters .grow { display: none; }
+  .counter .rpt-toolbar { padding: 12px; }
+  .counter .rpt-view { height: 36px; padding: 0 12px; font-size: 14px; }
+  .counter .rpt-filters .ds-btn, .counter .rpt-filters .ds-select { height: 38px; font-size: 14px; }
+  .counter .rpt-filters .ds-input { height: 38px; font-size: 14px; max-width: 150px; }
+  .counter .rpt-filters .grow { display: none; }
 
   /* 表格：比螢幕寬的表格可以左右滑 */
-  .counter.admin .ds-card, .counter.admin .today-list, .counter.admin .adm-list { overflow-x: auto !important; }
+  .counter .ds-card, .counter .today-list, .counter .adm-list { overflow-x: auto !important; }
   /* 多欄的清單（訂單、品項、員工、異動紀錄）可以左右滑 */
-  .counter.admin .today-list .rpt-table-row, .counter.admin .today-list .ds-thead, .counter.admin .t-row,
-  .counter.admin .adm-list .ds-thead, .counter.admin .adm-row { min-width: 620px; }
+  .counter .today-list .rpt-table-row, .counter .today-list .ds-thead, .counter .t-row,
+  .counter .adm-list .ds-thead, .counter .adm-row { min-width: 620px; }
+  .counter .o-grid { min-width: 860px; }
+  .counter .stk-grid { min-width: 0 !important; grid-template-columns: minmax(0, 1fr) 72px 76px; }
+  .counter .stk-grid > :nth-child(4) { display: none; }
   /* 欄位多的表格（加了 rpt-wide）可以左右滑 */
-  .counter.admin .rpt-wide { min-width: 600px; }
+  .counter .rpt-wide { min-width: 600px; }
   /* 報表：隱藏長條圖，把空間留給數字 */
-  .counter.admin .rpt-hbar { display: none; }
-  .counter.admin .adm-side { overflow-x: auto; }
+  .counter .rpt-hbar { display: none; }
+  .counter .adm-side { overflow-x: auto; }
 
-  .counter.admin .ds-btn { white-space: nowrap; }
+  .counter .ds-btn { white-space: nowrap; }
 
   /* 分館設定卡片：兩欄 */
-  .counter.admin .br-card { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 14px 16px; }
-  .counter.admin .br-name, .counter.admin .br-save { grid-column: 1 / -1; }
-  .counter.admin .br-save { order: 10; }
-  .counter.admin .br-extra { grid-column: 1 / -1 !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-  .counter.admin .br-extra .ds-field:first-child { grid-column: 1 / -1; }
+  .counter .br-card { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 14px 16px; }
+  .counter .br-name, .counter .br-save { grid-column: 1 / -1; }
+  .counter .br-save { order: 10; }
+  .counter .br-extra { grid-column: 1 / -1 !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .counter .br-extra .ds-field:first-child { grid-column: 1 / -1; }
+
+  /* ---------- 櫃檯：頂欄 ---------- */
+  .counter:not(.admin) .ds-topbar-side.right { gap: 10px; }
+
+  /* ---------- 櫃檯：會員、新增會員、今日、關帳 ---------- */
+  .mem-card { flex-wrap: wrap; padding: 14px 16px; gap: 12px; }
+  .mem-card .ds-avatar { width: 56px; height: 56px; font-size: 22px; }
+  .mem-card .grow > div:first-child { flex-wrap: wrap; }
+  .mem-name { font-size: 20px; }
+  .mem-grid { grid-template-columns: minmax(0, 1fr); grid-auto-rows: auto; }
+  .mem-grid > .ds-card { overflow: visible; }
+  .reg-form { padding: 16px; overflow: visible; }
+  .reg-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .reg-grid .ds-input, .reg-grid .ds-select { width: 100%; min-width: 0; }
+  .reg-side, .close-side { width: auto; overflow: visible; }
+  .ct-stats { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px !important; }
+  .ct-stats .ds-stat { padding: 14px 16px; }
+  .ct-stats .ds-stat-value { font-size: 24px; }
+  .today-bar { flex-wrap: wrap; gap: 8px; }
+  .today-bar > div { flex-wrap: wrap; }
+
+  /* ---------- 客人簽同意書／安全守則：上面讀全文，下面勾選與簽名 ---------- */
+  .wv { height: auto; min-height: 100vh; }
+  .wv-head { height: auto; min-height: 56px; padding: 8px 16px; flex-wrap: wrap; gap: 6px; }
+  .wv-head b { font-size: 17px; letter-spacing: 2px; white-space: nowrap; }
+  .wv-head span { font-size: 14px; }
+  .wv-body { flex-direction: column; padding: 12px; gap: 12px; }
+  .wv-text { flex-grow: 0; max-height: 55vh; padding: 16px; font-size: 16px; }
+  .wv-text h2 { font-size: 19px; }
+  .wv-side { width: auto; overflow: visible; }
+  .wv-checks { padding: 16px; font-size: 16px; }
+  .wv-sign { padding: 16px; min-height: 300px; }
+
+  /* ---------- 櫃檯：結帳（品項在上、購物清單在下） ---------- */
+  .co-page { flex-direction: column; padding-bottom: 76px; }
+  .co-left { overflow: visible; padding: 12px; }
+  .co-finder { position: static; margin: 0; padding: 0 0 4px; }
+  .ds-tile-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .co-cart { width: auto; border-left: 0; border-top: 1px solid var(--c-line-strong); }
+  .co-rows { overflow: visible; min-height: 80px; padding: 4px 16px; }
+  .co-member, .co-actions { padding-left: 16px; padding-right: 16px; }
+  .co-foot { padding: 12px 16px 16px; }
+  .co-invoice { flex-wrap: wrap; }
+  .co-invoice .ds-input { flex-basis: 100%; }
+  .co-grid4 .ds-toggle { font-size: 15px; padding: 0 4px; }
+  .co-jump {
+    display: flex; position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 20;
+    height: 52px; padding: 0 16px; border: 0; border-radius: var(--r-md); background: var(--c-ink); color: var(--c-surface);
+    align-items: center; justify-content: space-between; font-size: 15px; box-shadow: 0 6px 18px rgba(28, 26, 23, 0.25); cursor: pointer;
+  }
 
   /* 彈出視窗 */
   .ds-dialog { max-width: calc(100vw - 24px); padding: 20px; }

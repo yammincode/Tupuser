@@ -62,13 +62,13 @@ export function StockPanel({ staff, branch, branches }) {
               : <span className="muted">請店長確認後，庫存才會調整。</span>}
           </div>
         )}
-        <div className="ds-thead" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) 100px 110px 130px', gap: 8 }}>
+        <div className="ds-thead stk-grid">
           <span>商品</span><span>售價</span><span>目前庫存</span><span>上次盤點</span>
         </div>
         <div className="today-rows">
           {items.length === 0 && <div className="co-empty">還沒有要管理庫存的商品。{isManager ? '按「＋ 新增商品」建立，或' : '請店長在這裡新增商品，或'}請總部到「品項管理」把商品勾選「管理庫存」。</div>}
           {items.map((p) => (
-            <div key={p.id} className="t-row" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) 100px 110px 130px', gap: 8, alignItems: 'center' }}>
+            <div key={p.id} className="t-row stk-grid">
               <span style={{ fontWeight: 500 }}>{p.name}{p.status !== 'on_sale' && <small className="muted">（已下架）</small>}</span>
               <span className="muted">{money(p.price)}</span>
               <span style={{ fontWeight: 700, fontSize: 18, color: p.qty <= 0 ? 'var(--c-bad)' : undefined }}>{p.qty}{p.qty <= 0 ? ' 缺貨' : ''}</span>

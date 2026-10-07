@@ -75,7 +75,7 @@ export default function Today() {
 
   return (
     <div className="page" style={{ flexDirection: 'column' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 16 }}>
+      <div className="ct-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 16 }}>
         {stats.map((s) => (
           <div key={s.k} className="ds-stat">
             <span className="ds-stat-label">{s.k}</span>
@@ -84,7 +84,7 @@ export default function Today() {
         ))}
       </div>
       <div className="today-list">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="today-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span className="ds-card-title" style={{ marginRight: 8 }}>{shortDay(today)}</span>
             <button type="button" className={btn(view === 'checkins')} onClick={() => setView('checkins')}>入場名單</button>
